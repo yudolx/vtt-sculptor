@@ -1,0 +1,26 @@
+{
+  "compilerOptions": {
+    "strict": true,
+    "module": "commonjs",
+    "removeComments": true,
+    "target": "ESNext",
+    "outDir": "./compiled/",
+    "baseUrl": "./src",
+    "jsx": "react",
+    "esModuleInterop": true,
+    "paths": {
+      "*": [
+        "./node_modules/*",
+        "./*"
+      ]
+    },
+  },
+  "include": [
+    "./src/**/*",
+    "global.d.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "compiled"
+  ]
+}
