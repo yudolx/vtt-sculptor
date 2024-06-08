@@ -111,20 +111,16 @@ export class Video extends React.Component<IVideoProps, IVideoState> {
     });
   }
 
-  renderVideoElement() {
+  render(): React.ReactNode {
     return (
       <VideoElementContainer>
-        <video
+        <StyledVideo
           ref={(el) => (this.videoEl = el)}
           controls
           src={this.props.path ?? ""}
-        ></video>
+        ></StyledVideo>
       </VideoElementContainer>
     );
-  }
-
-  render(): React.ReactNode {
-    return <Box sx={{ height: 1, width: 1 }}>{this.renderVideoElement()}</Box>;
   }
 }
 
@@ -135,6 +131,15 @@ const VideoElementContainer = styled(Box, { name: "VideoElementContainer" })(
       backgroundColor: "#000",
       justifyContent: "center",
       alignItems: "center",
+      maxHeight: "100%",
+      width: "100%",
     };
   },
 );
+
+const StyledVideo = styled("video", { name: "StyledVideo" })(() => {
+  return {
+    maxWidth: "100%",
+    maxHeight: "100%",
+  };
+});

@@ -70,6 +70,7 @@ const AppWrapper = styled(Box, { name: "AppWrapper" })(() => {
 
 const VideoWrapper = styled(Box, { name: "VideoWrapper" })(() => {
   return {
+    display: "flex",
     maxHeight: 500,
   };
 });
