@@ -45,7 +45,7 @@ export class SubtitleTableRow extends React.Component<
         onBlur={this.handleBlur}
         onMouseDown={this.handleClick}
         active={this.props.active}
-        key={cue.id}
+        key={cue.uuid}
       >
         <td>{cue.startTime}</td>
         <td>{cue.endTime}</td>

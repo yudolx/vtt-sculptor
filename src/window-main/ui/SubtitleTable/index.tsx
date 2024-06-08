@@ -28,9 +28,9 @@ export class SubtitleTable extends React.Component<
   }
 
   handleSubtitleTableRowClick = (cue: IVTTCue) => {
-    if (this.state.activeCue !== cue.id) {
+    if (this.state.activeCue !== cue.uuid) {
       this.setState({
-        activeCue: cue.id,
+        activeCue: cue.uuid,
       });
     }
   };
@@ -40,7 +40,7 @@ export class SubtitleTable extends React.Component<
       <SubtitleTableRow
         key={cue.id}
         cue={cue}
-        active={this.state.activeCue === cue.id}
+        active={this.state.activeCue === cue.uuid}
         onChange={() => {}}
         onClick={this.handleSubtitleTableRowClick}
       />
