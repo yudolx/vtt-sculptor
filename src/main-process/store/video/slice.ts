@@ -1,5 +1,4 @@
-import { createSlice } from "@reduxjs/toolkit";
-import { setVideoPath } from "shared/actions";
+import { PayloadAction, createSlice } from "@reduxjs/toolkit";
 
 export interface IVideoSliceState {
   path: string | null;
@@ -14,10 +13,12 @@ export const getInitialState = (): IVideoSliceState => {
 export const videoSlice = createSlice({
   name: "video",
   initialState: getInitialState(),
-  reducers: {},
-  extraReducers(builder) {
-    builder.addCase(setVideoPath, (state, action) => {
-      state.path = action.payload;
-    });
+  reducers: {
+    setPath: (
+      state,
+      action: PayloadAction<{ path: IVideoSliceState["path"] }>,
+    ) => {
+      state.path = action.payload.path;
+    },
   },
 });

@@ -48,10 +48,13 @@ export class App extends React.Component<IAppProps, IAppState> {
     return (
       <AppWrapper>
         <VideoWrapper>
-          <Video path={this.state.video.path} />
+          <Video
+            cues={this.state.subtitles.cues}
+            path={this.state.video.path}
+          />
         </VideoWrapper>
         <SubtitleTableWrapper>
-          <SubtitleTable />
+          <SubtitleTable cues={this.state.subtitles.cues} />
         </SubtitleTableWrapper>
       </AppWrapper>
     );

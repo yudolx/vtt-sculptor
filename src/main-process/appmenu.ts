@@ -1,10 +1,8 @@
-import { Menu, MenuItemConstructorOptions, dialog } from "electron";
-import * as fs from "fs/promises";
-import { appMenuFileNew, appMenuFileOpen, setVideoPath } from "shared/actions";
+import { Menu, MenuItemConstructorOptions } from "electron";
+import { menu } from "shared/ui/actions/menu";
 import { IApplicationState, store } from "./store";
-import { parseWebVTT } from "shared/libs/vtt";
 
-export class ApplicationMenu {
+export class AppMenu {
   protected menu: Menu;
 
   constructor() {
@@ -102,40 +100,15 @@ export class ApplicationMenu {
   }
 
   protected handleLoadVideo = async () => {
-    const selectedFile = await dialog.showOpenDialog({
-      properties: ["openFile", "showHiddenFiles"],
-      filters: [{ name: "Web compatible movies", extensions: ["mp4", "webm"] }],
-    });
-
-    if (selectedFile.canceled) {
-      return;
-    }
-
-    const [videoPath] = selectedFile.filePaths;
-
-    store.dispatch(setVideoPath(videoPath));
+    store.dispatch(menu.video.load());
   };
 
   protected handleNew = () => {
-    store.dispatch(appMenuFileNew());
+    store.dispatch(menu.file.new());
   };
 
   protected handleOpen = async () => {
-    const selectedFile = await dialog.showOpenDialog({
-      properties: ["openFile", "showHiddenFiles"],
-      filters: [{ name: "WebVTT Subtitles", extensions: ["vtt"] }],
-    });
-
-    if (selectedFile.canceled && selectedFile.filePaths.length !== 1) {
-      return;
-    }
-
-    const filePath = selectedFile.filePaths.at(0)!;
-    const content = await fs.readFile(filePath, "utf-8");
-
-    const cues = parseWebVTT(content);
-
-    store.dispatch(appMenuFileOpen({ file: filePath, cues }));
+    store.dispatch(menu.file.open());
   };
 
   protected handleSave = () => {};

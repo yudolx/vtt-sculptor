@@ -1,16 +1,15 @@
-import { createSlice } from "@reduxjs/toolkit";
-import { appMenuFileNew, appMenuFileOpen } from "shared/actions";
+import { PayloadAction, createSlice } from "@reduxjs/toolkit";
 import { IVTTCue } from "shared/libs/vtt/vttcue";
 import { IVTTRegion } from "shared/libs/vtt/vttregion";
 
 export interface ISubtitlesSliceState {
-  openedFilePath: string | null;
+  file: string | null;
   cues: (IVTTCue | IVTTRegion)[] | null;
 }
 
 export const getInitialState = (): ISubtitlesSliceState => {
   return {
-    openedFilePath: null,
+    file: null,
     cues: null,
   };
 };
@@ -18,16 +17,16 @@ export const getInitialState = (): ISubtitlesSliceState => {
 export const subtitlesSlice = createSlice({
   name: "subtitles",
   initialState: getInitialState(),
-  reducers: {},
-  extraReducers(builder) {
-    builder
-      .addCase(appMenuFileNew, (state) => {
-        state.cues = [];
-        state.openedFilePath = null;
-      })
-      .addCase(appMenuFileOpen, (state, action) => {
-        state.cues = action.payload.cues;
-        state.openedFilePath = action.payload.file;
-      });
+  reducers: {
+    setFileAndCues: (
+      state,
+      action: PayloadAction<{
+        file: ISubtitlesSliceState["file"];
+        cues: ISubtitlesSliceState["cues"];
+      }>,
+    ) => {
+      state.cues = action.payload.cues;
+      state.file = action.payload.file;
+    },
   },
 });

@@ -124,7 +124,7 @@ export function parseCue(
               : null;
             settings.alt(k, vals0, ["auto"]);
             if (vals.length === 2) {
-              settings.alt("lineAlign", vals[1], ["start", "middle", "end"]);
+              settings.alt("lineAlign", vals[1], ["start", "center", "end"]);
             }
             break;
           }
@@ -134,7 +134,7 @@ export function parseCue(
             if (vals.length === 2) {
               settings.alt("positionAlign", vals[1], [
                 "start",
-                "middle",
+                "center",
                 "end",
               ]);
             }
@@ -144,7 +144,7 @@ export function parseCue(
             settings.percent(k, v);
             break;
           case "align":
-            settings.alt(k, v, ["start", "middle", "end", "left", "right"]);
+            settings.alt(k, v, ["start", "center", "end", "left", "right"]);
             break;
         }
       },
@@ -159,14 +159,14 @@ export function parseCue(
     cue.lineAlign = settings.get("lineAlign", "start");
     cue.snapToLines = settings.get("snapToLines", true);
     cue.size = settings.get("size", 100);
-    cue.align = settings.get("align", "middle");
+    cue.align = settings.get("align", "center");
     cue.position = settings.get("position", "auto");
     cue.positionAlign = settings.get(
       "positionAlign",
       {
         start: "start",
         left: "start",
-        middle: "middle",
+        center: "center",
         end: "end",
         right: "end",
       },
