@@ -107,7 +107,8 @@ export function parseCue(
             // Find the last region we parsed with the same region id.
             for (let i = regionList.length - 1; i >= 0; i--) {
               if (regionList[i].id === v) {
-                settings.set(k, regionList[i].region);
+                // settings.set(k, regionList[i].region);
+                settings.set(k, regionList[i].id);
                 break;
               }
             }

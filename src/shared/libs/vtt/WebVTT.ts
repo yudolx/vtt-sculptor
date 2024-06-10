@@ -37,7 +37,7 @@ export class WebVTTParser {
 
   public onparsingerror?: (error: ParsingError) => void;
   public oncue?: (cue: IVTTCue) => void;
-  public onregion?: (cue: IVTTRegion) => void;
+  public onregion?: (regionId: string, cue: IVTTRegion) => void;
   public onflush?: () => void;
 
   constructor(decoder?: WebVTTCompatibleDecoder) {
@@ -143,7 +143,7 @@ export class WebVTTParser {
           scroll: settings.get("scroll", ""),
         });
         // Register the region.
-        this.onregion && this.onregion(region);
+        this.onregion && this.onregion(settings.get("id"), region);
         // Remember the VTTRegion for later in case we parse any IVTTCues that
         // reference it.
         this.regionList.push({

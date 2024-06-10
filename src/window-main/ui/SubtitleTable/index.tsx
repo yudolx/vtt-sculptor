@@ -50,11 +50,11 @@ export class SubtitleTable extends React.Component<
   render() {
     const cues = (this.props.cues ?? []) as IVTTCue[];
     return (
-      <Table>
+      <Table stickyHeader>
         <thead>
           <tr>
-            <th>Start</th>
-            <th>End</th>
+            <th style={{ width: 150 }}>Start</th>
+            <th style={{ width: 150 }}>End</th>
             <th>Text</th>
           </tr>
         </thead>

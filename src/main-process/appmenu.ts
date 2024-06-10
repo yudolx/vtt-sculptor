@@ -54,6 +54,12 @@ export class AppMenu {
             accelerator: "delete",
             click: this.handleRemoveSelectedSubtitles,
           },
+          { type: "separator" },
+          {
+            label: "Regions",
+            id: "regions",
+            click: () => {},
+          },
         ],
       },
       {

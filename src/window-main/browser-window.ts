@@ -1,10 +1,10 @@
 import { BrowserWindow, BrowserWindowConstructorOptions } from "electron";
 
 export const createWindowMain = (
-  options: BrowserWindowConstructorOptions = {}
+  options: BrowserWindowConstructorOptions = {},
 ): BrowserWindow => {
   let browser_window: BrowserWindow | null = new BrowserWindow({
-  width: 1024,
+    width: 1024,
     height: 768,
     title: "Test",
     show: false,

@@ -12,6 +12,7 @@ export class BackgroundProcess {
     main: createWindowMain({
       webPreferences: {
         preload: path.join(__dirname, "window_main_preload.js"),
+        experimentalFeatures: true,
       },
     }),
   };

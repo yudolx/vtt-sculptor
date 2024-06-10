@@ -28,6 +28,7 @@ export function* newfile() {
   yield put(
     subtitlesSlice.actions.setFileAndCues({
       cues: [],
+      regions: {},
       file: null,
     }),
   );
@@ -54,11 +55,12 @@ export function* openFile() {
     "utf-8",
   );
 
-  const cues = parseWebVTT(content.toString());
+  const { cues, regions } = parseWebVTT(content.toString());
 
   yield put(
     subtitlesSlice.actions.setFileAndCues({
-      cues: cues,
+      cues,
+      regions,
       file: filePath,
     }),
   );

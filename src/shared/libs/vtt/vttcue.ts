@@ -24,7 +24,7 @@ export interface IVTTCue {
   startTime: number;
   endTime: number;
   text: string;
-  region: IVTTRegion | null;
+  region: string | null;
   vertical: DirectionSetting;
   snapToLines: boolean;
   line: LineAndPositionSetting;

@@ -4,41 +4,18 @@ import { IVideoSliceState } from "main-process/store/video/slice";
 import { ISubtitlesSliceState } from "main-process/store/subtitles/slice";
 import { assert } from "shared/assert";
 import { IVTTCue } from "shared/libs/vtt/vttcue";
+import { VTTCueUuid } from "./VttCueUuid";
 
 export interface IVideoProps {
   path: IVideoSliceState["path"];
   cues: ISubtitlesSliceState["cues"];
+  regions: ISubtitlesSliceState["regions"];
 }
 
 interface IVideoState {}
 
-// export const Video: React.FC<IVideoProps> = (props) => {
-//   const [videoEl, setVideoEl] = React.useState<HTMLVideoElement | null>(null);
-
-//   React.useEffect(() => {
-//     console.log(videoEl);
-//   }, [videoEl]);
-
-//   const renderVideoElement = () => {
-//     if (props.path) {
-//       return (
-//         <VideoElementContainer>
-//           <video
-//             ref={(el) => setVideoEl(videoEl)}
-//             controls
-//             src={props.path}
-//           ></video>
-//         </VideoElementContainer>
-//       );
-//     }
-
-//     return null;
-//   };
-
-//   return <Box sx={{ height: 1, width: 1 }}>{renderVideoElement()}</Box>;
-// };
-
 export class Video extends React.Component<IVideoProps, IVideoState> {
+  protected regions: Record<string, VTTRegion> = {};
   protected videoEl: HTMLVideoElement | null = null;
 
   constructor(props: IVideoProps) {
@@ -56,8 +33,8 @@ export class Video extends React.Component<IVideoProps, IVideoState> {
 
     const track = this.videoEl.addTextTrack("captions", "WIP Captions");
     track.mode = "showing";
-    console.log(track);
 
+    this.recreateRegions();
     this.mergeCues();
   }
 
@@ -66,7 +43,27 @@ export class Video extends React.Component<IVideoProps, IVideoState> {
     prevState: Readonly<IVideoState>,
     snapshot?: any,
   ): void {
+    this.recreateRegions();
     this.mergeCues();
+  }
+
+  recreateRegions() {
+    const newRegions: Record<string, VTTRegion> = Object.fromEntries(
+      Object.entries(this.props.regions ?? {}).map(([regionId, iregion]) => {
+        const region = new VTTRegion();
+        region.lines = iregion.lines;
+        region.regionAnchorX = iregion.regionAnchorX;
+        region.regionAnchorY = iregion.regionAnchorY;
+        region.scroll = iregion.scroll;
+        region.viewportAnchorX = iregion.viewportAnchorX;
+        region.viewportAnchorY = iregion.viewportAnchorY;
+        region.width = iregion.width;
+
+        return [regionId, region];
+      }),
+    );
+
+    this.regions = newRegions;
   }
 
   mergeCues() {
@@ -76,24 +73,28 @@ export class Video extends React.Component<IVideoProps, IVideoState> {
     assert(track, "No WIP captions track found");
 
     const propsCues = (this.props.cues ?? []) as IVTTCue[];
-    const trackCues = [...(track.cues ?? [])];
+    const trackCues = [...(track.cues ?? [])].filter(VTTCueUuid.is);
 
     // Delete removed cues
     trackCues.forEach((tCue) => {
-      if (!propsCues.find((pCue) => tCue.id === pCue.id)) {
+      if (!propsCues.find((pCue) => tCue.uuid === pCue.uuid)) {
         track.removeCue(tCue);
       }
     });
 
     // Update existing cues and add new
     propsCues.forEach((propsCue) => {
-      let cue: VTTCue;
-      const existingCue = trackCues.find((tCue) => tCue.id === propsCue.id);
+      let cue: VTTCueUuid;
+      const existingCue = trackCues.find((tCue) => tCue.uuid === propsCue.uuid);
       if (!existingCue) {
-        cue = new VTTCue(propsCue.startTime, propsCue.endTime, propsCue.text);
+        cue = new VTTCueUuid(
+          propsCue.startTime,
+          propsCue.endTime,
+          propsCue.text,
+          propsCue.uuid,
+        );
         track.addCue(cue);
       } else {
-        // @ts-expect-error
         cue = existingCue;
       }
 
@@ -106,7 +107,7 @@ export class Video extends React.Component<IVideoProps, IVideoState> {
       cue.size = propsCue.size;
       cue.snapToLines = propsCue.snapToLines;
       cue.vertical = propsCue.vertical;
-      // cue.region = cue.region
+      cue.region = propsCue.region ? this.regions[propsCue.region] : null;
       // cue.track = cue
     });
   }

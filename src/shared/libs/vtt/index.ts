@@ -22,18 +22,21 @@ import { IVTTRegion } from "./vttregion";
 export const parseWebVTT = (vttContent: string) => {
   const parser = new WebVTTParser(StringDecoder());
   const cues: IVTTCue[] = [];
-  const regions: IVTTRegion[] = [];
+  const regions: Record<string, IVTTRegion> = {};
 
   parser.oncue = function (cue) {
     cues.push(cue);
   };
 
-  parser.onregion = function (region) {
-    regions.push(region);
+  parser.onregion = function (id, region) {
+    regions[id] = region;
   };
 
   parser.parse(vttContent);
   parser.flush();
 
-  return cues;
+  return {
+    regions,
+    cues,
+  };
 };

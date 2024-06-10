@@ -51,6 +51,7 @@ export class App extends React.Component<IAppProps, IAppState> {
           <Video
             cues={this.state.subtitles.cues}
             path={this.state.video.path}
+            regions={this.state.subtitles.regions}
           />
         </VideoWrapper>
         <SubtitleTableWrapper>
