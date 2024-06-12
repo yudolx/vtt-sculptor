@@ -3,7 +3,7 @@ import path from "path";
 import { createWindowMain } from "window-main/browser-window";
 import { AppMenu } from "./appmenu";
 import { store } from "./store";
-import { IPCMainEvent, IPCRendererEvent } from "shared/preload";
+import { IPCMainEvent, IPCRendererEvent } from "shared/constants";
 
 export class BackgroundProcess {
   private menu = new AppMenu();

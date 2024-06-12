@@ -23,6 +23,7 @@ const rendererConfig = merge(
       new HTMLWebpackPlugin({
         // chunks: ["vendor", "window_main", "shared_css"],
         // chunksSortMode: "manual",
+        title: "",
         filename: "window_main.html",
       }),
     ],

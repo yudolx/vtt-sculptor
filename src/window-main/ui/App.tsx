@@ -66,6 +66,7 @@ const AppWrapper = styled(Box, { name: "AppWrapper" })(() => {
   return {
     display: "flex",
     flexDirection: "column",
+    height: "100vh",
   };
 });
 
@@ -80,6 +81,7 @@ const SubtitleTableWrapper = styled(Box, { name: "SubtitleTableWrapper" })(
   () => {
     return {
       flexGrow: 1,
+      overflow: "auto",
     };
   },
 );

@@ -6,7 +6,7 @@ export const createWindowMain = (
   let browser_window: BrowserWindow | null = new BrowserWindow({
     width: 1024,
     height: 768,
-    title: "Test",
+    title: __APP_NAME__,
     show: false,
     // frame: false,
     // transparent: true,

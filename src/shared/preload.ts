@@ -1,15 +1,11 @@
 import { ipcRenderer, IpcRendererEvent } from "electron";
 import type { IApplicationState } from "main-process/store";
-
-export const PRELOAD_GLOBAL_KEY = "electronAPI" as const;
-
-export enum IPCMainEvent {
-  StateChanged = "state-changed",
-}
-
-export enum IPCRendererEvent {
-  GetState = "get-state",
-}
+import { IVTTCue } from "./libs/vtt/vttcue";
+import {
+  IPCMainEvent,
+  IPCRendererEvent,
+  PRELOAD_GLOBAL_KEY,
+} from "./constants";
 
 export const EmitIPCEvent = Object.freeze({
   onStateChanged: (
@@ -24,6 +20,10 @@ export const EmitIPCEvent = Object.freeze({
 
   getState: (): Promise<IApplicationState> => {
     return ipcRenderer.invoke(IPCRendererEvent.GetState);
+  },
+
+  cueChanged: (cues: IVTTCue[]) => {
+    ipcRenderer.send(IPCRendererEvent.CuesChanged, cues);
   },
 });
 

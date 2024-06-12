@@ -5,6 +5,7 @@ import { ISubtitlesSliceState } from "main-process/store/subtitles/slice";
 import { assert } from "shared/assert";
 import { IVTTCue } from "shared/libs/vtt/vttcue";
 import { VTTCueUuid } from "./VttCueUuid";
+import { CuesMerger } from "./CuesMerger";
 
 export interface IVideoProps {
   path: IVideoSliceState["path"];
@@ -72,44 +73,7 @@ export class Video extends React.Component<IVideoProps, IVideoState> {
     const track = this.videoEl.textTracks[0];
     assert(track, "No WIP captions track found");
 
-    const propsCues = (this.props.cues ?? []) as IVTTCue[];
-    const trackCues = [...(track.cues ?? [])].filter(VTTCueUuid.is);
-
-    // Delete removed cues
-    trackCues.forEach((tCue) => {
-      if (!propsCues.find((pCue) => tCue.uuid === pCue.uuid)) {
-        track.removeCue(tCue);
-      }
-    });
-
-    // Update existing cues and add new
-    propsCues.forEach((propsCue) => {
-      let cue: VTTCueUuid;
-      const existingCue = trackCues.find((tCue) => tCue.uuid === propsCue.uuid);
-      if (!existingCue) {
-        cue = new VTTCueUuid(
-          propsCue.startTime,
-          propsCue.endTime,
-          propsCue.text,
-          propsCue.uuid,
-        );
-        track.addCue(cue);
-      } else {
-        cue = existingCue;
-      }
-
-      cue.id = propsCue.id;
-      cue.align = propsCue.align;
-      cue.line = propsCue.line;
-      cue.lineAlign = propsCue.lineAlign;
-      cue.position = propsCue.position;
-      cue.positionAlign = propsCue.positionAlign;
-      cue.size = propsCue.size;
-      cue.snapToLines = propsCue.snapToLines;
-      cue.vertical = propsCue.vertical;
-      cue.region = propsCue.region ? this.regions[propsCue.region] : null;
-      // cue.track = cue
-    });
+    new CuesMerger(track, this.props.cues ?? []);
   }
 
   render(): React.ReactNode {

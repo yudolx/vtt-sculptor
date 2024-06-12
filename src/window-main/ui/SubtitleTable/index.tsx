@@ -38,10 +38,9 @@ export class SubtitleTable extends React.Component<
   renderRow = (cue: IVTTCue) => {
     return (
       <SubtitleTableRow
-        key={cue.id}
+        key={cue.uuid}
         cue={cue}
         active={this.state.activeCue === cue.uuid}
-        onChange={() => {}}
         onClick={this.handleSubtitleTableRowClick}
       />
     );
@@ -50,11 +49,12 @@ export class SubtitleTable extends React.Component<
   render() {
     const cues = (this.props.cues ?? []) as IVTTCue[];
     return (
-      <Table stickyHeader>
+      <Table stickyHeader stripe="odd" hoverRow>
         <thead>
           <tr>
-            <th style={{ width: 150 }}>Start</th>
-            <th style={{ width: 150 }}>End</th>
+            <th style={{ width: 85 }}>Start</th>
+            <th style={{ width: 85 }}>End</th>
+            <th style={{ width: 85 }}>Duration</th>
             <th>Text</th>
           </tr>
         </thead>
