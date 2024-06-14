@@ -121,7 +121,9 @@ export class AppMenu {
 
   protected handleSaveAs = () => {};
 
-  protected handleNewSubtitle = () => {};
+  protected handleNewSubtitle = () => {
+    store.dispatch(menu.edit.newSubtitle());
+  };
 
   protected handleRemoveSelectedSubtitles = () => {};
 }

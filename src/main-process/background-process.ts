@@ -6,9 +6,9 @@ import { store } from "./store";
 import { IPCMainEvent, IPCRendererEvent } from "shared/constants";
 
 export class BackgroundProcess {
-  private menu = new AppMenu();
+  public menu = new AppMenu();
 
-  private window = {
+  public window = {
     main: createWindowMain({
       webPreferences: {
         preload: path.join(__dirname, "window_main_preload.js"),
@@ -38,7 +38,7 @@ export class BackgroundProcess {
     });
   }
 
-  bindActionEvents = () => {
+  private bindActionEvents = () => {
     ipcMain.handle(IPCRendererEvent.GetState, () => {
       return store.getState();
     });

@@ -2,8 +2,9 @@ import { dialog } from "electron";
 import { call, put } from "redux-saga/effects";
 import { GenPromise } from "shared/saga";
 import { videoSlice } from "../../video/slice";
+import type { BackgroundProcess } from "main-process/background-process";
 
-export function* loadVideo() {
+export function* loadVideo(application: BackgroundProcess) {
   const selectedFile: GenPromise<typeof dialog.showOpenDialog> = yield call(
     dialog.showOpenDialog,
     {

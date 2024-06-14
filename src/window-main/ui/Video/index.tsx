@@ -3,8 +3,6 @@ import { Box, styled } from "@mui/joy";
 import { IVideoSliceState } from "main-process/store/video/slice";
 import { ISubtitlesSliceState } from "main-process/store/subtitles/slice";
 import { assert } from "shared/assert";
-import { IVTTCue } from "shared/libs/vtt/vttcue";
-import { VTTCueUuid } from "./VttCueUuid";
 import { CuesMerger } from "./CuesMerger";
 
 export interface IVideoProps {
@@ -18,6 +16,7 @@ interface IVideoState {}
 export class Video extends React.Component<IVideoProps, IVideoState> {
   protected regions: Record<string, VTTRegion> = {};
   protected videoEl: HTMLVideoElement | null = null;
+  protected unsubRequestVideTime: (() => void) | null = null;
 
   constructor(props: IVideoProps) {
     super(props);
@@ -37,6 +36,17 @@ export class Video extends React.Component<IVideoProps, IVideoState> {
 
     this.recreateRegions();
     this.mergeCues();
+
+    this.unsubRequestVideTime = window.electronAPI.onRequestVideoCurrenTime(
+      () => {
+        assert(this.videoEl);
+        window.electronAPI.videoCurrentTime(this.videoEl.currentTime);
+      },
+    );
+  }
+
+  componentWillUnmount(): void {
+    this.unsubRequestVideTime?.();
   }
 
   componentDidUpdate(

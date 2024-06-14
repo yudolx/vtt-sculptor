@@ -5,9 +5,10 @@ import { parseWebVTT } from "shared/libs/vtt";
 import { subtitlesSlice } from "../../subtitles/slice";
 import { GenPromise } from "shared/saga";
 import { selectProject } from "main-process/store/subtitles/selectors";
+import type { BackgroundProcess } from "main-process/background-process";
 
 /** Context menu: File -> New */
-export function* newfile() {
+export function* newfile(application: BackgroundProcess) {
   const project: ReturnType<typeof selectProject> = yield select(selectProject);
 
   const totalCues = project.cues?.length ?? 0;
@@ -35,7 +36,7 @@ export function* newfile() {
 }
 
 /** Context menu: File -> Open */
-export function* openFile() {
+export function* openFile(application: BackgroundProcess) {
   const selectedFile: GenPromise<typeof dialog.showOpenDialog> = yield call(
     dialog.showOpenDialog,
     {

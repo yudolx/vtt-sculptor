@@ -25,6 +25,18 @@ export const EmitIPCEvent = Object.freeze({
   cueChanged: (cues: IVTTCue[]) => {
     ipcRenderer.send(IPCRendererEvent.CuesChanged, cues);
   },
+
+  onRequestVideoCurrenTime: (callback: (event: IpcRendererEvent) => void) => {
+    ipcRenderer.on(IPCMainEvent.RequestVideoCurentTime, callback);
+
+    return () => {
+      ipcRenderer.off(IPCMainEvent.RequestVideoCurentTime, callback);
+    };
+  },
+
+  videoCurrentTime: (currentTime: number) => {
+    ipcRenderer.send(IPCRendererEvent.VideoCurrentTime, currentTime);
+  },
 });
 
 declare global {

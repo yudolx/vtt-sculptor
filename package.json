@@ -6,7 +6,8 @@
   "scripts": {
     "build": "NODE_ENV=development webpack",
     "start": "NODE_ENV=development WATCH=true webpack",
-    "electron": "electron ./compiled/main-process.js"
+    "electron": "electron ./compiled/main-process.js",
+    "fixelectron": "chown root ./node_modules/electron/dist/chrome-sandbox && chmod 4755 ./node_modules/electron/dist/chrome-sandbox"
   },
   "author": "",
   "license": "ISC",

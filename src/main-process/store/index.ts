@@ -18,6 +18,7 @@ export const store = configureStore({
     }).concat(middlewares),
 });
 
+// @ts-expect-error
 sagaMiddleware.run(rootSaga);
 
 export type IApplicationState = ReturnType<typeof store.getState>;
