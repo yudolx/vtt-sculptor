@@ -1,6 +1,6 @@
 import { ipcMain } from "electron";
 import { eventChannel } from "redux-saga";
-import { take, put, fork } from "redux-saga/effects";
+import { take, put, fork } from "typed-redux-saga";
 import { IPCRendererEvent } from "shared/constants";
 
 const ipcChannel = eventChannel((emitter) => {
@@ -19,10 +19,10 @@ const ipcChannel = eventChannel((emitter) => {
     };
   }
 
-  const unsub = [
-    subscribe(IPCRendererEvent.CuesChanged),
-    subscribe(IPCRendererEvent.VideoCurrentTime),
-  ];
+  const unsub = Object.values(IPCRendererEvent).map((actionCreator) => {
+    const dispose = subscribe(actionCreator.type);
+    return dispose;
+  });
 
   return function () {
     unsub.forEach((invoke) => invoke());
@@ -31,9 +31,9 @@ const ipcChannel = eventChannel((emitter) => {
 
 function* ipcWatcher() {
   while (true) {
+    const action = yield* take(ipcChannel);
     // @ts-expect-error
-    const payload = yield take(ipcChannel);
-    yield put(payload);
+    yield* put(action);
   }
 }
 

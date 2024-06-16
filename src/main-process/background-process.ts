@@ -32,14 +32,15 @@ export class BackgroundProcess {
 
       Object.values(this.window).forEach((win) => {
         if (win.isVisible()) {
-          win.webContents.send(IPCMainEvent.StateChanged, state);
+          const action = IPCMainEvent.StateChanged(state);
+          win.webContents.send(action.type, action.payload);
         }
       });
     });
   }
 
   private bindActionEvents = () => {
-    ipcMain.handle(IPCRendererEvent.GetState, () => {
+    ipcMain.handle(IPCRendererEvent.GetState.type, () => {
       return store.getState();
     });
   };

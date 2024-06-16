@@ -1,12 +1,16 @@
+import { createAction } from "@reduxjs/toolkit";
+import { IVTTCue } from "./libs/vtt/vttcue";
+import { IApplicationState } from "main-process/store";
+
 export const PRELOAD_GLOBAL_KEY = "electronAPI" as const;
 
-export enum IPCMainEvent {
-  StateChanged = "ipc/main/state-changed",
-  RequestVideoCurentTime = "ipc/main/request-video-current-time",
-}
+export const IPCMainEvent = Object.freeze({
+  StateChanged: createAction<IApplicationState>("ipc/main/state-changed"),
+  RequestVideoCurentTime: createAction("ipc/main/request-video-current-time"),
+});
 
-export enum IPCRendererEvent {
-  GetState = "ipc/renderer/get-state",
-  CuesChanged = "ipc/renderer/cues-changed",
-  VideoCurrentTime = "ipc/renderer/video-current-time",
-}
+export const IPCRendererEvent = Object.freeze({
+  GetState: createAction("ipc/renderer/get-state"),
+  CuesChanged: createAction<IVTTCue[]>("ipc/renderer/cues-changed"),
+  VideoCurrentTime: createAction<number>("ipc/renderer/video-current-time"),
+});
