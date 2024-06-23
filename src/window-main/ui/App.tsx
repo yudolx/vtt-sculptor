@@ -30,7 +30,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       ...state,
     });
 
-    window.electronAPI.onStateChanged(this.handleStateChanged);
+    // window.electronAPI.onStateChanged(this.handleStateChanged);
   }
 
   private handleStateChanged = (

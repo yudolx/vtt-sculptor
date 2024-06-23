@@ -92,7 +92,7 @@ export class AppMenu {
     Menu.setApplicationMenu(this.menu);
   }
 
-  public storeUpdated(newState: IApplicationState) {
+  public update(newState: IApplicationState) {
     const saveMenuItem = this.menu.getMenuItemById("fileSave")!;
     const saveAsMenuItem = this.menu.getMenuItemById("fileSaveAs")!;
 
@@ -106,15 +106,82 @@ export class AppMenu {
   }
 
   protected handleLoadVideo = async () => {
-    store.dispatch(menu.video.load());
+    const selectedFile: GenPromise<typeof dialog.showOpenDialog> = yield call(
+      dialog.showOpenDialog,
+      {
+        properties: ["openFile", "showHiddenFiles"],
+        filters: [
+          { name: "Web compatible movies", extensions: ["mp4", "webm"] },
+        ],
+      },
+    );
+
+    if (selectedFile.canceled) {
+      return;
+    }
+
+    const [videoPath] = selectedFile.filePaths;
+
+    yield put(videoSlice.actions.setPath({ path: videoPath }));
   };
 
   protected handleNew = () => {
-    store.dispatch(menu.file.new());
+    const project: ReturnType<typeof selectProject> =
+      yield select(selectProject);
+
+    const totalCues = project.cues?.length ?? 0;
+    if (totalCues > 0) {
+      const result: GenPromise<typeof dialog.showMessageBox> = yield call(
+        dialog.showMessageBox,
+        {
+          message:
+            "This project contains unsaved changes. If you continue these changes will not be saved",
+          type: "warning",
+          buttons: ["Continue", "Cancel"],
+        },
+      );
+
+      console.log(result);
+    }
+
+    yield put(
+      subtitlesSlice.actions.setFileAndCues({
+        cues: [],
+        regions: {},
+        file: null,
+      }),
+    );
   };
 
   protected handleOpen = async () => {
-    store.dispatch(menu.file.open());
+    const selectedFile: GenPromise<typeof dialog.showOpenDialog> = yield call(
+      dialog.showOpenDialog,
+      {
+        properties: ["openFile", "showHiddenFiles"],
+        filters: [{ name: "WebVTT Subtitles", extensions: ["vtt"] }],
+      },
+    );
+
+    if (selectedFile.canceled && selectedFile.filePaths.length !== 1) {
+      return;
+    }
+
+    const filePath = selectedFile.filePaths.at(0)!;
+    const content: GenPromise<typeof readFile> = yield call(
+      readFile,
+      filePath,
+      "utf-8",
+    );
+
+    const { cues, regions } = parseWebVTT(content.toString());
+
+    yield put(
+      subtitlesSlice.actions.setFileAndCues({
+        cues,
+        regions,
+        file: filePath,
+      }),
+    );
   };
 
   protected handleSave = () => {};
@@ -122,7 +189,13 @@ export class AppMenu {
   protected handleSaveAs = () => {};
 
   protected handleNewSubtitle = () => {
-    store.dispatch(menu.edit.newSubtitle());
+    application.window.main.webContents.send(
+      IPCMainEvent.RequestVideoCurentTime().type,
+    );
+
+    const currentVideoTimeAction: PayloadAction<number> = yield take(
+      IPCRendererEvent.VideoCurrentTime,
+    );
   };
 
   protected handleRemoveSelectedSubtitles = () => {};

@@ -1,12 +1,13 @@
-import { ipcMain } from "electron";
 import path from "path";
+import { BrowserWindow, ipcMain } from "electron";
 import { createWindowMain } from "window-main/browser-window";
 import { AppMenu } from "./appmenu";
-import { store } from "./store";
-import { IPCMainEvent, IPCRendererEvent } from "shared/constants";
+import { ApplicationStore } from "./store";
+import { ApplicationEventMap, ExtractArgs } from "shared/electron";
 
 export class BackgroundProcess {
-  public menu = new AppMenu();
+  protected menu = new AppMenu();
+  protected store = new ApplicationStore();
 
   public window = {
     main: createWindowMain({
@@ -20,28 +21,30 @@ export class BackgroundProcess {
   constructor() {
     this.bindActionEvents();
 
+    this.store.getState().then(state => {
+      this.menu.update(state);
+    })
+
     this.window.main.show();
 
-    const initialState = store.getState();
-    this.menu.storeUpdated(initialState);
+    .subscribe(() => {
+      const state = this.store.getState();
 
-    store.subscribe(() => {
-      const state = store.getState();
-
-      this.menu.storeUpdated(state);
+      this.menu.update(state);
 
       Object.values(this.window).forEach((win) => {
         if (win.isVisible()) {
-          const action = IPCMainEvent.StateChanged(state);
-          win.webContents.send(action.type, action.payload);
+          this.sendToWindow(win, 'ipc/main/state-changed', state)
         }
       });
     });
   }
 
+  sendToWindow<K extends keyof ApplicationEventMap>(win: BrowserWindow, evt: K, ...args: ExtractArgs<ApplicationEventMap, K>) {
+    win.webContents.send(evt, ...args);
+  }
+
   private bindActionEvents = () => {
-    ipcMain.handle(IPCRendererEvent.GetState.type, () => {
-      return store.getState();
-    });
+    ipcMain.handle('ipc/renderer/get-state', () => this.store.getState());
   };
 }

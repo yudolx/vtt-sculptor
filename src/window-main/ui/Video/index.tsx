@@ -4,6 +4,7 @@ import { IVideoSliceState } from "main-process/store/video/slice";
 import { ISubtitlesSliceState } from "main-process/store/subtitles/slice";
 import { assert } from "shared/assert";
 import { CuesMerger } from "./CuesMerger";
+import { setVideoElement } from "./videoSaga";
 
 export interface IVideoProps {
   path: IVideoSliceState["path"];
@@ -36,13 +37,6 @@ export class Video extends React.Component<IVideoProps, IVideoState> {
 
     this.recreateRegions();
     this.mergeCues();
-
-    this.unsubRequestVideTime = window.electronAPI.onRequestVideoCurrenTime(
-      () => {
-        assert(this.videoEl);
-        window.electronAPI.videoCurrentTime(this.videoEl.currentTime);
-      },
-    );
   }
 
   componentWillUnmount(): void {
@@ -57,6 +51,11 @@ export class Video extends React.Component<IVideoProps, IVideoState> {
     this.recreateRegions();
     this.mergeCues();
   }
+
+  setVideoRef = (video: HTMLVideoElement | null) => {
+    this.videoEl = video;
+    setVideoElement(video);
+  };
 
   recreateRegions() {
     const newRegions: Record<string, VTTRegion> = Object.fromEntries(

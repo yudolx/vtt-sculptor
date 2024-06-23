@@ -1,42 +1,35 @@
 import { ipcRenderer, IpcRendererEvent } from "electron";
 import type { IApplicationState } from "main-process/store";
+import { PRELOAD_GLOBAL_KEY } from "./constants";
 import { IVTTCue } from "./libs/vtt/vttcue";
-import {
-  IPCMainEvent,
-  IPCRendererEvent,
-  PRELOAD_GLOBAL_KEY,
-} from "./constants";
-import { invokeFromRenderer, sendFromRenderer } from "./ipcrenderer";
 
 export const EmitIPCEvent = Object.freeze({
   onStateChanged: (
     callback: (event: IpcRendererEvent, state: IApplicationState) => void,
   ) => {
-    ipcRenderer.on(IPCMainEvent.StateChanged.type, callback);
+    ipcRenderer.on("ipc/main/state-changed", callback);
 
     return () => {
-      ipcRenderer.off(IPCMainEvent.StateChanged.type, callback);
+      ipcRenderer.off("ipc/main/state-changed", callback);
     };
   },
+
+  getState: () => ipcRenderer.invoke("ipc/renderer/get-state"),
 
   onRequestVideoCurrenTime: (callback: (event: IpcRendererEvent) => void) => {
-    ipcRenderer.on(IPCMainEvent.RequestVideoCurentTime.type, callback);
+    ipcRenderer.on("ipc/main/request-video-current-time", callback);
 
     return () => {
-      ipcRenderer.off(IPCMainEvent.RequestVideoCurentTime.type, callback);
+      ipcRenderer.off("ipc/main/request-video-current-time", callback);
     };
-  },
-
-  getState: (): Promise<IApplicationState> => {
-    return invokeFromRenderer(IPCRendererEvent.GetState());
   },
 
   cueChanged: (cues: IVTTCue[]) => {
-    sendFromRenderer(IPCRendererEvent.CuesChanged(cues));
+    ipcRenderer.send("ipc/renderer/cues-changed", cues);
   },
 
   videoCurrentTime: (currentTime: number) => {
-    sendFromRenderer(IPCRendererEvent.VideoCurrentTime(currentTime));
+    ipcRenderer.send("ipc/renderer/video-current-time", currentTime);
   },
 });
 

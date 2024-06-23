@@ -1,24 +1,20 @@
-import { configureStore } from "@reduxjs/toolkit";
-import { videoSlice } from "./video/slice";
-import { subtitlesSlice } from "./subtitles/slice";
-import { backgroundProcessStarted } from "shared/actions";
-import { rootSaga } from "./saga";
-import { middlewares, sagaMiddleware } from "./middleware";
+import { EventEmitter } from "node:events";
+import { IVideoStoreState, VideoStore } from "./video";
 
-export const store = configureStore({
-  reducer: {
-    video: videoSlice.reducer,
-    subtitles: subtitlesSlice.reducer,
-  },
-  middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware({
-      serializableCheck: {
-        ignoredActions: [backgroundProcessStarted.type],
-      },
-    }).concat(middlewares),
-});
+export interface IApplicationState {
+  video: IVideoStoreState;
+}
 
-// @ts-expect-error
-sagaMiddleware.run(rootSaga);
+export class ApplicationStore extends EventEmitter<{
+  "state-changed": [IApplicationState];
+}> {
+  protected video = new VideoStore();
 
-export type IApplicationState = ReturnType<typeof store.getState>;
+  public async getState(): Promise<IApplicationState> {
+    return {
+      video: await this.video.getState(),
+    };
+  }
+
+  dispatch() {}
+}

@@ -37,7 +37,7 @@ export const subtitlesSlice = createSlice({
   extraReducers: (builder) => {
     builder.addMatcher(
       (action): action is PayloadAction<IVTTCue[]> =>
-        action.type === IPCRendererEvent.CuesChanged,
+        action.type === IPCRendererEvent.CueChanged,
       (state, action) => {
         for (const cue of action.payload) {
           const existingAction = state.cues?.find(
