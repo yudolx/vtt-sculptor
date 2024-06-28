@@ -6,8 +6,8 @@ import { ApplicationStore } from "./store";
 import { ApplicationEventMap, ExtractArgs } from "shared/electron";
 
 export class BackgroundProcess {
-  protected menu = new AppMenu();
-  protected store = new ApplicationStore();
+  protected menu = new AppMenu(this);
+  public store = new ApplicationStore();
 
   public window = {
     main: createWindowMain({
@@ -21,30 +21,30 @@ export class BackgroundProcess {
   constructor() {
     this.bindActionEvents();
 
-    this.store.getState().then(state => {
-      this.menu.update(state);
-    })
+    this.menu.update(this.store.getState());
 
     this.window.main.show();
 
-    .subscribe(() => {
-      const state = this.store.getState();
-
+    this.store.subscribe((state) => {
       this.menu.update(state);
 
       Object.values(this.window).forEach((win) => {
         if (win.isVisible()) {
-          this.sendToWindow(win, 'ipc/main/state-changed', state)
+          this.sendToWindow(win, "ipc/main/state-changed", state);
         }
       });
     });
   }
 
-  sendToWindow<K extends keyof ApplicationEventMap>(win: BrowserWindow, evt: K, ...args: ExtractArgs<ApplicationEventMap, K>) {
+  sendToWindow<K extends keyof ApplicationEventMap>(
+    win: BrowserWindow,
+    evt: K,
+    ...args: ExtractArgs<ApplicationEventMap, K>
+  ) {
     win.webContents.send(evt, ...args);
   }
 
   private bindActionEvents = () => {
-    ipcMain.handle('ipc/renderer/get-state', () => this.store.getState());
+    ipcMain.handle("ipc/renderer/get-state", () => this.store.getState());
   };
 }

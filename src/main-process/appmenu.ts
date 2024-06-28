@@ -1,11 +1,13 @@
-import { Menu, MenuItemConstructorOptions } from "electron";
-import { menu } from "shared/ui/actions/menu";
-import { IApplicationState, store } from "./store";
+import { Menu, MenuItemConstructorOptions, dialog, ipcMain } from "electron";
+import { readFile } from "fs/promises";
+import { IApplicationState } from "./store";
+import type { BackgroundProcess } from "./background-process";
+import { parseWebVTT } from "shared/libs/vtt";
 
 export class AppMenu {
   protected menu: Menu;
 
-  constructor() {
+  constructor(protected app: BackgroundProcess) {
     this.menu = Menu.buildFromTemplate([
       {
         label: "File",
@@ -92,29 +94,26 @@ export class AppMenu {
     Menu.setApplicationMenu(this.menu);
   }
 
-  public update(newState: IApplicationState) {
+  public update(newState: Partial<IApplicationState>) {
     const saveMenuItem = this.menu.getMenuItemById("fileSave")!;
     const saveAsMenuItem = this.menu.getMenuItemById("fileSaveAs")!;
 
-    if (newState.subtitles.cues === null) {
-      saveMenuItem.enabled = false;
-      saveAsMenuItem.enabled = false;
-    } else {
-      saveMenuItem.enabled = true;
-      saveAsMenuItem.enabled = true;
+    if (newState.subtitles) {
+      if (newState.subtitles.cues === null) {
+        saveMenuItem.enabled = false;
+        saveAsMenuItem.enabled = false;
+      } else {
+        saveMenuItem.enabled = true;
+        saveAsMenuItem.enabled = true;
+      }
     }
   }
 
   protected handleLoadVideo = async () => {
-    const selectedFile: GenPromise<typeof dialog.showOpenDialog> = yield call(
-      dialog.showOpenDialog,
-      {
-        properties: ["openFile", "showHiddenFiles"],
-        filters: [
-          { name: "Web compatible movies", extensions: ["mp4", "webm"] },
-        ],
-      },
-    );
+    const selectedFile = dialog.showOpenDialog({
+      properties: ["openFile", "showHiddenFiles"],
+      filters: [{ name: "Web compatible movies", extensions: ["mp4", "webm"] }],
+    });
 
     if (selectedFile.canceled) {
       return;
@@ -122,66 +121,51 @@ export class AppMenu {
 
     const [videoPath] = selectedFile.filePaths;
 
-    yield put(videoSlice.actions.setPath({ path: videoPath }));
+    this.app.store.setVideoPath(videoPath);
   };
 
   protected handleNew = () => {
-    const project: ReturnType<typeof selectProject> =
-      yield select(selectProject);
+    const cues = this.app.store.subtitles.cues;
 
-    const totalCues = project.cues?.length ?? 0;
+    const totalCues = cues?.length ?? 0;
     if (totalCues > 0) {
-      const result: GenPromise<typeof dialog.showMessageBox> = yield call(
-        dialog.showMessageBox,
-        {
-          message:
-            "This project contains unsaved changes. If you continue these changes will not be saved",
-          type: "warning",
-          buttons: ["Continue", "Cancel"],
-        },
-      );
+      const result = dialog.showMessageBox({
+        message:
+          "This project contains unsaved changes. If you continue these changes will not be saved",
+        type: "warning",
+        buttons: ["Continue", "Cancel"],
+      });
 
       console.log(result);
     }
 
-    yield put(
-      subtitlesSlice.actions.setFileAndCues({
-        cues: [],
-        regions: {},
-        file: null,
-      }),
-    );
+    this.app.store.setFileAndCues({
+      cues: [],
+      regions: {},
+      file: null,
+    });
   };
 
   protected handleOpen = async () => {
-    const selectedFile: GenPromise<typeof dialog.showOpenDialog> = yield call(
-      dialog.showOpenDialog,
-      {
-        properties: ["openFile", "showHiddenFiles"],
-        filters: [{ name: "WebVTT Subtitles", extensions: ["vtt"] }],
-      },
-    );
+    const selectedFile = dialog.showOpenDialog({
+      properties: ["openFile", "showHiddenFiles"],
+      filters: [{ name: "WebVTT Subtitles", extensions: ["vtt"] }],
+    });
 
     if (selectedFile.canceled && selectedFile.filePaths.length !== 1) {
       return;
     }
 
     const filePath = selectedFile.filePaths.at(0)!;
-    const content: GenPromise<typeof readFile> = yield call(
-      readFile,
-      filePath,
-      "utf-8",
-    );
+    const content = await readFile(filePath, "utf-8");
 
     const { cues, regions } = parseWebVTT(content.toString());
 
-    yield put(
-      subtitlesSlice.actions.setFileAndCues({
-        cues,
-        regions,
-        file: filePath,
-      }),
-    );
+    this.app.store.setFileAndCues({
+      cues,
+      regions,
+      file: filePath,
+    });
   };
 
   protected handleSave = () => {};
@@ -189,12 +173,12 @@ export class AppMenu {
   protected handleSaveAs = () => {};
 
   protected handleNewSubtitle = () => {
-    application.window.main.webContents.send(
-      IPCMainEvent.RequestVideoCurentTime().type,
-    );
-
-    const currentVideoTimeAction: PayloadAction<number> = yield take(
-      IPCRendererEvent.VideoCurrentTime,
+    ipcMain.once("ipc/renderer/video-current-time", (event, currentTime) => {
+      console.log(currentTime);
+    });
+    this.app.sendToWindow(
+      this.app.window.main,
+      "ipc/main/request-video-current-time",
     );
   };
 

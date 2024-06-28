@@ -5,17 +5,18 @@ export interface IVideoStoreState {
 }
 
 export class VideoStore extends BaseStore<IVideoStoreState> {
-  protected path: string | null = null;
+  private _path: string | null = null;
 
-  public async onDispatch(action: string, payload: IPCDispatchPayload) {
-    switch (action) {
-      case "get-state": {
-        return true;
-      }
-    }
+  get path() {
+    return this._path;
   }
 
-  public async getState() {
+  public getState() {
     return { path: this.path };
+  }
+
+  public setVideoPath(videoPath: string | null) {
+    this._path = videoPath;
+    this.emitUpdate();
   }
 }

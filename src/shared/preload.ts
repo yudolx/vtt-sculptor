@@ -5,7 +5,10 @@ import { IVTTCue } from "./libs/vtt/vttcue";
 
 export const EmitIPCEvent = Object.freeze({
   onStateChanged: (
-    callback: (event: IpcRendererEvent, state: IApplicationState) => void,
+    callback: (
+      event: IpcRendererEvent,
+      state: Partial<IApplicationState>,
+    ) => void,
   ) => {
     ipcRenderer.on("ipc/main/state-changed", callback);
 

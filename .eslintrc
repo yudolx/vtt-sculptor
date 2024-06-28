@@ -27,6 +27,7 @@
     "@typescript-eslint/no-unused-vars": ["error", { 
       "varsIgnorePattern": "^__", 
       "argsIgnorePattern": "^__" 
-    }]
+    }],
+    "@typescript-eslint/triple-slash-reference": "off"
   }
 }

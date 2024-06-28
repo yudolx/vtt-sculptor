@@ -1,7 +1,23 @@
+// <reference path="../../node_modules/electron/electron.d.ts" />
 /* eslint-disable @typescript-eslint/no-namespace */
 import { IpcMainEvent, IpcMainInvokeEvent, IpcRendererEvent } from "electron";
 import { IApplicationState } from "main-process/store";
 import { IVTTCue } from "./libs/vtt/vttcue";
+
+export type ApplicationEventMap = {
+  "ipc/main/state-changed": [Partial<IApplicationState>];
+  "ipc/main/request-video-current-time": [];
+  "ipc/renderer/video-current-time": [number];
+  "ipc/renderer/get-state": [unknown, IApplicationState];
+  "ipc/renderer/cues-changed": [IVTTCue[]];
+};
+
+declare module "electron" {
+  namespace Electron {
+    interface IpcRenderer extends TypedIpcRenderer<ApplicationEventMap> {}
+    interface IpcMain extends TypedIpcMain<ApplicationEventMap> {}
+  }
+}
 
 export type ExtractArgs<EvMap, Key> = Key extends keyof EvMap
   ? EvMap[Key] extends [infer Arg, any?]
@@ -50,18 +66,3 @@ interface TypedIpcMain<E extends EventMap<E>> extends NodeJS.EventEmitter {
   removeListener<K>(channel: Key<K, E>, listener: (...args: ExtractArgs<E, K>) => void): this;
 }
 /* eslint-enable prettier/prettier */
-
-export type ApplicationEventMap = {
-  "ipc/main/state-changed": [IApplicationState];
-  "ipc/main/request-video-current-time": [];
-  "ipc/renderer/video-current-time": [number];
-  "ipc/renderer/get-state": [unknown, IApplicationState];
-  "ipc/renderer/cues-changed": [IVTTCue[]];
-};
-
-declare module "electron" {
-  namespace Electron {
-    export type IpcRenderer = TypedIpcRenderer<ApplicationEventMap>;
-    export type IpcMain = TypedIpcMain<ApplicationEventMap>;
-  }
-}

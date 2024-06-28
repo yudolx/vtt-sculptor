@@ -1,21 +1,15 @@
-import { IpcMainEvent } from "electron";
+import { EventEmitter } from "node:events";
 
 export abstract class BaseStore<State> {
-  /** This method should return true if state has changed and false if it hasn't */
-  public async onDispatch(
-    event: IpcMainEvent,
-    payload: IPCDispatchPayload,
-  ): Promise<boolean> {
-    switch (payload.action) {
-      case IPCRendererEvent.GetState: {
-        return true;
-      }
-      default:
-        return false;
-    }
+  constructor(
+    protected updateEmitter: EventEmitter<{ "did-update": [State] }>,
+  ) {}
+
+  public getState(): State {
+    throw new Error("Not implemented");
   }
 
-  public getState(): Promise<State> {
-    throw new Error("Not implemented");
+  protected emitUpdate() {
+    this.updateEmitter.emit("did-update", this.getState());
   }
 }

@@ -1,15 +1,14 @@
 import React from "react";
 import { Box, styled } from "@mui/joy";
-import { IVideoSliceState } from "main-process/store/video/slice";
-import { ISubtitlesSliceState } from "main-process/store/subtitles/slice";
 import { assert } from "shared/assert";
 import { CuesMerger } from "./CuesMerger";
-import { setVideoElement } from "./videoSaga";
+import { ISubtitlesStoreState } from "main-process/store/subtitles";
+import { IVideoStoreState } from "main-process/store/video";
 
 export interface IVideoProps {
-  path: IVideoSliceState["path"];
-  cues: ISubtitlesSliceState["cues"];
-  regions: ISubtitlesSliceState["regions"];
+  path: IVideoStoreState["path"];
+  cues: ISubtitlesStoreState["cues"];
+  regions: ISubtitlesStoreState["regions"];
 }
 
 interface IVideoState {}
@@ -54,7 +53,6 @@ export class Video extends React.Component<IVideoProps, IVideoState> {
 
   setVideoRef = (video: HTMLVideoElement | null) => {
     this.videoEl = video;
-    setVideoElement(video);
   };
 
   recreateRegions() {

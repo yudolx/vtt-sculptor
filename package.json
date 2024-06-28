@@ -4,8 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": "NODE_ENV=development webpack",
-    "start": "NODE_ENV=development WATCH=true webpack",
+    "build": "cross-env NODE_ENV=development webpack",
+    "start": "cross-env NODE_ENV=development WATCH=true webpack",
     "electron": "electron ./compiled/main-process.js",
     "fixelectron": "chown root ./node_modules/electron/dist/chrome-sandbox && chmod 4755 ./node_modules/electron/dist/chrome-sandbox"
   },
@@ -34,6 +34,7 @@
     "@emotion/react": "^11.11.4",
     "@emotion/styled": "^11.11.5",
     "@mui/joy": "^5.0.0-beta.36",
+    "cross-env": "^7.0.3",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   }
