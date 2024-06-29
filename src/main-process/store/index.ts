@@ -12,8 +12,8 @@ export class ApplicationStore {
     "did-update": [Partial<IApplicationState>];
   }>();
 
-  public video = new VideoStore(this.updateEmitter);
-  public subtitles = new SubtitlesStore(this.updateEmitter);
+  public video = new VideoStore("video", this.updateEmitter);
+  public subtitles = new SubtitlesStore("subtitles", this.updateEmitter);
 
   subscribe(cb: (changedState: Partial<IApplicationState>) => void) {
     this.updateEmitter.on("did-update", cb);

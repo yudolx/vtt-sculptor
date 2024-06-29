@@ -36,6 +36,16 @@ export class Video extends React.Component<IVideoProps, IVideoState> {
 
     this.recreateRegions();
     this.mergeCues();
+
+    this.unsubRequestVideTime = window.electronAPI.onRequestVideoCurrenTime(
+      () => {
+        if (this.videoEl?.currentTime) {
+          window.electronAPI.videoCurrentTime(this.videoEl.currentTime);
+        } else {
+          throw new Error("No video element found");
+        }
+      },
+    );
   }
 
   componentWillUnmount(): void {

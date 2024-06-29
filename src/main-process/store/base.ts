@@ -1,8 +1,9 @@
 import { EventEmitter } from "node:events";
 
-export abstract class BaseStore<State> {
+export abstract class BaseStore<K extends string, State> {
   constructor(
-    protected updateEmitter: EventEmitter<{ "did-update": [State] }>,
+    protected key: K,
+    protected updateEmitter: EventEmitter<{ "did-update": [Record<K, State>] }>,
   ) {}
 
   public getState(): State {
@@ -10,6 +11,7 @@ export abstract class BaseStore<State> {
   }
 
   protected emitUpdate() {
-    this.updateEmitter.emit("did-update", this.getState());
+    // @ts-expect-error
+    this.updateEmitter.emit("did-update", { [this.key]: this.getState() });
   }
 }

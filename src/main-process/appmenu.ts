@@ -110,7 +110,7 @@ export class AppMenu {
   }
 
   protected handleLoadVideo = async () => {
-    const selectedFile = dialog.showOpenDialog({
+    const selectedFile = await dialog.showOpenDialog({
       properties: ["openFile", "showHiddenFiles"],
       filters: [{ name: "Web compatible movies", extensions: ["mp4", "webm"] }],
     });
@@ -124,12 +124,12 @@ export class AppMenu {
     this.app.store.setVideoPath(videoPath);
   };
 
-  protected handleNew = () => {
+  protected handleNew = async () => {
     const cues = this.app.store.subtitles.cues;
 
     const totalCues = cues?.length ?? 0;
     if (totalCues > 0) {
-      const result = dialog.showMessageBox({
+      const result = await dialog.showMessageBox({
         message:
           "This project contains unsaved changes. If you continue these changes will not be saved",
         type: "warning",

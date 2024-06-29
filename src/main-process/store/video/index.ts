@@ -4,7 +4,10 @@ export interface IVideoStoreState {
   path: string | null;
 }
 
-export class VideoStore extends BaseStore<IVideoStoreState> {
+export class VideoStore<K extends string> extends BaseStore<
+  K,
+  IVideoStoreState
+> {
   private _path: string | null = null;
 
   get path() {

@@ -9,7 +9,10 @@ export interface ISubtitlesStoreState {
   regions: Record<string, IVTTRegion> | null;
 }
 
-export class SubtitlesStore extends BaseStore<ISubtitlesStoreState> {
+export class SubtitlesStore<K extends string> extends BaseStore<
+  K,
+  ISubtitlesStoreState
+> {
   private _file: string | null = null;
   private _cues: IVTTCue[] | null = null;
   private _regions: Record<string, IVTTRegion> | null = null;
