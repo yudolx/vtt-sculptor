@@ -1,7 +1,7 @@
 import React from "react";
 import { styled } from "@mui/joy";
 import { IVTTCue } from "shared/libs/vtt/vttcue";
-import { TextAreaEditableCell } from "./TextAreaEditableCell";
+import { TextAreaEditableCell } from "./text-area-editable-cell";
 
 export interface ISubtitleTableRowProps {
   active: boolean;

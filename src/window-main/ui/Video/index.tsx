@@ -1,9 +1,10 @@
 import React from "react";
 import { Box, styled } from "@mui/joy";
+import { IVideoStoreState } from "main-process/store/video/index";
+import { ISubtitlesStoreState } from "main-process/store/subtitles/index";
 import { assert } from "shared/assert";
-import { CuesMerger } from "./CuesMerger";
-import { ISubtitlesStoreState } from "main-process/store/subtitles";
-import { IVideoStoreState } from "main-process/store/video";
+import { CuesMerger } from "./cues-merger";
+import { toFixedNumber } from "shared/to-fixed-number";
 
 export interface IVideoProps {
   path: IVideoStoreState["path"];
@@ -36,14 +37,9 @@ export class Video extends React.Component<IVideoProps, IVideoState> {
 
     this.recreateRegions();
     this.mergeCues();
-
-    this.unsubRequestVideTime = window.electronAPI.onRequestVideoCurrenTime(
+    this.unsubRequestVideTime = window.electronAPI.onRequestVideoCurrentTime(
       () => {
-        if (this.videoEl?.currentTime) {
-          window.electronAPI.videoCurrentTime(this.videoEl.currentTime);
-        } else {
-          throw new Error("No video element found");
-        }
+        return toFixedNumber(this.videoEl?.currentTime ?? 0, 3);
       },
     );
   }

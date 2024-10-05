@@ -5,10 +5,7 @@ import { IVTTCue } from "./libs/vtt/vttcue";
 
 export const EmitIPCEvent = Object.freeze({
   onStateChanged: (
-    callback: (
-      event: IpcRendererEvent,
-      state: Partial<IApplicationState>,
-    ) => void,
+    callback: (event: IpcRendererEvent, state: IApplicationState) => void,
   ) => {
     ipcRenderer.on("ipc/main/state-changed", callback);
 
@@ -19,11 +16,22 @@ export const EmitIPCEvent = Object.freeze({
 
   getState: () => ipcRenderer.invoke("ipc/renderer/get-state"),
 
-  onRequestVideoCurrenTime: (callback: (event: IpcRendererEvent) => void) => {
-    ipcRenderer.on("ipc/main/request-video-current-time", callback);
+  onRequestVideoCurrentTime: (callback: () => number) => {
+    const innerCallback = (event: IpcRendererEvent, data: { uuid: string }) => {
+      const time = callback();
+
+      console.log(data, time);
+
+      ipcRenderer.send(
+        `ipc/main/request-video-current-time-${data.uuid}`,
+        time,
+      );
+    };
+
+    ipcRenderer.on("ipc/main/request-video-current-time", innerCallback);
 
     return () => {
-      ipcRenderer.off("ipc/main/request-video-current-time", callback);
+      ipcRenderer.off("ipc/main/request-video-current-time", innerCallback);
     };
   },
 

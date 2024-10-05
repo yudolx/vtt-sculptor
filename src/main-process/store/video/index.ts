@@ -4,22 +4,14 @@ export interface IVideoStoreState {
   path: string | null;
 }
 
-export class VideoStore<K extends string> extends BaseStore<
-  K,
-  IVideoStoreState
-> {
-  private _path: string | null = null;
-
-  get path() {
-    return this._path;
-  }
+export class VideoStore extends BaseStore<IVideoStoreState> {
+  protected path: string | null = null;
 
   public getState() {
     return { path: this.path };
   }
 
-  public setVideoPath(videoPath: string | null) {
-    this._path = videoPath;
-    this.emitUpdate();
+  setPath(value: string | null) {
+    this.path = value;
   }
 }

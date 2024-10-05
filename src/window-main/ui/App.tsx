@@ -2,15 +2,11 @@ import React from "react";
 import { IpcRendererEvent } from "electron";
 import { Box, styled } from "@mui/joy";
 import { IApplicationState } from "main-process/store";
-import { Video } from "./Video";
-import { SubtitleTable } from "./SubtitleTable";
-
-type Nullable<K> = {
-  [T in keyof K]: K[T] | null;
-};
+import { Video } from "./video";
+import { SubtitleTable } from "./subtitle-table";
 
 interface IAppProps {}
-interface IAppState extends Nullable<IApplicationState> {
+interface IAppState extends IApplicationState {
   initialStateLoaded: boolean;
 }
 
@@ -20,8 +16,14 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     this.state = {
       initialStateLoaded: false,
-      video: null,
-      subtitles: null,
+      video: {
+        path: null,
+      },
+      subtitles: {
+        cues: [],
+        file: null,
+        regions: {},
+      },
     };
   }
 
@@ -37,14 +39,9 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   private handleStateChanged = (
     event: IpcRendererEvent,
-    state: Partial<IApplicationState>,
+    state: IApplicationState,
   ) => {
-    this.setState((existingState) => {
-      return {
-        ...existingState,
-        ...state,
-      };
-    });
+    this.setState(state);
   };
 
   render(): React.ReactNode {
@@ -56,13 +53,13 @@ export class App extends React.Component<IAppProps, IAppState> {
       <AppWrapper>
         <VideoWrapper>
           <Video
-            cues={this.state.subtitles!.cues}
-            path={this.state.video!.path}
-            regions={this.state.subtitles!.regions}
+            cues={this.state.subtitles.cues}
+            path={this.state.video.path}
+            regions={this.state.subtitles.regions}
           />
         </VideoWrapper>
         <SubtitleTableWrapper>
-          <SubtitleTable cues={this.state.subtitles!.cues} />
+          <SubtitleTable cues={this.state.subtitles.cues} />
         </SubtitleTableWrapper>
       </AppWrapper>
     );

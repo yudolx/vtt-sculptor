@@ -1,13 +1,15 @@
 import path from "path";
+import { randomUUID } from "crypto";
 import { BrowserWindow, ipcMain } from "electron";
 import { createWindowMain } from "window-main/browser-window";
 import { AppMenu } from "./appmenu";
 import { ApplicationStore } from "./store";
 import { ApplicationEventMap, ExtractArgs } from "shared/electron";
+import { IVTTCue } from "shared/libs/vtt/vttcue";
 
 export class BackgroundProcess {
-  protected menu = new AppMenu(this);
   public store = new ApplicationStore();
+  protected menu = new AppMenu(this);
 
   public window = {
     main: createWindowMain({
@@ -21,19 +23,15 @@ export class BackgroundProcess {
   constructor() {
     this.bindActionEvents();
 
-    this.menu.update(this.store.getState());
-
-    this.window.main.show();
-
-    this.store.subscribe((state) => {
-      this.menu.update(state);
-
+    this.store.addListener("state-changed", (state) => {
       Object.values(this.window).forEach((win) => {
         if (win.isVisible()) {
           this.sendToWindow(win, "ipc/main/state-changed", state);
         }
       });
     });
+
+    this.window.main.show();
   }
 
   sendToWindow<K extends keyof ApplicationEventMap>(
@@ -46,5 +44,26 @@ export class BackgroundProcess {
 
   private bindActionEvents = () => {
     ipcMain.handle("ipc/renderer/get-state", () => this.store.getState());
+    ipcMain.on("ipc/renderer/cues-changed", (event, cues: IVTTCue[]) => {
+      this.store.patchCues(cues);
+    });
   };
+
+  public requestCurrentTimestamp = () =>
+    new Promise<number>((resolve) => {
+      const uuid = randomUUID();
+
+      ipcMain.once(
+        `ipc/main/request-video-current-time-${uuid}`,
+        (event, time: number) => {
+          resolve(time);
+        },
+      );
+
+      this.sendToWindow(
+        this.window.main,
+        "ipc/main/request-video-current-time",
+        { uuid },
+      );
+    });
 }

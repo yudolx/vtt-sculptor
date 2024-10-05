@@ -1,8 +1,27 @@
-import { Menu, MenuItemConstructorOptions, dialog, ipcMain } from "electron";
 import { readFile } from "fs/promises";
-import { IApplicationState } from "./store";
-import type { BackgroundProcess } from "./background-process";
+import { randomUUID } from "crypto";
+import { Menu, MenuItemConstructorOptions, dialog, ipcMain } from "electron";
+import { ApplicationStore, IApplicationState } from "./store";
 import { parseWebVTT } from "shared/libs/vtt";
+import { selectProject } from "./store/subtitles/selectors";
+import { BackgroundProcess } from "./background-process";
+import { VTTCueUuid } from "window-main/ui/video/vtt-cue-uuid";
+import { createVttCue } from "shared/libs/vtt/vttcue";
+import { toFixedNumber } from "shared/to-fixed-number";
+
+/* enum AppMenuId {
+  FileNew,
+  FileOpen,
+  FileSave,
+  FileSaveAs,
+  SubtitlesNew,
+  SubtitlesRemove,
+  Regions,
+  LoadVideo,
+  ToggleDevTools
+} */
+
+const DEFAULT_CUE_LENGTH_SEC = 3;
 
 export class AppMenu {
   protected menu: Menu;
@@ -92,22 +111,25 @@ export class AppMenu {
     ]);
 
     Menu.setApplicationMenu(this.menu);
+
+    const initialState = this.app.store.getState();
+    this.update(initialState);
+
+    this.app.store.addListener("state-changed", this.update);
   }
 
-  public update(newState: Partial<IApplicationState>) {
+  public update = (newState: IApplicationState) => {
     const saveMenuItem = this.menu.getMenuItemById("fileSave")!;
     const saveAsMenuItem = this.menu.getMenuItemById("fileSaveAs")!;
 
-    if (newState.subtitles) {
-      if (newState.subtitles.cues === null) {
-        saveMenuItem.enabled = false;
-        saveAsMenuItem.enabled = false;
-      } else {
-        saveMenuItem.enabled = true;
-        saveAsMenuItem.enabled = true;
-      }
+    if (newState.subtitles.cues === null) {
+      saveMenuItem.enabled = false;
+      saveAsMenuItem.enabled = false;
+    } else {
+      saveMenuItem.enabled = true;
+      saveAsMenuItem.enabled = true;
     }
-  }
+  };
 
   protected handleLoadVideo = async () => {
     const selectedFile = await dialog.showOpenDialog({
@@ -124,14 +146,15 @@ export class AppMenu {
     this.app.store.setVideoPath(videoPath);
   };
 
-  protected handleNew = async () => {
-    const cues = this.app.store.subtitles.cues;
+  protected handleNew = () => {
+    const state = this.app.store.getState();
+    const project = selectProject(state);
 
-    const totalCues = cues?.length ?? 0;
+    const totalCues = project.cues.length;
     if (totalCues > 0) {
-      const result = await dialog.showMessageBox({
+      const result = dialog.showMessageBox({
         message:
-          "This project contains unsaved changes. If you continue these changes will not be saved",
+          "This project contains unsaved changes. If you continue these changes will be lost",
         type: "warning",
         buttons: ["Continue", "Cancel"],
       });
@@ -147,7 +170,7 @@ export class AppMenu {
   };
 
   protected handleOpen = async () => {
-    const selectedFile = dialog.showOpenDialog({
+    const selectedFile = await dialog.showOpenDialog({
       properties: ["openFile", "showHiddenFiles"],
       filters: [{ name: "WebVTT Subtitles", extensions: ["vtt"] }],
     });
@@ -172,14 +195,16 @@ export class AppMenu {
 
   protected handleSaveAs = () => {};
 
-  protected handleNewSubtitle = () => {
-    ipcMain.once("ipc/renderer/video-current-time", (event, currentTime) => {
-      console.log(currentTime);
+  protected handleNewSubtitle = async () => {
+    const time = await this.app.requestCurrentTimestamp();
+
+    const cue = createVttCue({
+      startTime: time,
+      endTime: toFixedNumber(time + DEFAULT_CUE_LENGTH_SEC, 3),
+      text: "",
     });
-    this.app.sendToWindow(
-      this.app.window.main,
-      "ipc/main/request-video-current-time",
-    );
+
+    this.app.store.insertCue(cue);
   };
 
   protected handleRemoveSelectedSubtitles = () => {};

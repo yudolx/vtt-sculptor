@@ -1,27 +1,19 @@
 import { EventEmitter } from "node:events";
 import { IVideoStoreState, VideoStore } from "./video";
-import { ISubtitlesStoreState, SubtitlesStore } from "./subtitles";
+import { SubtitlesStore, ISubtitlesStoreState } from "./subtitles";
+import { IVTTCue } from "shared/libs/vtt/vttcue";
+import { IVTTRegion } from "shared/libs/vtt/vttregion";
 
 export interface IApplicationState {
   video: IVideoStoreState;
   subtitles: ISubtitlesStoreState;
 }
 
-export class ApplicationStore {
-  private updateEmitter = new EventEmitter<{
-    "did-update": [Partial<IApplicationState>];
-  }>();
-
-  public video = new VideoStore("video", this.updateEmitter);
-  public subtitles = new SubtitlesStore("subtitles", this.updateEmitter);
-
-  subscribe(cb: (changedState: Partial<IApplicationState>) => void) {
-    this.updateEmitter.on("did-update", cb);
-
-    return () => {
-      this.updateEmitter.off("did-update", cb);
-    };
-  }
+export class ApplicationStore extends EventEmitter<{
+  "state-changed": [IApplicationState];
+}> {
+  protected video = new VideoStore();
+  protected subtitles = new SubtitlesStore();
 
   public getState(): IApplicationState {
     return {
@@ -30,15 +22,33 @@ export class ApplicationStore {
     };
   }
 
-  public setVideoPath = (videoPath: string | null) => {
-    this.video.setVideoPath(videoPath);
-  };
+  public emitUpdate() {
+    this.emit("state-changed", this.getState());
+  }
 
-  public setFileAndCues = (payload: {
-    cues: ISubtitlesStoreState["cues"];
-    regions: ISubtitlesStoreState["regions"];
-    file: ISubtitlesStoreState["file"];
-  }) => {
-    this.subtitles.setFileAndCues(payload);
-  };
+  public setVideoPath(value: string | null) {
+    this.video.setPath(value);
+    this.emitUpdate();
+  }
+
+  public setFileAndCues(payload: {
+    cues: IVTTCue[];
+    regions: Record<string, IVTTRegion>;
+    file: string | null;
+  }) {
+    this.subtitles.setCues(payload.cues);
+    this.subtitles.setRegions(payload.regions);
+    this.subtitles.setFile(payload.file);
+    this.emitUpdate();
+  }
+
+  public insertCue(cue: IVTTCue) {
+    this.subtitles.insertCue(cue);
+    this.emitUpdate();
+  }
+
+  public patchCues(cues: IVTTCue[]) {
+    this.subtitles.patchCues(cues);
+    this.emitUpdate();
+  }
 }

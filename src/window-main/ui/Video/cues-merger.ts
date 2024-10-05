@@ -1,5 +1,5 @@
 import { IVTTCue } from "shared/libs/vtt/vttcue";
-import { VTTCueUuid } from "./VttCueUuid";
+import { VTTCueUuid } from "./vtt-cue-uuid";
 
 export class CuesMerger {
   public lasChangedCue: VTTCueUuid | null = null;
