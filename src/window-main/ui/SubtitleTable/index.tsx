@@ -1,11 +1,11 @@
 import React from "react";
 import { Table } from "@mui/joy";
-import { ISubtitlesSliceState } from "main-process/store/subtitles/slice";
 import { IVTTCue } from "shared/libs/vtt/vttcue";
 import { SubtitleTableRow } from "./row";
+import { ISubtitlesStoreState } from "main-process/store/subtitles";
 
 export interface ISubtitleTableProps {
-  cues: ISubtitlesSliceState["cues"];
+  cues: ISubtitlesStoreState["cues"];
 }
 export interface ISubtitleTableState {
   activeCue: IVTTCue["id"] | null;

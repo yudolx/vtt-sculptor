@@ -1,24 +1,44 @@
-import { configureStore } from "@reduxjs/toolkit";
-import { videoSlice } from "./video/slice";
-import { subtitlesSlice } from "./subtitles/slice";
-import { backgroundProcessStarted } from "shared/actions";
-import { rootSaga } from "./saga";
-import { middlewares, sagaMiddleware } from "./middleware";
+import { EventEmitter } from "node:events";
+import { IVideoStoreState, VideoStore } from "./video";
+import { ISubtitlesStoreState, SubtitlesStore } from "./subtitles";
 
-export const store = configureStore({
-  reducer: {
-    video: videoSlice.reducer,
-    subtitles: subtitlesSlice.reducer,
-  },
-  middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware({
-      serializableCheck: {
-        ignoredActions: [backgroundProcessStarted.type],
-      },
-    }).concat(middlewares),
-});
+export interface IApplicationState {
+  video: IVideoStoreState;
+  subtitles: ISubtitlesStoreState;
+}
 
-// @ts-expect-error
-sagaMiddleware.run(rootSaga);
+export class ApplicationStore {
+  private updateEmitter = new EventEmitter<{
+    "did-update": [Partial<IApplicationState>];
+  }>();
 
-export type IApplicationState = ReturnType<typeof store.getState>;
+  public video = new VideoStore("video", this.updateEmitter);
+  public subtitles = new SubtitlesStore("subtitles", this.updateEmitter);
+
+  subscribe(cb: (changedState: Partial<IApplicationState>) => void) {
+    this.updateEmitter.on("did-update", cb);
+
+    return () => {
+      this.updateEmitter.off("did-update", cb);
+    };
+  }
+
+  public getState(): IApplicationState {
+    return {
+      video: this.video.getState(),
+      subtitles: this.subtitles.getState(),
+    };
+  }
+
+  public setVideoPath = (videoPath: string | null) => {
+    this.video.setVideoPath(videoPath);
+  };
+
+  public setFileAndCues = (payload: {
+    cues: ISubtitlesStoreState["cues"];
+    regions: ISubtitlesStoreState["regions"];
+    file: ISubtitlesStoreState["file"];
+  }) => {
+    this.subtitles.setFileAndCues(payload);
+  };
+}

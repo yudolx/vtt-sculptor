@@ -1,11 +1,13 @@
-import { Menu, MenuItemConstructorOptions } from "electron";
-import { menu } from "shared/ui/actions/menu";
-import { IApplicationState, store } from "./store";
+import { Menu, MenuItemConstructorOptions, dialog, ipcMain } from "electron";
+import { readFile } from "fs/promises";
+import { IApplicationState } from "./store";
+import type { BackgroundProcess } from "./background-process";
+import { parseWebVTT } from "shared/libs/vtt";
 
 export class AppMenu {
   protected menu: Menu;
 
-  constructor() {
+  constructor(protected app: BackgroundProcess) {
     this.menu = Menu.buildFromTemplate([
       {
         label: "File",
@@ -92,29 +94,78 @@ export class AppMenu {
     Menu.setApplicationMenu(this.menu);
   }
 
-  public storeUpdated(newState: IApplicationState) {
+  public update(newState: Partial<IApplicationState>) {
     const saveMenuItem = this.menu.getMenuItemById("fileSave")!;
     const saveAsMenuItem = this.menu.getMenuItemById("fileSaveAs")!;
 
-    if (newState.subtitles.cues === null) {
-      saveMenuItem.enabled = false;
-      saveAsMenuItem.enabled = false;
-    } else {
-      saveMenuItem.enabled = true;
-      saveAsMenuItem.enabled = true;
+    if (newState.subtitles) {
+      if (newState.subtitles.cues === null) {
+        saveMenuItem.enabled = false;
+        saveAsMenuItem.enabled = false;
+      } else {
+        saveMenuItem.enabled = true;
+        saveAsMenuItem.enabled = true;
+      }
     }
   }
 
   protected handleLoadVideo = async () => {
-    store.dispatch(menu.video.load());
+    const selectedFile = await dialog.showOpenDialog({
+      properties: ["openFile", "showHiddenFiles"],
+      filters: [{ name: "Web compatible movies", extensions: ["mp4", "webm"] }],
+    });
+
+    if (selectedFile.canceled) {
+      return;
+    }
+
+    const [videoPath] = selectedFile.filePaths;
+
+    this.app.store.setVideoPath(videoPath);
   };
 
-  protected handleNew = () => {
-    store.dispatch(menu.file.new());
+  protected handleNew = async () => {
+    const cues = this.app.store.subtitles.cues;
+
+    const totalCues = cues?.length ?? 0;
+    if (totalCues > 0) {
+      const result = await dialog.showMessageBox({
+        message:
+          "This project contains unsaved changes. If you continue these changes will not be saved",
+        type: "warning",
+        buttons: ["Continue", "Cancel"],
+      });
+
+      console.log(result);
+    }
+
+    this.app.store.setFileAndCues({
+      cues: [],
+      regions: {},
+      file: null,
+    });
   };
 
   protected handleOpen = async () => {
-    store.dispatch(menu.file.open());
+    const selectedFile = dialog.showOpenDialog({
+      properties: ["openFile", "showHiddenFiles"],
+      filters: [{ name: "WebVTT Subtitles", extensions: ["vtt"] }],
+    });
+
+    if (selectedFile.canceled && selectedFile.filePaths.length !== 1) {
+      return;
+    }
+
+    const filePath = selectedFile.filePaths.at(0)!;
+    const content = await readFile(filePath, "utf-8");
+
+    const { cues, regions } = parseWebVTT(content.toString());
+
+    this.app.store.setFileAndCues({
+      cues,
+      regions,
+      file: filePath,
+    });
   };
 
   protected handleSave = () => {};
@@ -122,7 +173,13 @@ export class AppMenu {
   protected handleSaveAs = () => {};
 
   protected handleNewSubtitle = () => {
-    store.dispatch(menu.edit.newSubtitle());
+    ipcMain.once("ipc/renderer/video-current-time", (event, currentTime) => {
+      console.log(currentTime);
+    });
+    this.app.sendToWindow(
+      this.app.window.main,
+      "ipc/main/request-video-current-time",
+    );
   };
 
   protected handleRemoveSelectedSubtitles = () => {};

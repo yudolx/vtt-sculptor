@@ -1,5 +1,4 @@
 import React from "react";
-import clsx from "clsx";
 import { styled } from "@mui/joy";
 import { IVTTCue } from "shared/libs/vtt/vttcue";
 import { TextAreaEditableCell } from "./TextAreaEditableCell";

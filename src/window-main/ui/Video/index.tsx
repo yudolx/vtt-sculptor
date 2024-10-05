@@ -1,14 +1,14 @@
 import React from "react";
 import { Box, styled } from "@mui/joy";
-import { IVideoSliceState } from "main-process/store/video/slice";
-import { ISubtitlesSliceState } from "main-process/store/subtitles/slice";
 import { assert } from "shared/assert";
 import { CuesMerger } from "./CuesMerger";
+import { ISubtitlesStoreState } from "main-process/store/subtitles";
+import { IVideoStoreState } from "main-process/store/video";
 
 export interface IVideoProps {
-  path: IVideoSliceState["path"];
-  cues: ISubtitlesSliceState["cues"];
-  regions: ISubtitlesSliceState["regions"];
+  path: IVideoStoreState["path"];
+  cues: ISubtitlesStoreState["cues"];
+  regions: ISubtitlesStoreState["regions"];
 }
 
 interface IVideoState {}
@@ -39,8 +39,11 @@ export class Video extends React.Component<IVideoProps, IVideoState> {
 
     this.unsubRequestVideTime = window.electronAPI.onRequestVideoCurrenTime(
       () => {
-        assert(this.videoEl);
-        window.electronAPI.videoCurrentTime(this.videoEl.currentTime);
+        if (this.videoEl?.currentTime) {
+          window.electronAPI.videoCurrentTime(this.videoEl.currentTime);
+        } else {
+          throw new Error("No video element found");
+        }
       },
     );
   }
@@ -57,6 +60,10 @@ export class Video extends React.Component<IVideoProps, IVideoState> {
     this.recreateRegions();
     this.mergeCues();
   }
+
+  setVideoRef = (video: HTMLVideoElement | null) => {
+    this.videoEl = video;
+  };
 
   recreateRegions() {
     const newRegions: Record<string, VTTRegion> = Object.fromEntries(

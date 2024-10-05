@@ -2,13 +2,15 @@ import React from "react";
 import { IpcRendererEvent } from "electron";
 import { Box, styled } from "@mui/joy";
 import { IApplicationState } from "main-process/store";
-import { getInitialState as getInitialVideoSliceState } from "main-process/store/video/slice";
-import { getInitialState as getInitialSubtitlesSliceState } from "main-process/store/subtitles/slice";
 import { Video } from "./Video";
 import { SubtitleTable } from "./SubtitleTable";
 
+type Nullable<K> = {
+  [T in keyof K]: K[T] | null;
+};
+
 interface IAppProps {}
-interface IAppState extends IApplicationState {
+interface IAppState extends Nullable<IApplicationState> {
   initialStateLoaded: boolean;
 }
 
@@ -18,8 +20,8 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     this.state = {
       initialStateLoaded: false,
-      video: getInitialVideoSliceState(),
-      subtitles: getInitialSubtitlesSliceState(),
+      video: null,
+      subtitles: null,
     };
   }
 
@@ -35,9 +37,14 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   private handleStateChanged = (
     event: IpcRendererEvent,
-    state: IApplicationState,
+    state: Partial<IApplicationState>,
   ) => {
-    this.setState(state);
+    this.setState((existingState) => {
+      return {
+        ...existingState,
+        ...state,
+      };
+    });
   };
 
   render(): React.ReactNode {
@@ -49,13 +56,13 @@ export class App extends React.Component<IAppProps, IAppState> {
       <AppWrapper>
         <VideoWrapper>
           <Video
-            cues={this.state.subtitles.cues}
-            path={this.state.video.path}
-            regions={this.state.subtitles.regions}
+            cues={this.state.subtitles!.cues}
+            path={this.state.video!.path}
+            regions={this.state.subtitles!.regions}
           />
         </VideoWrapper>
         <SubtitleTableWrapper>
-          <SubtitleTable cues={this.state.subtitles.cues} />
+          <SubtitleTable cues={this.state.subtitles!.cues} />
         </SubtitleTableWrapper>
       </AppWrapper>
     );
