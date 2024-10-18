@@ -1,30 +1,18 @@
 import { readFile } from "fs/promises";
-import { randomUUID } from "crypto";
-import { Menu, MenuItemConstructorOptions, dialog, ipcMain } from "electron";
-import { ApplicationStore, IApplicationState } from "./store";
+import { Menu, MenuItemConstructorOptions, dialog } from "electron";
+import { IApplicationState } from "./store";
 import { parseWebVTT } from "shared/libs/vtt";
 import { selectProject } from "./store/subtitles/selectors";
 import { BackgroundProcess } from "./background-process";
-import { VTTCueUuid } from "window-main/ui/video/vtt-cue-uuid";
 import { createVttCue } from "shared/libs/vtt/vttcue";
 import { toFixedNumber } from "shared/to-fixed-number";
-
-/* enum AppMenuId {
-  FileNew,
-  FileOpen,
-  FileSave,
-  FileSaveAs,
-  SubtitlesNew,
-  SubtitlesRemove,
-  Regions,
-  LoadVideo,
-  ToggleDevTools
-} */
 
 const DEFAULT_CUE_LENGTH_SEC = 3;
 
 export class AppMenu {
   protected menu: Menu;
+
+  protected hotkeysActive = true;
 
   constructor(protected app: BackgroundProcess) {
     this.menu = Menu.buildFromTemplate([
@@ -131,7 +119,13 @@ export class AppMenu {
     }
   };
 
+  public setShortcutsActive(value: boolean) {
+    this.hotkeysActive = value;
+  }
+
   protected handleLoadVideo = async () => {
+    if (!this.hotkeysActive) return;
+
     const selectedFile = await dialog.showOpenDialog({
       properties: ["openFile", "showHiddenFiles"],
       filters: [{ name: "Web compatible movies", extensions: ["mp4", "webm"] }],
@@ -147,6 +141,8 @@ export class AppMenu {
   };
 
   protected handleNew = () => {
+    if (!this.hotkeysActive) return;
+
     const state = this.app.store.getState();
     const project = selectProject(state);
 
@@ -170,6 +166,8 @@ export class AppMenu {
   };
 
   protected handleOpen = async () => {
+    if (!this.hotkeysActive) return;
+
     const selectedFile = await dialog.showOpenDialog({
       properties: ["openFile", "showHiddenFiles"],
       filters: [{ name: "WebVTT Subtitles", extensions: ["vtt"] }],
@@ -191,11 +189,17 @@ export class AppMenu {
     });
   };
 
-  protected handleSave = () => {};
+  protected handleSave = () => {
+    if (!this.hotkeysActive) return;
+  };
 
-  protected handleSaveAs = () => {};
+  protected handleSaveAs = () => {
+    if (!this.hotkeysActive) return;
+  };
 
   protected handleNewSubtitle = async () => {
+    if (!this.hotkeysActive) return;
+
     const time = await this.app.requestCurrentTimestamp();
 
     const cue = createVttCue({
@@ -207,5 +211,7 @@ export class AppMenu {
     this.app.store.insertCue(cue);
   };
 
-  protected handleRemoveSelectedSubtitles = () => {};
+  protected handleRemoveSelectedSubtitles = () => {
+    if (!this.hotkeysActive) return;
+  };
 }

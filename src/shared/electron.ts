@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-namespace */
-import { IpcMainEvent, IpcMainInvokeEvent, IpcRendererEvent } from "electron";
 import { IApplicationState } from "main-process/store";
 import { IVTTCue } from "./libs/vtt/vttcue";
 
@@ -51,6 +50,7 @@ type Key<K, T> = K | keyof T;
 // }
 /* eslint-enable prettier/prettier */
 
+/** @deprecated */
 export type ApplicationEventMap = {
   "ipc/main/state-changed": [IApplicationState];
   "ipc/main/request-video-current-time": [{ uuid: string }];

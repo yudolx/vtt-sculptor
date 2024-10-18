@@ -3,6 +3,8 @@ import { IVideoStoreState, VideoStore } from "./video";
 import { SubtitlesStore, ISubtitlesStoreState } from "./subtitles";
 import { IVTTCue } from "shared/libs/vtt/vttcue";
 import { IVTTRegion } from "shared/libs/vtt/vttregion";
+import { AdjustDirection, AdjustSide, IAdjustTimePayload } from "shared/ipc";
+import { assert } from "shared/assert";
 
 export interface IApplicationState {
   video: IVideoStoreState;
@@ -49,6 +51,16 @@ export class ApplicationStore extends EventEmitter<{
 
   public patchCues(cues: IVTTCue[]) {
     this.subtitles.patchCues(cues);
+    this.emitUpdate();
+  }
+
+  public setVideoDuration(value: number | null) {
+    this.video.setDuration(value);
+    console.log("Video duration set. No update emmited");
+  }
+
+  public deleteCues(uuids: IVTTCue["uuid"][]) {
+    this.subtitles.deleteCues(uuids);
     this.emitUpdate();
   }
 }

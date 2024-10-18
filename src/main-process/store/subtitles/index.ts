@@ -23,8 +23,8 @@ export class SubtitlesStore extends BaseStore<ISubtitlesStoreState> {
     };
   }
 
-  public patchCues(changedCues: IVTTCue[]) {
-    for (const cue of changedCues) {
+  public patchCues(cuesToPatch: IVTTCue[]) {
+    for (const cue of cuesToPatch) {
       const existingCue = this.cues.find(
         (stateCue) => stateCue.uuid === cue.uuid,
       );
@@ -34,8 +34,9 @@ export class SubtitlesStore extends BaseStore<ISubtitlesStoreState> {
       }
 
       existingCue.text = cue.text;
+      existingCue.startTime = cue.startTime;
+      existingCue.endTime = cue.endTime;
     }
-    return true;
   }
 
   public setFile(file: string | null) {
@@ -50,6 +51,16 @@ export class SubtitlesStore extends BaseStore<ISubtitlesStoreState> {
     this.regions = regions;
   }
 
+  public getCues(): IVTTCue[];
+  public getCues(cueUuid: IVTTCue["uuid"]): IVTTCue | null;
+  public getCues(cueUuid?: IVTTCue["uuid"]) {
+    if (cueUuid) {
+      return this.cues.find((c) => c.uuid === cueUuid) ?? null;
+    } else {
+      return this.cues;
+    }
+  }
+
   public insertCue(cue: IVTTCue) {
     const suitableIndex =
       this.cues.length > 0
@@ -62,5 +73,9 @@ export class SubtitlesStore extends BaseStore<ISubtitlesStoreState> {
     );
 
     this.cues.splice(suitableIndex + 1, 0, cue);
+  }
+
+  public deleteCues(uuids: IVTTCue["uuid"][]) {
+    this.cues = this.cues.filter((c) => !uuids.includes(c.uuid));
   }
 }

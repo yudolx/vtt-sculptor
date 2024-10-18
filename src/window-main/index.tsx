@@ -2,6 +2,7 @@ import React from "react";
 import { createRoot } from "react-dom/client";
 import { App } from "./ui/app";
 import { ThemeProvider } from "shared/ui/ThemeProvider";
+import { VideoElContextProvider } from "./ui/context/video-el";
 
 document.addEventListener("DOMContentLoaded", () => {
   const rootEl = document.createElement("div");
@@ -11,7 +12,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const reactRoot = createRoot(rootEl);
   reactRoot.render(
     <ThemeProvider>
-      <App />
+      <VideoElContextProvider>
+        <App />
+      </VideoElContextProvider>
     </ThemeProvider>,
   );
 });

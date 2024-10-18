@@ -14,13 +14,19 @@ export const EmitIPCEvent = Object.freeze({
     };
   },
 
+  disableHotkeys: () => {
+    ipcRenderer.send("ipc/renderer/disable-hotkeys");
+  },
+
+  enableHotkeys: () => {
+    ipcRenderer.send("ipc/renderer/enable-hotkeys");
+  },
+
   getState: () => ipcRenderer.invoke("ipc/renderer/get-state"),
 
   onRequestVideoCurrentTime: (callback: () => number) => {
     const innerCallback = (event: IpcRendererEvent, data: { uuid: string }) => {
       const time = callback();
-
-      console.log(data, time);
 
       ipcRenderer.send(
         `ipc/main/request-video-current-time-${data.uuid}`,
@@ -35,13 +41,21 @@ export const EmitIPCEvent = Object.freeze({
     };
   },
 
+  videoDuration: (duration: number | null) => {
+    ipcRenderer.send("ipc/renderer/video-duration", duration);
+  },
+
   cueChanged: (cues: IVTTCue[]) => {
     ipcRenderer.send("ipc/renderer/cues-changed", cues);
   },
 
-  videoCurrentTime: (currentTime: number) => {
-    ipcRenderer.send("ipc/renderer/video-current-time", currentTime);
+  deleteCues: (cues: IVTTCue["uuid"][]) => {
+    ipcRenderer.send("ipc/renderer/delete-cues", cues);
   },
+
+  // adjustTime: (cue: IVTTCue, side: AdjustSide, direction: AdjustDirection) => {
+  //   ipcRenderer.send("ipc/renderer/adjust-time", { cue, side, direction });
+  // },
 });
 
 declare global {

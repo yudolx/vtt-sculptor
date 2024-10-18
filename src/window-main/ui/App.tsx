@@ -4,6 +4,7 @@ import { Box, styled } from "@mui/joy";
 import { IApplicationState } from "main-process/store";
 import { Video } from "./video";
 import { SubtitleTable } from "./subtitle-table";
+import { VideoElContext } from "./context/video-el";
 
 interface IAppProps {}
 interface IAppState extends IApplicationState {
@@ -52,14 +53,23 @@ export class App extends React.Component<IAppProps, IAppState> {
     return (
       <AppWrapper>
         <VideoWrapper>
-          <Video
-            cues={this.state.subtitles.cues}
-            path={this.state.video.path}
-            regions={this.state.subtitles.regions}
-          />
+          <VideoElContext.Consumer>
+            {({ setVideo }) => (
+              <Video
+                cues={this.state.subtitles.cues}
+                path={this.state.video.path}
+                regions={this.state.subtitles.regions}
+                videoRef={setVideo}
+              />
+            )}
+          </VideoElContext.Consumer>
         </VideoWrapper>
         <SubtitleTableWrapper>
-          <SubtitleTable cues={this.state.subtitles.cues} />
+          <VideoElContext.Consumer>
+            {({ video }) => (
+              <SubtitleTable cues={this.state.subtitles.cues} video={video} />
+            )}
+          </VideoElContext.Consumer>
         </SubtitleTableWrapper>
       </AppWrapper>
     );

@@ -2,15 +2,19 @@ import React from "react";
 import { styled } from "@mui/joy";
 import { IVTTCue } from "shared/libs/vtt/vttcue";
 import { TextAreaEditableCell } from "./text-area-editable-cell";
+import { toFixedNumber } from "shared/to-fixed-number";
 
 export interface ISubtitleTableRowProps {
   active: boolean;
   cue: IVTTCue;
-  onClick: (cue: IVTTCue) => void;
-}
-export interface ISubtitleTableRowState {
   editField: keyof IVTTCue | null;
+  onClick: (cue: IVTTCue) => void;
+  onCellFocus: () => void;
+  onCellBlur: () => void;
+  onCellChange: (field: keyof IVTTCue, value: IVTTCue[keyof IVTTCue]) => void;
+  onDoubleCellClick: (field: keyof IVTTCue) => void;
 }
+export interface ISubtitleTableRowState {}
 
 export class SubtitleTableRow extends React.Component<
   ISubtitleTableRowProps,
@@ -35,58 +39,45 @@ export class SubtitleTableRow extends React.Component<
     }
   };
 
-  handleChange = (value: string, field: keyof IVTTCue) => {
-    const newCue = {
-      ...this.props.cue,
-      [field]: value,
-    };
-    window.electronAPI.cueChanged([newCue]);
+  handleChange = (value: IVTTCue[keyof IVTTCue], field: keyof IVTTCue) => {
+    this.props.onCellChange(field, value);
   };
 
-  handleFocus = () => {};
-
-  handleBlur = () => {};
-
-  handleCellMouseDown = (field: keyof IVTTCue) => {
-    if (this.props.active) {
-      this.setState({ editField: field });
+  handleCellDoubleClick = (field: keyof IVTTCue) => {
+    if (this.props.active && this.props.editField !== field) {
+      this.props.onDoubleCellClick(field);
     }
   };
 
-  componentDidUpdate(
-    prevProps: Readonly<ISubtitleTableRowProps>,
-    prevState: Readonly<ISubtitleTableRowState>,
-    snapshot?: any,
-  ): void {
-    if (prevProps.active === true && this.props.active === false) {
-      this.setState({ editField: null });
-    }
-  }
+  handleCellBlur = () => {
+    this.props.onCellBlur();
+  };
+
+  handleCellFocus = () => {
+    this.props.onCellFocus();
+  };
 
   render() {
     const cue = this.props.cue;
 
     return (
       <StyledRow
-        ref={(el) => (this.rowEl = el)}
-        onFocus={this.handleFocus}
-        onBlur={this.handleBlur}
-        onMouseDown={this.handleRowMouseDown}
-        active={this.props.active}
         key={cue.uuid}
+        active={this.props.active}
+        ref={(el) => (this.rowEl = el)}
+        onMouseDown={this.handleRowMouseDown}
       >
         <td>{cue.startTime}</td>
         <td>{cue.endTime}</td>
-        <td>{(cue.endTime - cue.startTime).toFixed(3)}</td>
+        <td>{toFixedNumber(cue.endTime - cue.startTime, 3)}</td>
         <TextAreaEditableCell
-          edit={this.state.editField === "text"}
+          edit={this.props.active && this.props.editField === "text"}
           cue={cue}
           field="text"
-          onBlur={() => {
-            this.setState({ editField: null });
-          }}
+          onBlur={this.handleCellBlur}
+          onFocus={this.handleCellFocus}
           onChange={this.handleChange}
-          onMouseDown={this.handleCellMouseDown}
+          onDoubleClick={this.handleCellDoubleClick}
         />
       </StyledRow>
     );
@@ -98,6 +89,7 @@ const StyledRow = styled("tr", {
   shouldForwardProp: (prop) => prop !== "active",
 })<{ active: boolean }>(({ active, theme }) => {
   return {
+    // outline: "none",
     ...(active && {
       td: {
         backgroundColor: theme.palette.primary.plainActiveBg,

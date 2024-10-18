@@ -10,6 +10,7 @@ export interface IVideoProps {
   path: IVideoStoreState["path"];
   cues: ISubtitlesStoreState["cues"];
   regions: ISubtitlesStoreState["regions"];
+  videoRef: (el: HTMLVideoElement | null) => void;
 }
 
 interface IVideoState {}
@@ -53,12 +54,24 @@ export class Video extends React.Component<IVideoProps, IVideoState> {
     prevState: Readonly<IVideoState>,
     snapshot?: any,
   ): void {
+    if (prevProps.path !== this.props.path) {
+      this.videoEl?.addEventListener(
+        "loadeddata",
+        () => {
+          assert(this.videoEl, "No video element found");
+          window.electronAPI.videoDuration(this.videoEl.duration);
+        },
+        { once: true },
+      );
+    }
+
     this.recreateRegions();
     this.mergeCues();
   }
 
   setVideoRef = (video: HTMLVideoElement | null) => {
     this.videoEl = video;
+    this.props.videoRef(video);
   };
 
   recreateRegions() {
@@ -93,7 +106,7 @@ export class Video extends React.Component<IVideoProps, IVideoState> {
     return (
       <VideoElementContainer>
         <StyledVideo
-          ref={(el) => (this.videoEl = el)}
+          ref={this.setVideoRef}
           controls
           src={this.props.path ?? ""}
         ></StyledVideo>

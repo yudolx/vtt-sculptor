@@ -6,9 +6,10 @@ export interface ITextAreaEditableCellProps<Field extends keyof IVTTCue> {
   cue: IVTTCue;
   edit: boolean;
   field: Field;
-  onMouseDown: (field: Field) => void;
+  onFocus: (field: Field) => void;
   onBlur: (field: Field) => void;
   onChange: (value: string, field: Field) => void;
+  onDoubleClick: (field: Field) => void;
 }
 export interface ITextAreaEditableCellState {
   value: string;
@@ -63,17 +64,15 @@ export class TextAreaEditableCell<
     }
   }
 
-  handleMouseDown = () => {
-    if (!this.props.edit) {
-      this.props.onMouseDown(this.props.field);
-    }
-  };
-
   handleTextAreaChange: React.ChangeEventHandler<HTMLTextAreaElement> = (e) => {
     const newValue = e.currentTarget.value;
     this.setState({
       value: newValue,
     });
+  };
+
+  handleTextAreaFocus = () => {
+    this.props.onFocus(this.props.field);
   };
 
   handleTextAreaBlur = () => {
@@ -84,9 +83,19 @@ export class TextAreaEditableCell<
   };
 
   handleKeyDown: React.KeyboardEventHandler<HTMLTextAreaElement> = (event) => {
+    event.stopPropagation();
     if (event.ctrlKey && event.key === "Enter") {
       this.handleTextAreaBlur();
+    } else if (event.key === "Escape") {
+      this.setState({
+        value: this.props.cue.text,
+      });
+      this.props.onBlur(this.props.field);
     }
+  };
+
+  handleCueTextDoubleClick = () => {
+    this.props.onDoubleClick(this.props.field);
   };
 
   renderEdit() {
@@ -97,6 +106,7 @@ export class TextAreaEditableCell<
           this.textAreaRef = el;
         }}
         value={this.state.value}
+        onFocus={this.handleTextAreaFocus}
         onBlur={this.handleTextAreaBlur}
         onChange={this.handleTextAreaChange}
         onKeyDown={this.handleKeyDown}
@@ -104,10 +114,14 @@ export class TextAreaEditableCell<
     );
   }
 
+  renderCueText() {
+    return <div>{this.props.cue[this.props.field]}</div>;
+  }
+
   render() {
     return (
-      <StyledTextTd onMouseDown={this.handleMouseDown}>
-        {this.props.edit ? this.renderEdit() : this.props.cue[this.props.field]}
+      <StyledTextTd onDoubleClick={this.handleCueTextDoubleClick}>
+        {this.props.edit ? this.renderEdit() : this.renderCueText()}
       </StyledTextTd>
     );
   }

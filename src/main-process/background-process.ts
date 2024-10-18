@@ -5,7 +5,7 @@ import { createWindowMain } from "window-main/browser-window";
 import { AppMenu } from "./appmenu";
 import { ApplicationStore } from "./store";
 import { ApplicationEventMap, ExtractArgs } from "shared/electron";
-import { IVTTCue } from "shared/libs/vtt/vttcue";
+import type { IVTTCue } from "shared/libs/vtt/vttcue";
 
 export class BackgroundProcess {
   public store = new ApplicationStore();
@@ -44,9 +44,23 @@ export class BackgroundProcess {
 
   private bindActionEvents = () => {
     ipcMain.handle("ipc/renderer/get-state", () => this.store.getState());
-    ipcMain.on("ipc/renderer/cues-changed", (event, cues: IVTTCue[]) => {
-      this.store.patchCues(cues);
-    });
+
+    ipcMain
+      .on("ipc/renderer/cues-changed", (event, cues: IVTTCue[]) => {
+        this.store.patchCues(cues);
+      })
+      .on("ipc/renderer/delete-cues", (event, uuids: IVTTCue["uuid"][]) => {
+        this.store.deleteCues(uuids);
+      })
+      .on("ipc/renderer/video-duration", (event, value: number | null) => {
+        this.store.setVideoDuration(value);
+      })
+      .on("ipc/renderer/disable-hotkeys", () => {
+        this.menu.setShortcutsActive(false);
+      })
+      .on("ipc/renderer/enable-hotkeys", () => {
+        this.menu.setShortcutsActive(true);
+      });
   };
 
   public requestCurrentTimestamp = () =>
