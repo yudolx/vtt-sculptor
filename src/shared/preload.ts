@@ -1,17 +1,34 @@
 import { ipcRenderer, IpcRendererEvent } from "electron";
 import type { IApplicationState } from "main-process/store";
-import { PRELOAD_GLOBAL_KEY } from "./constants";
-import { IVTTCue } from "./libs/vtt/vttcue";
+import { PRELOAD_GLOBAL_KEY, QueryKey } from "./constants";
+import type { IVTTCue } from "./libs/vtt/vttcue";
+import type { IPlaceholderCue } from "main-process/store/subtitles/placeholderCue";
 
 export const EmitIPCEvent = Object.freeze({
-  onStateChanged: (
-    callback: (event: IpcRendererEvent, state: IApplicationState) => void,
+  onInvalidateQuery: (
+    callback: (event: IpcRendererEvent, query: QueryKey) => void,
   ) => {
-    ipcRenderer.on("ipc/main/state-changed", callback);
+    ipcRenderer.on("ipc/main/invalidate-query", callback);
 
     return () => {
-      ipcRenderer.off("ipc/main/state-changed", callback);
+      ipcRenderer.off("ipc/main/invalidate-query", callback);
     };
+  },
+
+  fetchVideoPath: (): Promise<string> =>
+    ipcRenderer.invoke("ipc/renderer/get-video-path"),
+
+  fetchCues: (): Promise<(IVTTCue | IPlaceholderCue)[]> =>
+    ipcRenderer.invoke("ipc/renderer/get-cues"),
+
+  fetchRegions: (): Promise<Record<string, VTTRegion>> =>
+    ipcRenderer.invoke("ipc/renderer/get-regions"),
+
+  deleteCues: (cues: IVTTCue["uuid"][]) =>
+    ipcRenderer.send("ipc/renderer/delete-cues", cues),
+
+  cueChanged: (cues: IVTTCue[]) => {
+    ipcRenderer.send("ipc/renderer/cues-changed", cues);
   },
 
   disableHotkeys: () => {
@@ -20,6 +37,18 @@ export const EmitIPCEvent = Object.freeze({
 
   enableHotkeys: () => {
     ipcRenderer.send("ipc/renderer/enable-hotkeys");
+  },
+
+  // -----------------------------------------------------------------
+
+  onStateChanged: (
+    callback: (event: IpcRendererEvent, state: IApplicationState) => void,
+  ) => {
+    ipcRenderer.on("ipc/main/state-changed", callback);
+
+    return () => {
+      ipcRenderer.off("ipc/main/state-changed", callback);
+    };
   },
 
   getState: () => ipcRenderer.invoke("ipc/renderer/get-state"),
@@ -43,14 +72,6 @@ export const EmitIPCEvent = Object.freeze({
 
   videoDuration: (duration: number | null) => {
     ipcRenderer.send("ipc/renderer/video-duration", duration);
-  },
-
-  cueChanged: (cues: IVTTCue[]) => {
-    ipcRenderer.send("ipc/renderer/cues-changed", cues);
-  },
-
-  deleteCues: (cues: IVTTCue["uuid"][]) => {
-    ipcRenderer.send("ipc/renderer/delete-cues", cues);
   },
 
   // adjustTime: (cue: IVTTCue, side: AdjustSide, direction: AdjustDirection) => {

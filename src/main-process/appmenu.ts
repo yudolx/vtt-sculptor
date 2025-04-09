@@ -2,12 +2,9 @@ import { readFile } from "fs/promises";
 import { Menu, MenuItemConstructorOptions, dialog } from "electron";
 import { IApplicationState } from "./store";
 import { parseWebVTT } from "shared/libs/vtt";
-import { selectProject } from "./store/subtitles/selectors";
 import { BackgroundProcess } from "./background-process";
 import { createVttCue } from "shared/libs/vtt/vttcue";
 import { toFixedNumber } from "shared/to-fixed-number";
-
-const DEFAULT_CUE_LENGTH_SEC = 3;
 
 export class AppMenu {
   protected menu: Menu;
@@ -100,23 +97,15 @@ export class AppMenu {
 
     Menu.setApplicationMenu(this.menu);
 
-    const initialState = this.app.store.getState();
-    this.update(initialState);
-
-    this.app.store.addListener("state-changed", this.update);
+    this.update();
   }
 
-  public update = (newState: IApplicationState) => {
+  public update = () => {
     const saveMenuItem = this.menu.getMenuItemById("fileSave")!;
     const saveAsMenuItem = this.menu.getMenuItemById("fileSaveAs")!;
 
-    if (newState.subtitles.cues === null) {
-      saveMenuItem.enabled = false;
-      saveAsMenuItem.enabled = false;
-    } else {
-      saveMenuItem.enabled = true;
-      saveAsMenuItem.enabled = true;
-    }
+    saveMenuItem.enabled = this.app.store.subtitles.getCues() === null;
+    saveAsMenuItem.enabled = this.app.store.subtitles.getCues() === null;
   };
 
   public setShortcutsActive(value: boolean) {
@@ -143,10 +132,9 @@ export class AppMenu {
   protected handleNew = () => {
     if (!this.hotkeysActive) return;
 
-    const state = this.app.store.getState();
-    const project = selectProject(state);
+    const cues = this.app.store.subtitles.getCues();
 
-    const totalCues = project.cues.length;
+    const totalCues = cues.length;
     if (totalCues > 0) {
       const result = dialog.showMessageBox({
         message:
@@ -154,8 +142,6 @@ export class AppMenu {
         type: "warning",
         buttons: ["Continue", "Cancel"],
       });
-
-      console.log(result);
     }
 
     this.app.store.setFileAndCues({
@@ -200,15 +186,13 @@ export class AppMenu {
   protected handleNewSubtitle = async () => {
     if (!this.hotkeysActive) return;
 
-    const time = await this.app.requestCurrentTimestamp();
+    const time = Date.now();
 
-    const cue = createVttCue({
-      startTime: time,
-      endTime: toFixedNumber(time + DEFAULT_CUE_LENGTH_SEC, 3),
-      text: "",
+    this.app.store.insertCue({
+      type: "placeholder",
+      uuid: crypto.randomUUID(),
+      timestamp: time,
     });
-
-    this.app.store.insertCue(cue);
   };
 
   protected handleRemoveSelectedSubtitles = () => {

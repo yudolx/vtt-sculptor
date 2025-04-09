@@ -1,80 +1,20 @@
 import React from "react";
-import { IpcRendererEvent } from "electron";
 import { Box, styled } from "@mui/joy";
-import { IApplicationState } from "main-process/store";
-import { Video } from "./video";
+import { Video } from "./Video";
 import { SubtitleTable } from "./subtitle-table";
-import { VideoElContext } from "./context/video-el";
 
-interface IAppProps {}
-interface IAppState extends IApplicationState {
-  initialStateLoaded: boolean;
-}
-
-export class App extends React.Component<IAppProps, IAppState> {
-  constructor(props: IAppProps) {
-    super(props);
-
-    this.state = {
-      initialStateLoaded: false,
-      video: {
-        path: null,
-      },
-      subtitles: {
-        cues: [],
-        file: null,
-        regions: {},
-      },
-    };
-  }
-
-  async componentDidMount() {
-    const state = await window.electronAPI.getState();
-    this.setState({
-      initialStateLoaded: true,
-      ...state,
-    });
-
-    window.electronAPI.onStateChanged(this.handleStateChanged);
-  }
-
-  private handleStateChanged = (
-    event: IpcRendererEvent,
-    state: IApplicationState,
-  ) => {
-    this.setState(state);
-  };
-
-  render(): React.ReactNode {
-    if (!this.state.initialStateLoaded) {
-      return null;
-    }
-
-    return (
-      <AppWrapper>
-        <VideoWrapper>
-          <VideoElContext.Consumer>
-            {({ setVideo }) => (
-              <Video
-                cues={this.state.subtitles.cues}
-                path={this.state.video.path}
-                regions={this.state.subtitles.regions}
-                videoRef={setVideo}
-              />
-            )}
-          </VideoElContext.Consumer>
-        </VideoWrapper>
-        <SubtitleTableWrapper>
-          <VideoElContext.Consumer>
-            {({ video }) => (
-              <SubtitleTable cues={this.state.subtitles.cues} video={video} />
-            )}
-          </VideoElContext.Consumer>
-        </SubtitleTableWrapper>
-      </AppWrapper>
-    );
-  }
-}
+export const App = () => {
+  return (
+    <AppWrapper>
+      <VideoWrapper>
+        <Video />
+      </VideoWrapper>
+      <SubtitleTableWrapper>
+        <SubtitleTable />
+      </SubtitleTableWrapper>
+    </AppWrapper>
+  );
+};
 
 const AppWrapper = styled(Box, { name: "AppWrapper" })(() => {
   return {

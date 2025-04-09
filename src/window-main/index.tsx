@@ -1,8 +1,12 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
-import { App } from "./ui/app";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { App } from "./ui/App";
 import { ThemeProvider } from "shared/ui/ThemeProvider";
 import { VideoElContextProvider } from "./ui/context/video-el";
+import { InvalidateQueryManager } from "shared/ui/InvalidateQueryManager";
+
+const queryClient = new QueryClient();
 
 document.addEventListener("DOMContentLoaded", () => {
   const rootEl = document.createElement("div");
@@ -11,10 +15,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const reactRoot = createRoot(rootEl);
   reactRoot.render(
-    <ThemeProvider>
-      <VideoElContextProvider>
-        <App />
-      </VideoElContextProvider>
-    </ThemeProvider>,
+    <QueryClientProvider client={queryClient}>
+      <InvalidateQueryManager />
+      <ThemeProvider>
+        <VideoElContextProvider>
+          <App />
+        </VideoElContextProvider>
+      </ThemeProvider>
+    </QueryClientProvider>,
   );
 });

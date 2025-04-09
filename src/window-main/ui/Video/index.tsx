@@ -1,82 +1,37 @@
 import React from "react";
 import { Box, styled } from "@mui/joy";
-import { IVideoStoreState } from "main-process/store/video/index";
-import { ISubtitlesStoreState } from "main-process/store/subtitles/index";
 import { assert } from "shared/assert";
 import { CuesMerger } from "./cues-merger";
-import { toFixedNumber } from "shared/to-fixed-number";
+import { VideoElContext } from "../context/video-el";
+import { useQuery } from "@tanstack/react-query";
+import { QueryKey } from "shared/constants";
+import { isNotPlaceholderCue } from "main-process/store/subtitles/placeholderCue";
 
-export interface IVideoProps {
-  path: IVideoStoreState["path"];
-  cues: ISubtitlesStoreState["cues"];
-  regions: ISubtitlesStoreState["regions"];
-  videoRef: (el: HTMLVideoElement | null) => void;
-}
+export const Video = () => {
+  const { videoEl, setVideoEl: setVideo } = React.useContext(VideoElContext);
+  const pathQuery = useQuery({
+    queryKey: [QueryKey.VideoPath],
+    queryFn: window.electronAPI.fetchVideoPath,
+  });
+  const cuesQuery = useQuery({
+    queryKey: [QueryKey.CuesList],
+    queryFn: window.electronAPI.fetchCues,
+  });
+  const regionsQuery = useQuery({
+    queryKey: [QueryKey.RegionsList],
+    queryFn: window.electronAPI.fetchRegions,
+  });
 
-interface IVideoState {}
-
-export class Video extends React.Component<IVideoProps, IVideoState> {
-  protected regions: Record<string, VTTRegion> = {};
-  protected videoEl: HTMLVideoElement | null = null;
-  protected unsubRequestVideTime: (() => void) | null = null;
-
-  constructor(props: IVideoProps) {
-    super(props);
-
-    this.state = this.getInitialState();
-  }
-
-  getInitialState(): IVideoState {
-    return {};
-  }
-
-  componentDidMount(): void {
-    assert(this.videoEl, "No video element found");
-
-    const track = this.videoEl.addTextTrack("captions", "WIP Captions");
-    track.mode = "showing";
-
-    this.recreateRegions();
-    this.mergeCues();
-    this.unsubRequestVideTime = window.electronAPI.onRequestVideoCurrentTime(
-      () => {
-        return toFixedNumber(this.videoEl?.currentTime ?? 0, 3);
-      },
-    );
-  }
-
-  componentWillUnmount(): void {
-    this.unsubRequestVideTime?.();
-  }
-
-  componentDidUpdate(
-    prevProps: Readonly<IVideoProps>,
-    prevState: Readonly<IVideoState>,
-    snapshot?: any,
-  ): void {
-    if (prevProps.path !== this.props.path) {
-      this.videoEl?.addEventListener(
-        "loadeddata",
-        () => {
-          assert(this.videoEl, "No video element found");
-          window.electronAPI.videoDuration(this.videoEl.duration);
-        },
-        { once: true },
-      );
+  React.useEffect(() => {
+    if (videoEl) {
+      const track = videoEl.addTextTrack("captions", "WIP Captions");
+      track.mode = "showing";
     }
+  }, [videoEl]);
 
-    this.recreateRegions();
-    this.mergeCues();
-  }
-
-  setVideoRef = (video: HTMLVideoElement | null) => {
-    this.videoEl = video;
-    this.props.videoRef(video);
-  };
-
-  recreateRegions() {
-    const newRegions: Record<string, VTTRegion> = Object.fromEntries(
-      Object.entries(this.props.regions ?? {}).map(([regionId, iregion]) => {
+  const regions = React.useMemo(() => {
+    return Object.fromEntries(
+      Object.entries(regionsQuery.data ?? {}).map(([regionId, iregion]) => {
         const region = new VTTRegion();
         region.lines = iregion.lines;
         region.regionAnchorX = iregion.regionAnchorX;
@@ -89,31 +44,27 @@ export class Video extends React.Component<IVideoProps, IVideoState> {
         return [regionId, region];
       }),
     );
+  }, [regionsQuery.data]);
 
-    this.regions = newRegions;
-  }
+  React.useEffect(() => {
+    if (!videoEl) {
+      return;
+    }
 
-  mergeCues() {
-    assert(this.videoEl, "No video element found");
-
-    const track = this.videoEl.textTracks[0];
+    const track = videoEl.textTracks[0];
     assert(track, "No WIP captions track found");
 
-    new CuesMerger(track, this.props.cues ?? []);
-  }
+    console.log(cuesQuery.data);
 
-  render(): React.ReactNode {
-    return (
-      <VideoElementContainer>
-        <StyledVideo
-          ref={this.setVideoRef}
-          controls
-          src={this.props.path ?? ""}
-        ></StyledVideo>
-      </VideoElementContainer>
-    );
-  }
-}
+    new CuesMerger(track, (cuesQuery.data ?? []).filter(isNotPlaceholderCue));
+  }, [cuesQuery.data, videoEl]);
+
+  return (
+    <VideoElementContainer>
+      <StyledVideo controls ref={setVideo} src={pathQuery.data ?? ""} />
+    </VideoElementContainer>
+  );
+};
 
 const VideoElementContainer = styled(Box, { name: "VideoElementContainer" })(
   () => {

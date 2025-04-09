@@ -1,8 +1,7 @@
 import { IVTTCue } from "shared/libs/vtt/vttcue";
 import { IVTTRegion } from "shared/libs/vtt/vttregion";
-
-import { BaseStore } from "../base";
 import { assert } from "shared/assert";
+import { IPlaceholderCue, isPlaceholderCue } from "./placeholderCue";
 
 export interface ISubtitlesStoreState {
   file: string | null;
@@ -10,34 +9,10 @@ export interface ISubtitlesStoreState {
   regions: Record<string, IVTTRegion>;
 }
 
-export class SubtitlesStore extends BaseStore<ISubtitlesStoreState> {
+export class SubtitlesStore {
   protected file: string | null = null;
-  protected cues: IVTTCue[] = [];
+  protected cues: (IVTTCue | IPlaceholderCue)[] = [];
   protected regions: Record<string, IVTTRegion> = {};
-
-  public getState() {
-    return {
-      file: this.file,
-      cues: this.cues,
-      regions: this.regions,
-    };
-  }
-
-  public patchCues(cuesToPatch: IVTTCue[]) {
-    for (const cue of cuesToPatch) {
-      const existingCue = this.cues.find(
-        (stateCue) => stateCue.uuid === cue.uuid,
-      );
-
-      if (!existingCue) {
-        continue;
-      }
-
-      existingCue.text = cue.text;
-      existingCue.startTime = cue.startTime;
-      existingCue.endTime = cue.endTime;
-    }
-  }
 
   public setFile(file: string | null) {
     this.file = file;
@@ -61,18 +36,55 @@ export class SubtitlesStore extends BaseStore<ISubtitlesStoreState> {
     }
   }
 
-  public insertCue(cue: IVTTCue) {
-    const suitableIndex =
-      this.cues.length > 0
-        ? this.cues.findLastIndex((c) => c.startTime <= cue.startTime)
-        : 0;
+  public getRegions() {
+    return this.regions;
+  }
 
-    assert(
-      typeof suitableIndex === "number" && suitableIndex !== -1,
-      `Unable to find suitable index for the new cue`,
-    );
+  public testPatchOrInsertCues(cuesToPatch: (IVTTCue | IPlaceholderCue)[]) {
+    for (const cue of cuesToPatch) {
+      const existingCue = this.cues.find(
+        (stateCue) => stateCue.uuid === cue.uuid,
+      );
+      const existingCueIndex = existingCue
+        ? this.cues.indexOf(existingCue)
+        : -1;
 
-    this.cues.splice(suitableIndex + 1, 0, cue);
+      if (existingCue) {
+        // if the cue exist then patch it
+        if (isPlaceholderCue(existingCue)) {
+          this.cues.splice(existingCueIndex, 1, cue);
+        } else {
+          if (!isPlaceholderCue(cue)) {
+            existingCue.text = cue.text;
+            existingCue.startTime = cue.startTime;
+            existingCue.endTime = cue.endTime;
+          }
+        }
+      } else {
+        // if the cue does not exist yet then we try to insert it
+        if (isPlaceholderCue(cue)) {
+          this.cues.unshift(cue);
+        } else {
+          const suitableIndex =
+            this.cues.length > 0
+              ? this.cues.findLastIndex(
+                  (c) => !isPlaceholderCue(c) && c.startTime <= cue.startTime,
+                )
+              : 0;
+
+          assert(
+            typeof suitableIndex === "number" && suitableIndex !== -1,
+            `Unable to find suitable index for the new cue`,
+          );
+
+          if (suitableIndex > 0) {
+            this.cues.splice(suitableIndex + 1, 0, cue);
+          } else {
+            this.cues.push(cue);
+          }
+        }
+      }
+    }
   }
 
   public deleteCues(uuids: IVTTCue["uuid"][]) {

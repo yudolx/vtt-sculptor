@@ -1,36 +1,25 @@
-import { EventEmitter } from "node:events";
 import { IVideoStoreState, VideoStore } from "./video";
 import { SubtitlesStore, ISubtitlesStoreState } from "./subtitles";
 import { IVTTCue } from "shared/libs/vtt/vttcue";
 import { IVTTRegion } from "shared/libs/vtt/vttregion";
-import { AdjustDirection, AdjustSide, IAdjustTimePayload } from "shared/ipc";
-import { assert } from "shared/assert";
+import { QueryKey } from "shared/constants";
+import type { BackgroundProcess } from "main-process/background-process";
+import { IPlaceholderCue } from "./subtitles/placeholderCue";
 
 export interface IApplicationState {
   video: IVideoStoreState;
   subtitles: ISubtitlesStoreState;
 }
 
-export class ApplicationStore extends EventEmitter<{
-  "state-changed": [IApplicationState];
-}> {
-  protected video = new VideoStore();
-  protected subtitles = new SubtitlesStore();
+export class ApplicationStore {
+  public video = new VideoStore();
+  public subtitles = new SubtitlesStore();
 
-  public getState(): IApplicationState {
-    return {
-      video: this.video.getState(),
-      subtitles: this.subtitles.getState(),
-    };
-  }
-
-  public emitUpdate() {
-    this.emit("state-changed", this.getState());
-  }
+  constructor(protected app: BackgroundProcess) {}
 
   public setVideoPath(value: string | null) {
     this.video.setPath(value);
-    this.emitUpdate();
+    this.app.invalidateQuery(QueryKey.VideoPath);
   }
 
   public setFileAndCues(payload: {
@@ -41,17 +30,20 @@ export class ApplicationStore extends EventEmitter<{
     this.subtitles.setCues(payload.cues);
     this.subtitles.setRegions(payload.regions);
     this.subtitles.setFile(payload.file);
-    this.emitUpdate();
+
+    this.app.invalidateQuery(QueryKey.VideoPath);
+    this.app.invalidateQuery(QueryKey.CuesList);
+    this.app.invalidateQuery(QueryKey.RegionsList);
   }
 
-  public insertCue(cue: IVTTCue) {
-    this.subtitles.insertCue(cue);
-    this.emitUpdate();
+  public insertCue(cue: IVTTCue | IPlaceholderCue) {
+    this.subtitles.testPatchOrInsertCues([cue]);
+    this.app.invalidateQuery(QueryKey.CuesList);
   }
 
-  public patchCues(cues: IVTTCue[]) {
-    this.subtitles.patchCues(cues);
-    this.emitUpdate();
+  public patchCues(cues: (IVTTCue | IPlaceholderCue)[]) {
+    this.subtitles.testPatchOrInsertCues(cues);
+    this.app.invalidateQuery(QueryKey.CuesList);
   }
 
   public setVideoDuration(value: number | null) {
@@ -61,6 +53,6 @@ export class ApplicationStore extends EventEmitter<{
 
   public deleteCues(uuids: IVTTCue["uuid"][]) {
     this.subtitles.deleteCues(uuids);
-    this.emitUpdate();
+    this.app.invalidateQuery(QueryKey.CuesList);
   }
 }

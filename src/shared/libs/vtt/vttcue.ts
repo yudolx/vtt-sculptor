@@ -1,5 +1,4 @@
 import { IVTTRegion } from "./vttregion";
-import { randomUUID } from "crypto";
 
 /**
  * Copyright 2013 vtt.js Contributors
@@ -40,7 +39,7 @@ type VttCreateOptions = Partial<IVTTCue> &
 
 export const createVttCue = (overrideWith: VttCreateOptions): IVTTCue => {
   return {
-    uuid: randomUUID(),
+    uuid: crypto.randomUUID(),
     id: "",
     pauseOnExit: false,
     region: null,

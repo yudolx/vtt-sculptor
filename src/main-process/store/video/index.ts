@@ -19,4 +19,12 @@ export class VideoStore extends BaseStore<IVideoStoreState> {
   setDuration(value: number | null) {
     this.duration = value;
   }
+
+  getPath() {
+    return this.path;
+  }
+
+  getDuration() {
+    return this.duration;
+  }
 }
