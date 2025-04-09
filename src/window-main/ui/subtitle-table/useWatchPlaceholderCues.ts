@@ -18,9 +18,10 @@ export const useWatchPlaceholderCues = (
     const placeholderCues = cues.filter(isPlaceholderCue);
     const now = Date.now();
     const converted = placeholderCues.map((placeholder) => {
+      const ping = now - placeholder.timestamp;
       return createVttCue({
         uuid: placeholder.uuid,
-        startTime: videoEl.currentTime - (now - placeholder.timestamp) / 1000,
+        startTime: Math.max(videoEl.currentTime - ping / 1000, 0),
         endTime: toFixedNumber(videoEl.currentTime + DEFAULT_CUE_LENGTH_SEC, 3),
         text: "",
       });

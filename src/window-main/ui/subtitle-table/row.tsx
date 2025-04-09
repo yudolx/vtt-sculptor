@@ -67,8 +67,8 @@ export class SubtitleTableRow extends React.Component<
         ref={(el) => (this.rowEl = el)}
         onMouseDown={this.handleRowMouseDown}
       >
-        <td>{cue.startTime}</td>
-        <td>{cue.endTime}</td>
+        <td>{toFixedNumber(cue.startTime, 3)}</td>
+        <td>{toFixedNumber(cue.endTime, 3)}</td>
         <td>{toFixedNumber(cue.endTime - cue.startTime, 3)}</td>
         <TextAreaEditableCell
           edit={this.props.active && this.props.editField === "text"}

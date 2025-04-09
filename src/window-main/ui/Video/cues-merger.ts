@@ -66,7 +66,7 @@ export class CuesMerger {
 
   mergeCueValues = (cue: VTTCueUuid, obj: IVTTCue) => {
     let changed = false;
-    const keys = [
+    const keys: (keyof IVTTCue)[] = [
       "id",
       "align",
       "line",
@@ -79,6 +79,8 @@ export class CuesMerger {
       "snapToLines",
       "vertical",
       "text",
+      "endTime",
+      "startTime",
     ] as const;
 
     for (const key of keys) {

@@ -9,6 +9,7 @@ import { isNotPlaceholderCue } from "main-process/store/subtitles/placeholderCue
 
 export const Video = () => {
   const { videoEl, setVideoEl: setVideo } = React.useContext(VideoElContext);
+
   const pathQuery = useQuery({
     queryKey: [QueryKey.VideoPath],
     queryFn: window.electronAPI.fetchVideoPath,
@@ -23,10 +24,24 @@ export const Video = () => {
   });
 
   React.useEffect(() => {
+    const blurInterbalCallback = () => {
+      if (videoEl) {
+        if (document.activeElement === videoEl) {
+          videoEl.blur();
+        }
+      }
+    };
+
+    const intervalId = window.setInterval(blurInterbalCallback, 100);
+
     if (videoEl) {
       const track = videoEl.addTextTrack("captions", "WIP Captions");
       track.mode = "showing";
     }
+
+    return () => {
+      clearInterval(intervalId);
+    };
   }, [videoEl]);
 
   const regions = React.useMemo(() => {
@@ -54,8 +69,6 @@ export const Video = () => {
     const track = videoEl.textTracks[0];
     assert(track, "No WIP captions track found");
 
-    console.log(cuesQuery.data);
-
     new CuesMerger(track, (cuesQuery.data ?? []).filter(isNotPlaceholderCue));
   }, [cuesQuery.data, videoEl]);
 
@@ -81,7 +94,8 @@ const VideoElementContainer = styled(Box, { name: "VideoElementContainer" })(
 
 const StyledVideo = styled("video", { name: "StyledVideo" })(() => {
   return {
-    maxWidth: "100%",
+    // maxWidth: "100%",
     maxHeight: "100%",
+    width: "100%",
   };
 });

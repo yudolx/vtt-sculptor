@@ -1,17 +1,14 @@
 import React from "react";
-import { Table, TableProps } from "@mui/joy";
+import { Table } from "@mui/joy";
 import { useQuery } from "@tanstack/react-query";
 import { IVTTCue } from "shared/libs/vtt/vttcue";
+import MouseTrap from "shared/libs/mousetrap/index";
 import { ISubtitleTableRowProps, SubtitleTableRow } from "./row";
 import { assert } from "shared/assert";
-import { toFixedNumber } from "shared/to-fixed-number";
 import { VideoElContext } from "../context/video-el";
 import { DEFAULT_CUE_ADJUST_TIME, QueryKey } from "shared/constants";
 import { useWatchPlaceholderCues } from "./useWatchPlaceholderCues";
-import {
-  isNotPlaceholderCue,
-  isPlaceholderCue,
-} from "main-process/store/subtitles/placeholderCue";
+import { isNotPlaceholderCue } from "main-process/store/subtitles/placeholderCue";
 
 export const SubtitleTable = () => {
   const [activeCueUuid, setActiveCueUuid] = React.useState<
@@ -36,24 +33,123 @@ export const SubtitleTable = () => {
   }, [activeCueUuid, cues]);
 
   const activeCueIndex = React.useMemo(() => {
-    return activeCueUuid
-      ? (cues.findIndex((c) => c.uuid === activeCueUuid) ?? -1)
-      : -1;
-  }, [activeCueUuid, cues]);
+    return activeCue ? cues.filter(isNotPlaceholderCue).indexOf(activeCue) : -1;
+  }, [activeCue, cues]);
 
   const nextCue = React.useMemo(() => {
-    if (!cues) {
-      return null;
-    }
-    const maxCueIndex = cues.length - 1;
-    const nextCueIndex = Math.min(maxCueIndex, activeCueIndex + 1);
-    return cues[nextCueIndex];
+    return cues.filter(isNotPlaceholderCue).at(activeCueIndex + 1) ?? null;
   }, [activeCueIndex, cues]);
 
   const prevCue = React.useMemo(() => {
-    const prevActiveCue = Math.max(0, activeCueIndex - 1);
-    return cues[prevActiveCue] ?? null;
+    return cues.filter(isNotPlaceholderCue).at(activeCueIndex - 1) ?? null;
   }, [activeCueIndex, cues]);
+
+  React.useEffect(() => {
+    const handleSpace = () => {
+      if (videoEl) {
+        if (videoEl.paused) {
+          videoEl.play();
+        } else {
+          videoEl.pause();
+        }
+      }
+    };
+
+    const handleUp = () => {
+      if (prevCue) {
+        setActiveCueUuid(prevCue.uuid);
+      }
+    };
+    const handleDown = () => {
+      if (nextCue) {
+        setActiveCueUuid(nextCue.uuid);
+      }
+    };
+    const handleDelete = () => {
+      const nextActiveCue = nextCue ?? prevCue ?? null;
+      if (nextActiveCue) {
+        setActiveCueUuid(nextActiveCue.uuid);
+      }
+      if (activeCue) {
+        window.electronAPI.deleteCues([activeCue.uuid]);
+      }
+    };
+
+    const handleQ = () => {
+      if (activeCue) {
+        let newStartTime = activeCue.startTime - DEFAULT_CUE_ADJUST_TIME;
+        newStartTime = Math.max(newStartTime, 0);
+        window.electronAPI.cueChanged([
+          { ...activeCue, startTime: newStartTime },
+        ]);
+      }
+    };
+
+    const handleW = () => {
+      if (activeCue) {
+        let newStartTime = activeCue.startTime + DEFAULT_CUE_ADJUST_TIME;
+        newStartTime = Math.min(newStartTime, activeCue.endTime);
+        window.electronAPI.cueChanged([
+          { ...activeCue, startTime: newStartTime },
+        ]);
+      }
+    };
+
+    const handleE = () => {
+      if (activeCue) {
+        let newEndTime = activeCue.endTime - DEFAULT_CUE_ADJUST_TIME;
+        newEndTime = Math.max(newEndTime, activeCue.startTime);
+        window.electronAPI.cueChanged([{ ...activeCue, endTime: newEndTime }]);
+      }
+    };
+
+    const handleR = () => {
+      if (activeCue && videoEl) {
+        let newEndTime = activeCue.endTime + DEFAULT_CUE_ADJUST_TIME;
+        newEndTime = Math.min(newEndTime, videoEl.duration);
+        window.electronAPI.cueChanged([{ ...activeCue, endTime: newEndTime }]);
+      }
+    };
+
+    const handleK = () => {
+      if (activeCue && videoEl) {
+        window.electronAPI.cueChanged([
+          { ...activeCue, endTime: videoEl.currentTime },
+        ]);
+      }
+    };
+
+    const handleO = () => {
+      const START_BUFFER = 0.5;
+      if (activeCue && videoEl) {
+        videoEl.currentTime = Math.max(activeCue.startTime - START_BUFFER, 0);
+      }
+    };
+
+    MouseTrap.bind("space", handleSpace);
+    MouseTrap.bind("up", handleUp);
+    MouseTrap.bind("down", handleDown);
+    MouseTrap.bind("del", handleDelete);
+    MouseTrap.bind("q", handleQ);
+    MouseTrap.bind("w", handleW);
+    MouseTrap.bind("e", handleE);
+    MouseTrap.bind("r", handleR);
+    MouseTrap.bind("k", handleK);
+    MouseTrap.bind("o", handleO);
+
+    return () => {
+      MouseTrap.unbind("space");
+      MouseTrap.unbind("up");
+      MouseTrap.unbind("down");
+      MouseTrap.unbind("del");
+      MouseTrap.unbind("q");
+      MouseTrap.unbind("w");
+      MouseTrap.unbind("e");
+      MouseTrap.unbind("r");
+      MouseTrap.unbind("k");
+      MouseTrap.unbind("o");
+    };
+  }, [prevCue, activeCue, nextCue, videoEl]);
 
   const handleSubtitleTableRowClick = React.useCallback(
     (cue: IVTTCue) => {
@@ -99,78 +195,8 @@ export const SubtitleTable = () => {
     window.electronAPI.disableHotkeys();
   }, []);
 
-  const handleSubtitleTableRowKeyDown = React.useCallback<
-    Required<TableProps>["onKeyDown"]
-  >(
-    (event) => {
-      const cue = activeCue;
-      if (event.key === "Enter") {
-        if (activeCueUuid) {
-          setEditField("text");
-        }
-      } else if (event.key === "ArrowDown" && nextCue) {
-        setActiveCueUuid(nextCue.uuid);
-      } else if (event.key === "ArrowUp" && prevCue) {
-        setActiveCueUuid(prevCue.uuid);
-      } else if (event.key.toLocaleLowerCase() === "delete") {
-        const activeCue = nextCue ?? prevCue ?? null;
-        setActiveCueUuid(activeCue.uuid);
-        if (cue) {
-          window.electronAPI.deleteCues([cue.uuid]);
-        }
-      } else if (event.key.toLowerCase() === "q") {
-        assert(videoEl, "No video");
-        assert(cue, "Cue not found");
-
-        const newStartTime =
-          cue.startTime - DEFAULT_CUE_ADJUST_TIME < 0
-            ? 0
-            : toFixedNumber(cue.startTime - DEFAULT_CUE_ADJUST_TIME, 3);
-
-        window.electronAPI.cueChanged([{ ...cue, startTime: newStartTime }]);
-      } else if (event.key.toLowerCase() === "w") {
-        assert(videoEl, "No video");
-        assert(cue, "Cue not found");
-
-        const newStartTime =
-          cue.startTime + DEFAULT_CUE_ADJUST_TIME >= cue.endTime
-            ? cue.endTime
-            : toFixedNumber(cue.startTime + DEFAULT_CUE_ADJUST_TIME, 3);
-
-        window.electronAPI.cueChanged([{ ...cue, startTime: newStartTime }]);
-      } else if (event.key.toLowerCase() === "e") {
-        assert(videoEl, "No video");
-        assert(cue, "Cue not found");
-
-        const newEndTime =
-          cue.endTime - DEFAULT_CUE_ADJUST_TIME <= cue.startTime
-            ? cue.startTime
-            : toFixedNumber(cue.endTime - DEFAULT_CUE_ADJUST_TIME, 3);
-
-        window.electronAPI.cueChanged([{ ...cue, endTime: newEndTime }]);
-      } else if (event.key.toLowerCase() === "r") {
-        assert(videoEl, "No video");
-        assert(cue, "Cue not found");
-
-        const newEndTime =
-          cue.endTime + DEFAULT_CUE_ADJUST_TIME >= videoEl.duration
-            ? videoEl.duration
-            : toFixedNumber(cue.endTime + DEFAULT_CUE_ADJUST_TIME, 3);
-
-        window.electronAPI.cueChanged([{ ...cue, endTime: newEndTime }]);
-      }
-    },
-    [activeCue, activeCueUuid, nextCue, prevCue, videoEl],
-  );
-
   return (
-    <Table
-      hoverRow
-      stickyHeader
-      tabIndex={1}
-      stripe="odd"
-      onKeyDown={handleSubtitleTableRowKeyDown}
-    >
+    <Table hoverRow stickyHeader tabIndex={1} stripe="odd">
       <thead>
         <tr>
           <th style={{ width: 85 }}>Start</th>

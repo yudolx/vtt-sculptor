@@ -45,8 +45,26 @@ export class AppMenu {
           },
         ],
       },
+      ...(process.platform === "darwin"
+        ? [
+            {
+              label: "Edit",
+              submenu: [
+                { role: "undo" } as const,
+                { role: "redo" } as const,
+                { type: "separator" } as const,
+                { role: "cut" } as const,
+                { role: "copy" } as const,
+                { role: "paste" } as const,
+                { role: "pasteAndMatchStyle" } as const,
+                { role: "delete" } as const,
+                { role: "selectAll" } as const,
+              ],
+            },
+          ]
+        : []),
       {
-        label: "Edit",
+        label: "Subtitles",
         submenu: [
           {
             label: "Insert new subtitle",
@@ -60,13 +78,10 @@ export class AppMenu {
             accelerator: "delete",
             click: this.handleRemoveSelectedSubtitles,
           },
-          { type: "separator" },
-          {
-            label: "Regions",
-            id: "regions",
-            click: () => {},
-          },
         ],
+      },
+      {
+        label: "Regions",
       },
       {
         label: "Video",

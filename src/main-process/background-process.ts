@@ -45,7 +45,7 @@ export class BackgroundProcess {
 
     ipcMain
       .on("ipc/renderer/delete-cues", (event, cues: IVTTCue["uuid"][]) => {
-        this.store.subtitles.deleteCues(cues);
+        this.store.deleteCues(cues);
         this.menu.update();
       })
       .on("ipc/renderer/cues-changed", (event, cues: IVTTCue[]) => {
@@ -60,40 +60,5 @@ export class BackgroundProcess {
       .on("ipc/renderer/enable-hotkeys", () => {
         this.menu.setShortcutsActive(true);
       });
-
-    // ipcMain
-    //   .on("ipc/renderer/cues-changed", (event, cues: IVTTCue[]) => {
-    //     this.store.patchCues(cues);
-    //   })
-    //   .on("ipc/renderer/delete-cues", (event, uuids: IVTTCue["uuid"][]) => {
-    //     this.store.deleteCues(uuids);
-    //   })
-    //   .on("ipc/renderer/video-duration", (event, value: number | null) => {
-    //     this.store.setVideoDuration(value);
-    //   })
-    //   .on("ipc/renderer/disable-hotkeys", () => {
-    //     this.menu.setShortcutsActive(false);
-    //   })
-    //   .on("ipc/renderer/enable-hotkeys", () => {
-    //     this.menu.setShortcutsActive(true);
-    //   });
   };
-
-  // public requestCurrentTimestamp = () =>
-  //   new Promise<number>((resolve) => {
-  //     const uuid = randomUUID();
-
-  //     ipcMain.once(
-  //       `ipc/main/request-video-current-time-${uuid}`,
-  //       (event, time: number) => {
-  //         resolve(time);
-  //       },
-  //     );
-
-  //     this.sendToWindow(
-  //       this.window.main,
-  //       "ipc/main/request-video-current-time",
-  //       { uuid },
-  //     );
-  //   });
 }
