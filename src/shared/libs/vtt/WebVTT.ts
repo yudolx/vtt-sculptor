@@ -1,7 +1,7 @@
 import { ParsingError } from "./ParsingError";
 import { Settings } from "./Settings";
 import { parseCue, parseOptions } from "./utils";
-import { IVTTCue, createVttCue } from "./vttcue";
+import { IVTTCue, mockVttCue } from "./vttcue";
 import { IVTTRegion, createVttRegion } from "./vttregion";
 
 export enum WebVTTParserState {
@@ -227,7 +227,7 @@ export class WebVTTParser {
             if (!line) {
               continue;
             }
-            this.cue = createVttCue({
+            this.cue = mockVttCue({
               startTime: 0,
               endTime: 0,
               text: "",

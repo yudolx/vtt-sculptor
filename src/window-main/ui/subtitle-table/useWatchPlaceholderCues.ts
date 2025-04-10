@@ -3,8 +3,7 @@ import {
   isPlaceholderCue,
   type IPlaceholderCue,
 } from "main-process/store/subtitles/placeholderCue";
-import { createVttCue, IVTTCue } from "shared/libs/vtt/vttcue";
-import { toFixedNumber } from "shared/to-fixed-number";
+import { mockVttCue, IVTTCue } from "shared/libs/vtt/vttcue";
 import { DEFAULT_CUE_LENGTH_SEC } from "shared/constants";
 
 export const useWatchPlaceholderCues = (
@@ -19,10 +18,10 @@ export const useWatchPlaceholderCues = (
     const now = Date.now();
     const converted = placeholderCues.map((placeholder) => {
       const ping = now - placeholder.timestamp;
-      return createVttCue({
+      return mockVttCue({
         uuid: placeholder.uuid,
         startTime: Math.max(videoEl.currentTime - ping / 1000, 0),
-        endTime: toFixedNumber(videoEl.currentTime + DEFAULT_CUE_LENGTH_SEC, 3),
+        endTime: videoEl.currentTime + DEFAULT_CUE_LENGTH_SEC,
         text: "",
       });
     });

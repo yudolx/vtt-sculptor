@@ -3,12 +3,6 @@ import { IVTTRegion } from "shared/libs/vtt/vttregion";
 import { assert } from "shared/assert";
 import { IPlaceholderCue, isPlaceholderCue } from "./placeholderCue";
 
-export interface ISubtitlesStoreState {
-  file: string | null;
-  cues: IVTTCue[];
-  regions: Record<string, IVTTRegion>;
-}
-
 export class SubtitlesStore {
   protected file: string | null = null;
   protected cues: (IVTTCue | IPlaceholderCue)[] = [];

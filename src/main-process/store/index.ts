@@ -1,15 +1,10 @@
-import { IVideoStoreState, VideoStore } from "./video";
-import { SubtitlesStore, ISubtitlesStoreState } from "./subtitles";
+import { VideoStore } from "./video";
+import { SubtitlesStore } from "./subtitles";
 import { IVTTCue } from "shared/libs/vtt/vttcue";
 import { IVTTRegion } from "shared/libs/vtt/vttregion";
 import { QueryKey } from "shared/constants";
 import type { BackgroundProcess } from "main-process/background-process";
 import { IPlaceholderCue } from "./subtitles/placeholderCue";
-
-export interface IApplicationState {
-  video: IVideoStoreState;
-  subtitles: ISubtitlesStoreState;
-}
 
 export class ApplicationStore {
   public video = new VideoStore();

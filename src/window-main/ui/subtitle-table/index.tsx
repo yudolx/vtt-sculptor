@@ -81,6 +81,20 @@ export const SubtitleTable = () => {
       }
     };
 
+    const handleEnter = () => {
+      if (activeCue) {
+        window.electronAPI.disableHotkeys();
+        setEditField("text");
+      }
+    };
+
+    const handleEsc = () => {
+      if (activeCue && editField) {
+        window.electronAPI.enableHotkeys();
+        setEditField(null);
+      }
+    };
+
     const handleQ = () => {
       if (activeCue) {
         let newStartTime = activeCue.startTime - DEFAULT_CUE_ADJUST_TIME;
@@ -132,6 +146,8 @@ export const SubtitleTable = () => {
       }
     };
 
+    MouseTrap.bind("enter", handleEnter);
+    MouseTrap.bind("esc", handleEsc);
     MouseTrap.bind("space", handleSpace);
     MouseTrap.bind("up", handleUp);
     MouseTrap.bind("down", handleDown);
@@ -144,6 +160,8 @@ export const SubtitleTable = () => {
     MouseTrap.bind("o", handleO);
 
     return () => {
+      MouseTrap.unbind("enter");
+      MouseTrap.unbind("esc");
       MouseTrap.unbind("space");
       MouseTrap.unbind("up");
       MouseTrap.unbind("down");
@@ -155,7 +173,7 @@ export const SubtitleTable = () => {
       MouseTrap.unbind("k");
       MouseTrap.unbind("o");
     };
-  }, [prevCue, activeCue, nextCue, videoEl]);
+  }, [prevCue, activeCue, nextCue, videoEl, editField]);
 
   const handleSubtitleTableRowClick = React.useCallback(
     (cue: IVTTCue) => {

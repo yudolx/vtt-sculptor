@@ -1,7 +1,3 @@
-export interface IVideoStoreState {
-  path: string | null;
-}
-
 export class VideoStore {
   protected path: string | null = null;
   protected duration: number | null = null;

@@ -37,7 +37,7 @@ export interface IVTTCue {
 type VttCreateOptions = Partial<IVTTCue> &
   Pick<Required<IVTTCue>, "startTime" | "endTime" | "text">;
 
-export const createVttCue = (overrideWith: VttCreateOptions): IVTTCue => {
+export const mockVttCue = (overrideWith: VttCreateOptions): IVTTCue => {
   return {
     uuid: crypto.randomUUID(),
     id: "",

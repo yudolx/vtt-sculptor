@@ -1,10 +1,10 @@
 import { readFile } from "fs/promises";
 import { Menu, MenuItemConstructorOptions, dialog } from "electron";
-import { IApplicationState } from "./store";
 import { parseWebVTT } from "shared/libs/vtt";
 import { BackgroundProcess } from "./background-process";
-import { createVttCue } from "shared/libs/vtt/vttcue";
+import { mockVttCue } from "shared/libs/vtt/vttcue";
 import { toFixedNumber } from "shared/to-fixed-number";
+import { IS_DARWIN } from "shared/constants";
 
 export class AppMenu {
   protected menu: Menu;
@@ -13,19 +13,22 @@ export class AppMenu {
 
   constructor(protected app: BackgroundProcess) {
     this.menu = Menu.buildFromTemplate([
+      ...(IS_DARWIN && __DEVELOPMENT__
+        ? [{ label: "MAC_OS_SKIPS_FIRST_MENU_ITEM_IN_DEVELOPMENT_FIX" }]
+        : []),
       {
         label: "File",
         submenu: [
           {
             label: "New",
             id: "fileNew",
-            accelerator: __DARWIN__ ? "Cmd+N" : "Ctrl+N",
+            accelerator: IS_DARWIN ? "Cmd+N" : "Ctrl+N",
             click: this.handleNew,
           },
           {
             label: "Open",
             id: "fileOpen",
-            accelerator: __DARWIN__ ? "Cmd+O" : "Ctrl+O",
+            accelerator: IS_DARWIN ? "Cmd+O" : "Ctrl+O",
             click: this.handleOpen,
           },
           {
@@ -34,18 +37,19 @@ export class AppMenu {
           {
             label: "Save",
             id: "fileSave",
-            accelerator: __DARWIN__ ? "Cmd+S" : "Ctrl+S",
+            accelerator: IS_DARWIN ? "Cmd+S" : "Ctrl+S",
             click: this.handleSave,
           },
           {
             label: "Save As",
             id: "fileSaveAs",
-            accelerator: __DARWIN__ ? "Cmd+Shift+S" : "Ctrl+Shift+S",
+            accelerator: IS_DARWIN ? "Cmd+Shift+S" : "Ctrl+Shift+S",
             click: this.handleSaveAs,
           },
         ],
       },
-      ...(process.platform === "darwin"
+      // The app will lack ability to copy and paste text without this menu on mac... for some reason
+      ...(IS_DARWIN
         ? [
             {
               label: "Edit",
@@ -89,7 +93,7 @@ export class AppMenu {
           {
             label: "Load video",
             id: "videoLoadVideo",
-            accelerator: __DARWIN__ ? "Cmd+L" : "Ctrl+L",
+            accelerator: IS_DARWIN ? "Cmd+L" : "Ctrl+L",
             click: this.handleLoadVideo,
           },
         ],
