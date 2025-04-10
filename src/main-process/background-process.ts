@@ -42,18 +42,22 @@ export class BackgroundProcess {
     ipcMain.handle("ipc/renderer/get-regions", () =>
       this.store.subtitles.getRegions(),
     );
+    ipcMain.handle("ipc/renderer/get-active-cue", (event) =>
+      this.store.subtitles.getActiveCue(),
+    );
 
     ipcMain
+      .on("ipc/renderer/set-active-cue", (event, cue: IVTTCue["uuid"]) => {
+        this.store.setActiveCue(cue);
+      })
       .on("ipc/renderer/delete-cues", (event, cues: IVTTCue["uuid"][]) => {
         this.store.deleteCues(cues);
         this.menu.update();
       })
-      .on("ipc/renderer/cues-changed", (event, cues: IVTTCue[]) => {
+      .on("ipc/renderer/patch-cues", (event, cues: IVTTCue[]) => {
         this.store.patchCues(cues);
         this.menu.update();
-      });
-
-    ipcMain
+      })
       .on("ipc/renderer/disable-hotkeys", () => {
         this.menu.setShortcutsActive(false);
       })

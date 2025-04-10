@@ -27,6 +27,6 @@ export const useWatchPlaceholderCues = (
       });
     });
 
-    window.electronAPI.cueChanged(converted);
+    window.electronAPI.patchCues(converted);
   }, [cues, videoEl]);
 };

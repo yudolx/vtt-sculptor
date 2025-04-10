@@ -1,5 +1,4 @@
 import { ipcRenderer, IpcRendererEvent } from "electron";
-import type { IApplicationState } from "main-process/store";
 import { PRELOAD_GLOBAL_KEY, QueryKey } from "./constants";
 import type { IVTTCue } from "./libs/vtt/vttcue";
 import type { IPlaceholderCue } from "main-process/store/subtitles/placeholderCue";
@@ -24,11 +23,18 @@ export const EmitIPCEvent = Object.freeze({
   fetchRegions: (): Promise<Record<string, VTTRegion>> =>
     ipcRenderer.invoke("ipc/renderer/get-regions"),
 
+  fetchActiveCue: (): Promise<string> =>
+    ipcRenderer.invoke("ipc/renderer/get-active-cue"),
+
   deleteCues: (cues: IVTTCue["uuid"][]) =>
     ipcRenderer.send("ipc/renderer/delete-cues", cues),
 
-  cueChanged: (cues: IVTTCue[]) => {
-    ipcRenderer.send("ipc/renderer/cues-changed", cues);
+  patchCues: (cues: IVTTCue[]) => {
+    ipcRenderer.send("ipc/renderer/patch-cues", cues);
+  },
+
+  setActiveCue: (cue: IVTTCue["uuid"]) => {
+    ipcRenderer.send("ipc/renderer/set-active-cue", cue);
   },
 
   disableHotkeys: () => {
@@ -38,45 +44,6 @@ export const EmitIPCEvent = Object.freeze({
   enableHotkeys: () => {
     ipcRenderer.send("ipc/renderer/enable-hotkeys");
   },
-
-  // -----------------------------------------------------------------
-
-  onStateChanged: (
-    callback: (event: IpcRendererEvent, state: IApplicationState) => void,
-  ) => {
-    ipcRenderer.on("ipc/main/state-changed", callback);
-
-    return () => {
-      ipcRenderer.off("ipc/main/state-changed", callback);
-    };
-  },
-
-  getState: () => ipcRenderer.invoke("ipc/renderer/get-state"),
-
-  onRequestVideoCurrentTime: (callback: () => number) => {
-    const innerCallback = (event: IpcRendererEvent, data: { uuid: string }) => {
-      const time = callback();
-
-      ipcRenderer.send(
-        `ipc/main/request-video-current-time-${data.uuid}`,
-        time,
-      );
-    };
-
-    ipcRenderer.on("ipc/main/request-video-current-time", innerCallback);
-
-    return () => {
-      ipcRenderer.off("ipc/main/request-video-current-time", innerCallback);
-    };
-  },
-
-  videoDuration: (duration: number | null) => {
-    ipcRenderer.send("ipc/renderer/video-duration", duration);
-  },
-
-  // adjustTime: (cue: IVTTCue, side: AdjustSide, direction: AdjustDirection) => {
-  //   ipcRenderer.send("ipc/renderer/adjust-time", { cue, side, direction });
-  // },
 });
 
 declare global {

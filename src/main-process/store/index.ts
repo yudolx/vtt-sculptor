@@ -37,13 +37,14 @@ export class ApplicationStore {
   }
 
   public insertCue(cue: IVTTCue | IPlaceholderCue) {
-    this.subtitles.testPatchOrInsertCues([cue]);
+    this.subtitles.patchOrInsertCues([cue]);
     this.app.invalidateQuery(QueryKey.CuesList);
   }
 
   public patchCues(cues: (IVTTCue | IPlaceholderCue)[]) {
-    this.subtitles.testPatchOrInsertCues(cues);
+    this.subtitles.patchOrInsertCues(cues);
     this.app.invalidateQuery(QueryKey.CuesList);
+    this.app.invalidateQuery(QueryKey.ActiveCue);
   }
 
   public setVideoDuration(value: number | null) {
@@ -54,5 +55,10 @@ export class ApplicationStore {
   public deleteCues(uuids: IVTTCue["uuid"][]) {
     this.subtitles.deleteCues(uuids);
     this.app.invalidateQuery(QueryKey.CuesList);
+  }
+
+  public setActiveCue(uuid: IVTTCue["uuid"]) {
+    this.subtitles.setActiveCue(uuid);
+    this.app.invalidateQuery(QueryKey.ActiveCue);
   }
 }

@@ -7,6 +7,7 @@ export const InvalidateQueryManager = () => {
   React.useEffect(() => {
     const unsubInvalidate = window.electronAPI.onInvalidateQuery(
       (event, query) => {
+        console.log("invalidate query", query);
         client.invalidateQueries({ queryKey: [query] });
       },
     );

@@ -6,4 +6,5 @@ export enum QueryKey {
   VideoPath,
   CuesList,
   RegionsList,
+  ActiveCue,
 }

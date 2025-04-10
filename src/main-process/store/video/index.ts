@@ -1,16 +1,10 @@
-import { BaseStore } from "../base";
-
 export interface IVideoStoreState {
   path: string | null;
 }
 
-export class VideoStore extends BaseStore<IVideoStoreState> {
+export class VideoStore {
   protected path: string | null = null;
   protected duration: number | null = null;
-
-  public getState() {
-    return { path: this.path, duration: this.duration };
-  }
 
   setPath(value: string | null) {
     this.path = value;

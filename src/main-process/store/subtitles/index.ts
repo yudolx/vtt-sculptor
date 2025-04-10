@@ -13,13 +13,18 @@ export class SubtitlesStore {
   protected file: string | null = null;
   protected cues: (IVTTCue | IPlaceholderCue)[] = [];
   protected regions: Record<string, IVTTRegion> = {};
+  protected activeCue: IVTTCue["uuid"] | null = null;
+
+  public getFile() {
+    return this.file;
+  }
 
   public setFile(file: string | null) {
     this.file = file;
   }
 
-  public setCues(cues: IVTTCue[]) {
-    this.cues = cues;
+  public getRegions() {
+    return this.regions;
   }
 
   public setRegions(regions: Record<string, IVTTRegion>) {
@@ -36,11 +41,21 @@ export class SubtitlesStore {
     }
   }
 
-  public getRegions() {
-    return this.regions;
+  public setCues(cues: IVTTCue[]) {
+    this.cues = cues;
   }
 
-  public testPatchOrInsertCues(cuesToPatch: (IVTTCue | IPlaceholderCue)[]) {
+  public getActiveCue() {
+    return this.activeCue;
+  }
+
+  public setActiveCue(value: IVTTCue["uuid"]) {
+    this.activeCue = value;
+  }
+
+  // ---------------------------------------------------------------------
+
+  public patchOrInsertCues(cuesToPatch: (IVTTCue | IPlaceholderCue)[]) {
     for (const cue of cuesToPatch) {
       const existingCue = this.cues.find(
         (stateCue) => stateCue.uuid === cue.uuid,
@@ -53,6 +68,7 @@ export class SubtitlesStore {
         // if the cue exist then patch it
         if (isPlaceholderCue(existingCue)) {
           this.cues.splice(existingCueIndex, 1, cue);
+          this.activeCue = cue.uuid;
         } else {
           if (!isPlaceholderCue(cue)) {
             existingCue.text = cue.text;
@@ -79,8 +95,10 @@ export class SubtitlesStore {
 
           if (suitableIndex > 0) {
             this.cues.splice(suitableIndex + 1, 0, cue);
+            this.activeCue = cue.uuid;
           } else {
             this.cues.push(cue);
+            this.activeCue = cue.uuid;
           }
         }
       }
