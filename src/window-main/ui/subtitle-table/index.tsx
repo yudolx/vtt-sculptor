@@ -44,7 +44,10 @@ export const SubtitleTable = () => {
   }, [activeCueIndex, cues]);
 
   const prevCue = React.useMemo(() => {
-    return cues.filter(isNotPlaceholderCue).at(activeCueIndex - 1) ?? null;
+    return (
+      cues.filter(isNotPlaceholderCue).at(Math.max(activeCueIndex - 1, 0)) ??
+      null
+    );
   }, [activeCueIndex, cues]);
 
   React.useEffect(() => {
