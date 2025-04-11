@@ -2,9 +2,7 @@ import { readFile } from "fs/promises";
 import { Menu, MenuItemConstructorOptions, dialog } from "electron";
 import { parseWebVTT } from "shared/libs/vtt";
 import { BackgroundProcess } from "./background-process";
-import { mockVttCue } from "shared/libs/vtt/vttcue";
-import { toFixedNumber } from "shared/to-fixed-number";
-import { IS_DARWIN } from "shared/constants";
+import { IS_DARWIN } from "./constants";
 
 export class AppMenu {
   protected menu: Menu;

@@ -7,7 +7,7 @@ export class SubtitlesStore {
   protected file: string | null = null;
   protected cues: (IVTTCue | IPlaceholderCue)[] = [];
   protected regions: Record<string, IVTTRegion> = {};
-  protected activeCue: IVTTCue["uuid"] | null = null;
+  protected activeCues = new Set<IVTTCue["uuid"]>();
 
   public getFile() {
     return this.file;
@@ -40,11 +40,23 @@ export class SubtitlesStore {
   }
 
   public getActiveCue() {
-    return this.activeCue;
+    return this.activeCues;
+  }
+
+  public getActiveCueArray() {
+    return [...this.activeCues];
   }
 
   public setActiveCue(value: IVTTCue["uuid"]) {
-    this.activeCue = value;
+    this.activeCues = new Set([value]);
+  }
+
+  public toggleActiveCue(value: IVTTCue["uuid"]) {
+    if (this.activeCues.has(value)) {
+      this.activeCues.delete(value);
+    } else {
+      this.activeCues.add(value);
+    }
   }
 
   // ---------------------------------------------------------------------
@@ -62,7 +74,7 @@ export class SubtitlesStore {
         // if the cue exist then patch it
         if (isPlaceholderCue(existingCue)) {
           this.cues.splice(existingCueIndex, 1, cue);
-          this.activeCue = cue.uuid;
+          this.activeCues = new Set([cue.uuid]);
         } else {
           if (!isPlaceholderCue(cue)) {
             existingCue.text = cue.text;
@@ -89,10 +101,10 @@ export class SubtitlesStore {
 
           if (suitableIndex > 0) {
             this.cues.splice(suitableIndex + 1, 0, cue);
-            this.activeCue = cue.uuid;
+            this.activeCues = new Set([cue.uuid]);
           } else {
             this.cues.push(cue);
-            this.activeCue = cue.uuid;
+            this.activeCues = new Set([cue.uuid]);
           }
         }
       }
@@ -101,5 +113,6 @@ export class SubtitlesStore {
 
   public deleteCues(uuids: IVTTCue["uuid"][]) {
     this.cues = this.cues.filter((c) => !uuids.includes(c.uuid));
+    this.activeCues = this.activeCues.difference(new Set(uuids));
   }
 }

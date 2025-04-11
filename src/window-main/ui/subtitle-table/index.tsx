@@ -4,7 +4,6 @@ import { useQuery } from "@tanstack/react-query";
 import { IVTTCue } from "shared/libs/vtt/vttcue";
 import MouseTrap from "shared/libs/mousetrap/index";
 import { ISubtitleTableRowProps, SubtitleTableRow } from "./row";
-import { assert } from "shared/assert";
 import { VideoElContext } from "../context/video-el";
 import { DEFAULT_CUE_ADJUST_TIME, QueryKey } from "shared/constants";
 import { useWatchPlaceholderCues } from "./useWatchPlaceholderCues";
@@ -20,35 +19,48 @@ export const SubtitleTable = () => {
     queryFn: window.electronAPI.fetchCues,
   });
 
-  const { data: activeCueUuid = null } = useQuery({
+  const { data: activeCueUuid = [] } = useQuery({
     queryKey: [QueryKey.ActiveCue],
     queryFn: window.electronAPI.fetchActiveCue,
   });
 
   useWatchPlaceholderCues(videoEl, cues);
 
-  const activeCue = React.useMemo(() => {
-    console.log(cues, activeCueUuid);
+  const activeCues = React.useMemo(() => {
     return (
-      cues.filter(isNotPlaceholderCue).find((c) => c.uuid === activeCueUuid) ??
-      null
+      cues
+        .filter(isNotPlaceholderCue)
+        .filter((c) => activeCueUuid.includes(c.uuid)) ?? null
     );
   }, [activeCueUuid, cues]);
 
-  const activeCueIndex = React.useMemo(() => {
-    return activeCue ? cues.filter(isNotPlaceholderCue).indexOf(activeCue) : -1;
-  }, [activeCue, cues]);
-
+  /**
+   * all cues = [1,2,3,4,5,6]
+   * selected = [2,4]
+   * if we want to select the next cue then we should take one from the end of the cues list.
+   * so in this case the next available cue is 5
+   */
   const nextCue = React.useMemo(() => {
-    return cues.filter(isNotPlaceholderCue).at(activeCueIndex + 1) ?? null;
-  }, [activeCueIndex, cues]);
-
-  const prevCue = React.useMemo(() => {
-    return (
-      cues.filter(isNotPlaceholderCue).at(Math.max(activeCueIndex - 1, 0)) ??
-      null
+    const nonPlaceholderCues = cues.filter(isNotPlaceholderCue);
+    const lastCueUuid = activeCueUuid.at(activeCueUuid.length - 1);
+    const nextCueIndex = nonPlaceholderCues.findLastIndex(
+      (value, index, array) => array.at(index - 1)?.uuid === lastCueUuid,
     );
-  }, [activeCueIndex, cues]);
+    return nextCueIndex >= 0 ? nonPlaceholderCues.at(nextCueIndex)! : null;
+  }, [activeCueUuid, cues]);
+
+  /**
+   * this one follows the same logic as nextCue but it will take previous cue from the start of all cues array
+   * the previous available cue would be 1
+   */
+  const prevCue = React.useMemo(() => {
+    const nonPlaceholderCues = cues.filter(isNotPlaceholderCue);
+    const firstCueUuid = activeCueUuid.at(0);
+    const prevCueIndex = nonPlaceholderCues.findIndex(
+      (value, index, array) => array.at(index + 1)?.uuid === firstCueUuid,
+    );
+    return prevCueIndex >= 0 ? nonPlaceholderCues.at(prevCueIndex)! : null;
+  }, [activeCueUuid, cues]);
 
   React.useEffect(() => {
     const handleSpace = () => {
@@ -74,74 +86,89 @@ export const SubtitleTable = () => {
     const handleDelete = () => {
       const nextActiveCue = nextCue ?? prevCue ?? null;
       if (nextActiveCue) {
-        window.electronAPI.setActiveCue(nextActiveCue.uuid);
+        window.electronAPI.toggleActiveCue(nextActiveCue.uuid);
       }
-      if (activeCue) {
-        window.electronAPI.deleteCues([activeCue.uuid]);
+      if (activeCues.length) {
+        window.electronAPI.deleteCues(activeCues.map((cue) => cue.uuid));
       }
     };
 
     const handleEnter = () => {
-      if (activeCue) {
+      if (activeCues.length === 1) {
         window.electronAPI.disableHotkeys();
         setEditField("text");
       }
     };
 
     const handleEsc = () => {
-      if (activeCue && editField) {
+      if (activeCues.length && editField) {
         window.electronAPI.enableHotkeys();
         setEditField(null);
       }
     };
 
     const handleQ = () => {
-      if (activeCue) {
-        let newStartTime = activeCue.startTime - DEFAULT_CUE_ADJUST_TIME;
-        newStartTime = Math.max(newStartTime, 0);
-        window.electronAPI.patchCues([
-          { ...activeCue, startTime: newStartTime },
-        ]);
+      if (activeCues.length) {
+        window.electronAPI.patchCues(
+          activeCues.map((cue) => {
+            let newStartTime = cue.startTime - DEFAULT_CUE_ADJUST_TIME;
+            newStartTime = Math.max(newStartTime, 0);
+            return { ...cue, startTime: newStartTime };
+          }),
+        );
       }
     };
 
     const handleW = () => {
-      if (activeCue) {
-        let newStartTime = activeCue.startTime + DEFAULT_CUE_ADJUST_TIME;
-        newStartTime = Math.min(newStartTime, activeCue.endTime);
-        window.electronAPI.patchCues([
-          { ...activeCue, startTime: newStartTime },
-        ]);
+      if (activeCues.length) {
+        window.electronAPI.patchCues(
+          activeCues.map((cue) => {
+            let newStartTime = cue.startTime + DEFAULT_CUE_ADJUST_TIME;
+            newStartTime = Math.min(newStartTime, cue.endTime);
+            return { ...cue, startTime: newStartTime };
+          }),
+        );
       }
     };
 
     const handleE = () => {
-      if (activeCue) {
-        let newEndTime = activeCue.endTime - DEFAULT_CUE_ADJUST_TIME;
-        newEndTime = Math.max(newEndTime, activeCue.startTime);
-        window.electronAPI.patchCues([{ ...activeCue, endTime: newEndTime }]);
+      if (activeCues.length) {
+        window.electronAPI.patchCues(
+          activeCues.map((cue) => {
+            let newEndTime = cue.endTime - DEFAULT_CUE_ADJUST_TIME;
+            newEndTime = Math.max(newEndTime, cue.startTime);
+            return { ...cue, endTime: newEndTime };
+          }),
+        );
       }
     };
 
     const handleR = () => {
-      if (activeCue && videoEl) {
-        let newEndTime = activeCue.endTime + DEFAULT_CUE_ADJUST_TIME;
-        newEndTime = Math.min(newEndTime, videoEl.duration);
-        window.electronAPI.patchCues([{ ...activeCue, endTime: newEndTime }]);
+      if (activeCues.length && videoEl) {
+        window.electronAPI.patchCues(
+          activeCues.map((cue) => {
+            let newEndTime = cue.endTime + DEFAULT_CUE_ADJUST_TIME;
+            newEndTime = Math.min(newEndTime, videoEl.duration);
+            return { ...cue, endTime: newEndTime };
+          }),
+        );
       }
     };
 
     const handleK = () => {
-      if (activeCue && videoEl) {
-        window.electronAPI.patchCues([
-          { ...activeCue, endTime: videoEl.currentTime },
-        ]);
+      if (activeCues && videoEl) {
+        window.electronAPI.patchCues(
+          activeCues.map((cue) => {
+            return { ...cue, endTime: videoEl.currentTime };
+          }),
+        );
       }
     };
 
     const handleO = () => {
       const START_BUFFER = 0.5;
-      if (activeCue && videoEl) {
+      if (activeCues.length === 1 && videoEl) {
+        const activeCue = activeCues.at(0)!;
         videoEl.currentTime = Math.max(activeCue.startTime - START_BUFFER, 0);
       }
     };
@@ -173,31 +200,27 @@ export const SubtitleTable = () => {
       MouseTrap.unbind("k");
       MouseTrap.unbind("o");
     };
-  }, [prevCue, activeCue, nextCue, videoEl, editField]);
+  }, [prevCue, activeCues, nextCue, videoEl, editField]);
 
-  const handleSubtitleTableRowClick = React.useCallback(
-    (cue: IVTTCue) => {
-      if (activeCueUuid !== cue.uuid) {
-        window.electronAPI.setActiveCue(cue.uuid);
-      }
-    },
-    [activeCueUuid],
-  );
+  const handleSubtitleTableRowClick = React.useCallback((cue: IVTTCue) => {
+    window.electronAPI.setActiveCue(cue.uuid);
+  }, []);
 
   const handleCellChange = React.useCallback<
     ISubtitleTableRowProps["onCellChange"]
   >(
     (field, value) => {
-      assert(activeCue, "No cue found");
+      if (activeCues.length === 1) {
+        const activeCue = activeCues.at(0)!;
+        const newCue: IVTTCue = {
+          ...activeCue,
+          [field]: value,
+        };
 
-      const newCue: IVTTCue = {
-        ...activeCue,
-        [field]: value,
-      };
-
-      window.electronAPI.patchCues([newCue]);
+        window.electronAPI.patchCues([newCue]);
+      }
     },
-    [activeCue],
+    [activeCues],
   );
 
   const handleDoubleCellClick = React.useCallback<
@@ -236,7 +259,7 @@ export const SubtitleTable = () => {
               editField={editField}
               key={cue.uuid}
               cue={cue}
-              active={activeCueUuid === cue.uuid}
+              active={activeCueUuid.includes(cue.uuid)}
               onClick={handleSubtitleTableRowClick}
               onCellChange={handleCellChange}
               onDoubleCellClick={handleDoubleCellClick}

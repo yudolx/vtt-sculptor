@@ -23,7 +23,7 @@ export const EmitIPCEvent = Object.freeze({
   fetchRegions: (): Promise<Record<string, VTTRegion>> =>
     ipcRenderer.invoke("ipc/renderer/get-regions"),
 
-  fetchActiveCue: (): Promise<string> =>
+  fetchActiveCue: (): Promise<string[]> =>
     ipcRenderer.invoke("ipc/renderer/get-active-cue"),
 
   deleteCues: (cues: IVTTCue["uuid"][]) =>
@@ -37,12 +37,20 @@ export const EmitIPCEvent = Object.freeze({
     ipcRenderer.send("ipc/renderer/set-active-cue", cue);
   },
 
+  toggleActiveCue: (cue: IVTTCue["uuid"]) => {
+    ipcRenderer.send("ipc/renderer/toggle-active-cue", cue);
+  },
+
   disableHotkeys: () => {
     ipcRenderer.send("ipc/renderer/disable-hotkeys");
   },
 
   enableHotkeys: () => {
     ipcRenderer.send("ipc/renderer/enable-hotkeys");
+  },
+
+  showCueContextMenu: () => {
+    ipcRenderer.send("ipc/renderer/cue-context-menu");
   },
 });
 

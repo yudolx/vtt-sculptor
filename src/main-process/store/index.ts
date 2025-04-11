@@ -56,4 +56,9 @@ export class ApplicationStore {
     this.subtitles.setActiveCue(uuid);
     this.app.invalidateQuery(QueryKey.ActiveCue);
   }
+
+  public toggleActiveCue(uuid: IVTTCue["uuid"]) {
+    this.subtitles.toggleActiveCue(uuid);
+    this.app.invalidateQuery(QueryKey.ActiveCue);
+  }
 }

@@ -8,7 +8,7 @@ import { QueryKey } from "shared/constants";
 
 export class BackgroundProcess {
   public store = new ApplicationStore(this);
-  protected menu = new AppMenu(this);
+  protected appMenu = new AppMenu(this);
 
   public window = {
     main: createWindowMain({
@@ -42,27 +42,31 @@ export class BackgroundProcess {
     ipcMain.handle("ipc/renderer/get-regions", () =>
       this.store.subtitles.getRegions(),
     );
-    ipcMain.handle("ipc/renderer/get-active-cue", (event) =>
-      this.store.subtitles.getActiveCue(),
+    ipcMain.handle("ipc/renderer/get-active-cue", () =>
+      this.store.subtitles.getActiveCueArray(),
     );
 
     ipcMain
       .on("ipc/renderer/set-active-cue", (event, cue: IVTTCue["uuid"]) => {
         this.store.setActiveCue(cue);
       })
+      .on("ipc/renderer/toggle-active-cue", (event, cue: IVTTCue["uuid"]) => {
+        this.store.toggleActiveCue(cue);
+      })
       .on("ipc/renderer/delete-cues", (event, cues: IVTTCue["uuid"][]) => {
         this.store.deleteCues(cues);
-        this.menu.update();
+        this.appMenu.update();
       })
       .on("ipc/renderer/patch-cues", (event, cues: IVTTCue[]) => {
         this.store.patchCues(cues);
-        this.menu.update();
+        this.appMenu.update();
       })
       .on("ipc/renderer/disable-hotkeys", () => {
-        this.menu.setShortcutsActive(false);
+        this.appMenu.setShortcutsActive(false);
       })
       .on("ipc/renderer/enable-hotkeys", () => {
-        this.menu.setShortcutsActive(true);
-      });
+        this.appMenu.setShortcutsActive(true);
+      })
+      .on("ipc/renderer/cue-context-menu", () => {});
   };
 }
