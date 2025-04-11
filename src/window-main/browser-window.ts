@@ -1,15 +1,18 @@
+import path from "path";
 import { BrowserWindow, BrowserWindowConstructorOptions } from "electron";
 
 export const createWindowMain = (
   options: BrowserWindowConstructorOptions = {},
 ): BrowserWindow => {
   let browser_window: BrowserWindow | null = new BrowserWindow({
-    width: 1024,
-    height: 768,
+    width: 720,
+    height: 1280,
     title: __APP_NAME__,
     show: false,
-    // frame: false,
-    // transparent: true,
+    webPreferences: {
+      preload: path.join(__dirname, "window_main_preload.js"),
+      experimentalFeatures: true,
+    },
     ...options,
   });
 

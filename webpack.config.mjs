@@ -10,21 +10,30 @@ import {
 
 const rendererConfig = merge(
   commonConfig,
+  /* eslint-disable prettier/prettier */
   /** @type {import('webpack').Configuration} */ ({
     entry: {
       window_main: path.resolve(SRC_DIR, "./window-main/index.tsx"),
       window_main_preload: path.resolve(SRC_DIR, "./window-main/preload.ts"),
+
+      window_cue_preferences: path.resolve(SRC_DIR, "./window-cue-preferences/index.tsx"),
+      window_cue_preferences_preload: path.resolve(SRC_DIR, "./window-cue-preferences/preload.ts"),
     },
+    /* eslint-enable prettier/prettier */
     output: {
       path: DIST_DIR,
     },
     target: "electron-renderer",
     plugins: [
       new HTMLWebpackPlugin({
-        // chunks: ["vendor", "window_main", "shared_css"],
-        // chunksSortMode: "manual",
         title: "",
+        chunks: ["window_main", "window_main_preload"],
         filename: "window_main.html",
+      }),
+      new HTMLWebpackPlugin({
+        title: "",
+        chunks: ["window_cue_preferences", "window_cue_preferences_preload"],
+        filename: "window_cue_preferences.html",
       }),
     ],
   }),

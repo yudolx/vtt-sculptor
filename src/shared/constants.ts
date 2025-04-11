@@ -7,4 +7,5 @@ export enum QueryKey {
   CuesList,
   RegionsList,
   ActiveCue,
+  PreferenceWindowCue,
 }

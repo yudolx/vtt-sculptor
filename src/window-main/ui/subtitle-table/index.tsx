@@ -242,6 +242,10 @@ export const SubtitleTable = () => {
     window.electronAPI.disableHotkeys();
   }, []);
 
+  const handleContextMenu = React.useCallback((cue: IVTTCue) => {
+    window.electronAPI.showCueContextMenu(cue.uuid);
+  }, []);
+
   return (
     <Table hoverRow stickyHeader tabIndex={1} stripe="odd">
       <thead>
@@ -260,6 +264,7 @@ export const SubtitleTable = () => {
               key={cue.uuid}
               cue={cue}
               active={activeCueUuid.includes(cue.uuid)}
+              onContextMenu={handleContextMenu}
               onClick={handleSubtitleTableRowClick}
               onCellChange={handleCellChange}
               onDoubleCellClick={handleDoubleCellClick}

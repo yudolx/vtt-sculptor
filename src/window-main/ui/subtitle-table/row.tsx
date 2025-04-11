@@ -13,6 +13,7 @@ export interface ISubtitleTableRowProps {
   onCellBlur: () => void;
   onCellChange: (field: keyof IVTTCue, value: IVTTCue[keyof IVTTCue]) => void;
   onDoubleCellClick: (field: keyof IVTTCue) => void;
+  onContextMenu: (cue: IVTTCue) => void;
 }
 export interface ISubtitleTableRowState {}
 
@@ -57,6 +58,12 @@ export class SubtitleTableRow extends React.Component<
     this.props.onCellFocus();
   };
 
+  handleContextMenu: React.MouseEventHandler<HTMLTableRowElement> = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    this.props.onContextMenu(this.props.cue);
+  };
+
   render() {
     const cue = this.props.cue;
 
@@ -66,6 +73,7 @@ export class SubtitleTableRow extends React.Component<
         active={this.props.active}
         ref={(el) => (this.rowEl = el)}
         onMouseDown={this.handleRowMouseDown}
+        onContextMenu={this.handleContextMenu}
       >
         <td>{toFixedNumber(cue.startTime, 3)}</td>
         <td>{toFixedNumber(cue.endTime, 3)}</td>

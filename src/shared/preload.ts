@@ -49,9 +49,14 @@ export const EmitIPCEvent = Object.freeze({
     ipcRenderer.send("ipc/renderer/enable-hotkeys");
   },
 
-  showCueContextMenu: () => {
-    ipcRenderer.send("ipc/renderer/cue-context-menu");
+  showCueContextMenu: (cue: IVTTCue["uuid"]) => {
+    ipcRenderer.send("ipc/renderer/cue-context-menu", cue);
   },
+
+  // -----------------------------------------------------------------
+
+  preferenceWindowFetchCue: (): Promise<IVTTCue | null> =>
+    ipcRenderer.invoke("ipc/preference/renderer/fetch-cue"),
 });
 
 declare global {
