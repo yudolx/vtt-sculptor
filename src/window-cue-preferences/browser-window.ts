@@ -9,6 +9,9 @@ export const createCuePreferencesWindow = (
     height: 500,
     title: __APP_NAME__,
     show: false,
+    resizable: false,
+    minimizable: false,
+    maximizable: false,
     webPreferences: {
       preload: path.join(__dirname, "window_cue_preferences_preload.js"),
     },

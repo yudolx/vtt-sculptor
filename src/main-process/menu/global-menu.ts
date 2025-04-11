@@ -1,10 +1,10 @@
 import { readFile } from "fs/promises";
 import { Menu, MenuItemConstructorOptions, dialog } from "electron";
 import { parseWebVTT } from "shared/libs/vtt";
-import { BackgroundProcess } from "./background-process";
-import { IS_DARWIN } from "./constants";
+import { BackgroundProcess } from "../background-process";
+import { IS_DARWIN } from "../constants";
 
-export class AppMenu {
+export class GlobalMenu {
   protected menu: Menu;
 
   protected hotkeysActive = true;

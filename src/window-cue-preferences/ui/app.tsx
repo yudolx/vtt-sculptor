@@ -2,14 +2,20 @@ import React from "react";
 import {
   Box,
   Checkbox,
+  Chip,
+  Divider,
   FormControl,
   FormLabel,
   Input,
   Option,
   Select,
+  Stack,
   styled,
   Textarea,
+  Tooltip,
+  TooltipProps,
 } from "@mui/joy";
+import { QuestionMarkCircleIcon } from "@heroicons/react/24/outline";
 import { useQuery } from "@tanstack/react-query";
 import { QueryKey } from "shared/constants";
 
@@ -21,99 +27,201 @@ export const App = () => {
 
   return (
     <AppWrapper>
-      <FormControl>
-        <FormLabel>Text</FormLabel>
-        <Textarea minRows={3} size="sm" value={cue?.text} />
-      </FormControl>
+      <Stack
+        sx={{ padding: "15px" }}
+        divider={<Divider sx={{ margin: "15px 0" }} />}
+      >
+        <FormControl>
+          <FormLabel>Text</FormLabel>
+          <Textarea minRows={3} size="sm" value={cue?.text} />
+        </FormControl>
 
-      <FormControl>
-        <FormLabel>Start</FormLabel>
-        <Input type="number" size="sm" value={cue?.startTime} />
-      </FormControl>
+        <Stack direction="row" spacing={2}>
+          <FormControl sx={{ flexGrow: 1 }}>
+            <FormLabel>Start</FormLabel>
+            <Input type="number" size="sm" value={cue?.startTime} />
+          </FormControl>
 
-      <FormControl>
-        <FormLabel>End</FormLabel>
-        <Input type="number" size="sm" value={cue?.endTime} />
-      </FormControl>
+          <FormControl sx={{ flexGrow: 1 }}>
+            <FormLabel>End</FormLabel>
+            <Input type="number" size="sm" value={cue?.endTime} />
+          </FormControl>
+        </Stack>
 
-      <FormControl>
-        <FormLabel>ID</FormLabel>
-        <Input type="number" size="sm" value={cue?.id} />
-      </FormControl>
+        <FormControl>
+          <FormLabel>ID </FormLabel>
+          <Input
+            startDecorator={
+              <QuestionMarkHelper placement="right">
+                ID may be used to reference this cue in JavaScript and CSS
+              </QuestionMarkHelper>
+            }
+            size="sm"
+            value={cue?.id}
+          />
+        </FormControl>
 
-      <FormControl>
-        <FormLabel>Pause on exit</FormLabel>
-        <Checkbox checked={cue?.pauseOnExit} />
-      </FormControl>
+        <FormControl>
+          <FormLabel>Region</FormLabel>
+          <Select size="sm" value={cue?.region}>
+            <Option value="placeholder">Select placeholder</Option>
+          </Select>
+        </FormControl>
 
-      <FormControl>
-        <FormLabel>Region</FormLabel>
-        <Select value={cue?.region}>
-          <Option value="placeholder">Select placeholder</Option>
-        </Select>
-      </FormControl>
+        <FormControl>
+          <Stack direction="row" spacing={1}>
+            <Checkbox
+              size="sm"
+              label="Pause on exit"
+              checked={cue?.pauseOnExit}
+            />
+            <QuestionMarkHelper placement="right">
+              This checkbox indicates whether playback of the media should pause
+              when the end of the range to which this cue applies is reached
+            </QuestionMarkHelper>
+          </Stack>
+        </FormControl>
 
-      <FormControl>
-        <FormLabel>Vertical</FormLabel>
-        <Select value={cue?.vertical}>
-          <Option value="">Empty</Option>
-          <Option value="lr">LR</Option>
-          <Option value="rl">RL</Option>
-        </Select>
-      </FormControl>
+        <FormControl>
+          <FormLabel>Writing direction</FormLabel>
+          <Select size="sm" value={cue?.vertical}>
+            <Option value="">Not specified</Option>
+            <Option value="lr">Left to right</Option>
+            <Option value="rl">Right to left</Option>
+          </Select>
+        </FormControl>
 
-      <FormControl>
-        <FormLabel>Snap to lines</FormLabel>
-        <Checkbox checked={cue?.snapToLines} />
-      </FormControl>
+        <Stack direction="row" spacing={1} alignItems="center">
+          <FormControl sx={{ flexGrow: 1 }}>
+            <FormLabel>Line</FormLabel>
+            <Input
+              size="sm"
+              startDecorator={
+                <QuestionMarkHelper placement="right">
+                  Represents the line positioning of the cue. This can be the
+                  string auto or a number whose interpretation depends on the
+                  value of{" "}
+                  <Chip size="sm" variant="outlined">
+                    Snap to lines
+                  </Chip>
+                </QuestionMarkHelper>
+              }
+              value={cue?.line}
+            />
+          </FormControl>
 
-      <FormControl>
-        <FormLabel>Line</FormLabel>
-        <Input value={cue?.line} />
-      </FormControl>
+          <FormControl sx={{ flexGrow: 1 }}>
+            <FormLabel>Line align</FormLabel>
+            <Select size="sm" value={cue?.lineAlign}>
+              <Option value="start">Start</Option>
+              <Option value="center">Center</Option>
+              <Option value="end">End</Option>
+            </Select>
+          </FormControl>
 
-      <FormControl>
-        <FormLabel>Line align</FormLabel>
-        <Select value={cue?.lineAlign}>
-          <Option value="">Empty</Option>
-          <Option value="center">Center</Option>
-          <Option value="end">End</Option>
-          <Option value="start">Start</Option>
-        </Select>
-      </FormControl>
+          <FormControl sx={{ flexGrow: 1 }}>
+            <FormLabel sx={{ visibility: "hidden" }}>visual fix</FormLabel>
+            <Stack direction="row" spacing={1}>
+              <Checkbox
+                size="sm"
+                label="Snap to lines"
+                checked={cue?.snapToLines}
+              />
+              <QuestionMarkHelper placement="left">
+                Check this if{" "}
+                <Chip size="sm" variant="outlined">
+                  Line
+                </Chip>{" "}
+                attribute indicates a number of lines. Uncheck if it represents
+                a percentage of the video size.
+              </QuestionMarkHelper>
+            </Stack>
+          </FormControl>
+        </Stack>
 
-      <FormControl>
-        <FormLabel>Position</FormLabel>
-        <Input value={cue?.position} />
-      </FormControl>
+        <Stack direction="row" spacing={1} alignItems="center">
+          <FormControl>
+            <FormLabel>Position</FormLabel>
+            <Input
+              size="sm"
+              startDecorator={
+                <QuestionMarkHelper>
+                  Represents the indentation of the cue within the line. This
+                  can be the string auto, a number representing the percentage
+                  of the
+                  <Chip size="sm" variant="outlined">
+                    Region
+                  </Chip>
+                  , or the video size if{" "}
+                  <Chip size="sm" variant="outlined">
+                    Region
+                  </Chip>{" "}
+                  is not set.
+                </QuestionMarkHelper>
+              }
+              value={cue?.position}
+            />
+          </FormControl>
 
-      <FormControl>
-        <FormLabel>Positiona align</FormLabel>
-        <Select value={cue?.positionAlign}>
-          <Option value="">Empty</Option>
-          <Option value="auto">Auto</Option>
-          <Option value="center">Center</Option>
-          <Option value="line-left">line-left</Option>
-          <Option value="line-right">line-right</Option>
-        </Select>
-      </FormControl>
+          <FormControl>
+            <FormLabel>Position align</FormLabel>
+            <Select
+              size="sm"
+              startDecorator={
+                <QuestionMarkHelper>
+                  Alignment of the cue. This is used to determine what the{" "}
+                  <Chip size="sm" variant="outlined">
+                    Position
+                  </Chip>{" "}
+                  is anchored to.
+                </QuestionMarkHelper>
+              }
+              value={cue?.positionAlign}
+            >
+              <Option value="auto">Auto</Option>
+              <Option value="center">Center</Option>
+              <Option value="line-left">line-left</Option>
+              <Option value="line-right">line-right</Option>
+            </Select>
+          </FormControl>
+        </Stack>
 
-      <FormControl>
-        <FormLabel>Size</FormLabel>
-        <Input type="number" size="sm" value={cue?.size} />
-      </FormControl>
+        <FormControl>
+          <FormLabel>Size</FormLabel>
+          <Input
+            startDecorator={
+              <QuestionMarkHelper>
+                Represents the size of the cue, as a percentage of the video
+                size.
+              </QuestionMarkHelper>
+            }
+            type="number"
+            size="sm"
+            slotProps={{ input: { min: 0, max: 100 } }}
+            value={cue?.size}
+          />
+        </FormControl>
 
-      <FormControl>
-        <FormLabel>Align</FormLabel>
-        <Select value={cue?.align}>
-          <Option value="">Empty</Option>
-          <Option value="center">Center</Option>
-          <Option value="end">End</Option>
-          <Option value="left">Left</Option>
-          <Option value="right">Right</Option>
-          <Option value="start">Start</Option>
-        </Select>
-      </FormControl>
+        <FormControl>
+          <FormLabel>Align</FormLabel>
+          <Select
+            size="sm"
+            startDecorator={
+              <QuestionMarkHelper>
+                Represents the alignment of all the lines of text within the cue
+                box
+              </QuestionMarkHelper>
+            }
+            value={cue?.align}
+          >
+            <Option value="center">Center</Option>
+            <Option value="end">End</Option>
+            <Option value="left">Left</Option>
+            <Option value="right">Right</Option>
+            <Option value="start">Start</Option>
+          </Select>
+        </FormControl>
+      </Stack>
     </AppWrapper>
   );
 };
@@ -123,6 +231,20 @@ const AppWrapper = styled(Box, { name: "AppWrapper" })(() => {
     display: "flex",
     flexDirection: "column",
     height: "100vh",
-    padding: 10,
   };
 });
+
+const QuestionMarkHelper: React.FC<
+  React.PropsWithChildren<Partial<Omit<TooltipProps, "children">>>
+> = (props) => {
+  return (
+    <Tooltip
+      size="sm"
+      variant="soft"
+      {...props}
+      title={<Box sx={{ maxWidth: 300 }}>{props.children}</Box>}
+    >
+      <QuestionMarkCircleIcon width={16} />
+    </Tooltip>
+  );
+};

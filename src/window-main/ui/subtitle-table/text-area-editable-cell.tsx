@@ -102,6 +102,7 @@ export class TextAreaEditableCell<
     return (
       <Textarea
         minRows={3}
+        size="sm"
         ref={(el) => {
           this.textAreaRef = el;
         }}

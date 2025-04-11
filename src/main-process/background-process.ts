@@ -1,13 +1,13 @@
-import { ipcMain } from "electron";
-import { AppMenu } from "./appmenu";
+import { BrowserWindow, ipcMain } from "electron";
 import { ApplicationStore } from "./store";
-import type { IVTTCue } from "shared/libs/vtt/vttcue";
+import { IVTTCue } from "shared/libs/vtt/vttcue";
 import { QueryKey } from "shared/constants";
 import { WindowManager } from "./window-manager";
+import { MenuManager } from "./menu";
 
 export class BackgroundProcess {
   public store = new ApplicationStore(this);
-  public appMenu = new AppMenu(this);
+  public menuManager = new MenuManager(this);
   public window = new WindowManager();
 
   constructor() {
@@ -15,10 +15,14 @@ export class BackgroundProcess {
     this.window.main.show();
   }
 
-  invalidateQuery = (query: QueryKey) => {
-    for (const win of this.window) {
-      if (win.isVisible()) {
-        win.webContents.send("ipc/main/invalidate-query", query);
+  invalidateQuery = (query: QueryKey, windowArg?: BrowserWindow) => {
+    if (windowArg) {
+      windowArg.webContents.send("ipc/main/invalidate-query", query);
+    } else {
+      for (const win of this.window) {
+        if (win.isVisible()) {
+          win.webContents.send("ipc/main/invalidate-query", query);
+        }
       }
     }
   };
@@ -56,20 +60,29 @@ export class BackgroundProcess {
       })
       .on("ipc/renderer/delete-cues", (event, cues: IVTTCue["uuid"][]) => {
         this.store.deleteCues(cues);
-        this.appMenu.update();
+        this.menuManager.update();
       })
       .on("ipc/renderer/patch-cues", (event, cues: IVTTCue[]) => {
         this.store.patchCues(cues);
-        this.appMenu.update();
+        this.menuManager.update();
       })
       .on("ipc/renderer/disable-hotkeys", () => {
-        this.appMenu.setShortcutsActive(false);
+        this.menuManager.setGlobalShortcutsActive(false);
       })
       .on("ipc/renderer/enable-hotkeys", () => {
-        this.appMenu.setShortcutsActive(true);
+        this.menuManager.setGlobalShortcutsActive(true);
       })
-      .on("ipc/renderer/cue-context-menu", (event, uuid: IVTTCue["uuid"]) => {
-        this.window.openCuePreferencesWindow(uuid);
-      });
+      .on(
+        "ipc/renderer/cue-context-menu",
+        (event, uuidArg: IVTTCue["uuid"]) => {
+          const cue = this.store.subtitles
+            .getCues()
+            .find((c) => c.uuid === uuidArg);
+
+          if (cue) {
+            this.menuManager.showCueContextMenu(event, cue);
+          }
+        },
+      );
   };
 }
