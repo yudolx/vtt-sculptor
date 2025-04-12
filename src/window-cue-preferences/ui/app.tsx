@@ -49,22 +49,21 @@ export const App = () => {
         </Stack>
 
         <FormControl>
-          <FormLabel>ID </FormLabel>
-          <Input
-            startDecorator={
+          <FormLabel>
+            <Stack direction={"row"} spacing={1}>
+              <span>ID</span>
               <QuestionMarkHelper placement="right">
                 ID may be used to reference this cue in JavaScript and CSS
               </QuestionMarkHelper>
-            }
-            size="sm"
-            value={cue?.id}
-          />
+            </Stack>
+          </FormLabel>
+          <Input size="sm" value={cue?.id} />
         </FormControl>
 
         <FormControl>
           <FormLabel>Region</FormLabel>
           <Select size="sm" value={cue?.region}>
-            <Option value="placeholder">Select placeholder</Option>
+            <Option value="placeholder">Region placeholder</Option>
           </Select>
         </FormControl>
 
@@ -93,10 +92,9 @@ export const App = () => {
 
         <Stack direction="row" spacing={1} alignItems="center">
           <FormControl sx={{ flexGrow: 1 }}>
-            <FormLabel>Line</FormLabel>
-            <Input
-              size="sm"
-              startDecorator={
+            <FormLabel>
+              <Stack direction={"row"} spacing={1}>
+                <span>Line</span>
                 <QuestionMarkHelper placement="right">
                   Represents the line positioning of the cue. This can be the
                   string auto or a number whose interpretation depends on the
@@ -105,9 +103,9 @@ export const App = () => {
                     Snap to lines
                   </Chip>
                 </QuestionMarkHelper>
-              }
-              value={cue?.line}
-            />
+              </Stack>
+            </FormLabel>
+            <Input size="sm" value={cue?.line} />
           </FormControl>
 
           <FormControl sx={{ flexGrow: 1 }}>
@@ -141,11 +139,10 @@ export const App = () => {
 
         <Stack direction="row" spacing={1} alignItems="center">
           <FormControl>
-            <FormLabel>Position</FormLabel>
-            <Input
-              size="sm"
-              startDecorator={
-                <QuestionMarkHelper>
+            <FormLabel>
+              <Stack direction={"row"} spacing={1}>
+                <span>Position</span>
+                <QuestionMarkHelper placement="right">
                   Represents the indentation of the cue within the line. This
                   can be the string auto, a number representing the percentage
                   of the
@@ -158,16 +155,15 @@ export const App = () => {
                   </Chip>{" "}
                   is not set.
                 </QuestionMarkHelper>
-              }
-              value={cue?.position}
-            />
+              </Stack>
+            </FormLabel>
+            <Input size="sm" value={cue?.position} />
           </FormControl>
 
           <FormControl>
-            <FormLabel>Position align</FormLabel>
-            <Select
-              size="sm"
-              startDecorator={
+            <FormLabel>
+              <Stack direction={"row"} spacing={1}>
+                <span>Position align</span>
                 <QuestionMarkHelper>
                   Alignment of the cue. This is used to determine what the{" "}
                   <Chip size="sm" variant="outlined">
@@ -175,9 +171,9 @@ export const App = () => {
                   </Chip>{" "}
                   is anchored to.
                 </QuestionMarkHelper>
-              }
-              value={cue?.positionAlign}
-            >
+              </Stack>
+            </FormLabel>
+            <Select size="sm" value={cue?.positionAlign}>
               <Option value="auto">Auto</Option>
               <Option value="center">Center</Option>
               <Option value="line-left">line-left</Option>
@@ -187,14 +183,16 @@ export const App = () => {
         </Stack>
 
         <FormControl>
-          <FormLabel>Size</FormLabel>
-          <Input
-            startDecorator={
-              <QuestionMarkHelper>
+          <FormLabel>
+            <Stack direction="row" spacing={1}>
+              <span>Size</span>
+              <QuestionMarkHelper placement="right">
                 Represents the size of the cue, as a percentage of the video
                 size.
               </QuestionMarkHelper>
-            }
+            </Stack>
+          </FormLabel>
+          <Input
             type="number"
             size="sm"
             slotProps={{ input: { min: 0, max: 100 } }}
@@ -203,17 +201,16 @@ export const App = () => {
         </FormControl>
 
         <FormControl>
-          <FormLabel>Align</FormLabel>
-          <Select
-            size="sm"
-            startDecorator={
-              <QuestionMarkHelper>
+          <FormLabel>
+            <Stack direction="row" spacing={1}>
+              <span>Align</span>
+              <QuestionMarkHelper placement="right">
                 Represents the alignment of all the lines of text within the cue
                 box
               </QuestionMarkHelper>
-            }
-            value={cue?.align}
-          >
+            </Stack>
+          </FormLabel>
+          <Select size="sm" value={cue?.align}>
             <Option value="center">Center</Option>
             <Option value="end">End</Option>
             <Option value="left">Left</Option>
