@@ -1,7 +1,9 @@
 import React from "react";
-import joi from "joi";
+import joi, { ValidationError } from "joi";
 import {
+  Alert,
   Box,
+  BoxProps,
   Checkbox,
   Chip,
   Divider,
@@ -34,6 +36,8 @@ export const App = () => {
       text: "",
     }),
   );
+  const [validationError, setValidationError] =
+    React.useState<ValidationError | null>(null);
 
   React.useEffect(() => {
     if (cue) {
@@ -52,8 +56,10 @@ export const App = () => {
   React.useEffect(() => {
     const { error, value } = vttCueValidationSchema.validate(stateCue);
     if (!error) {
+      setValidationError(null);
       window.electronAPI.prefenceWindowPatchCue(value);
     } else {
+      setValidationError(error);
       console.log(error);
     }
   }, [stateCue]);
@@ -372,6 +378,22 @@ export const App = () => {
           </Select>
         </FormControl>
       </Stack>
+      {validationError ? (
+        <Alert
+          sx={{
+            position: "sticky",
+            bottom: 0,
+            left: 0,
+            right: 0,
+            borderRadius: 0,
+            zIndex: 1,
+          }}
+          variant="solid"
+          color="danger"
+        >
+          {validationError.message}
+        </Alert>
+      ) : null}
     </AppWrapper>
   );
 };
@@ -401,20 +423,28 @@ const QuestionMarkHelper: React.FC<
 
 export const vttCueValidationSchema = joi.object({
   uuid: joi.string().uuid(),
-  id: joi.string(),
-  pauseOnExit: joi.boolean(),
-  startTime: joi.number().min(0),
-  endTime: joi.number().min(0),
-  text: joi.string(),
-  region: joi.string().allow(null),
-  vertical: joi.string().valid("", "lr", "rl"),
-  snapToLines: joi.boolean(),
-  line: joi.alternatives(joi.string().valid("auto"), joi.number()),
-  lineAlign: joi.string().valid("center", "end", "start"),
-  position: joi.alternatives(joi.string().valid("auto"), joi.number()),
+  id: joi.string().allow("").label("Id"),
+  pauseOnExit: joi.boolean().label("Pause on exit"),
+  startTime: joi.number().min(0).label("Start time"),
+  endTime: joi.number().min(0).label("End time"),
+  text: joi.string().allow("").label("Text"),
+  region: joi.string().allow(null).label("Region"),
+  vertical: joi.string().valid("", "lr", "rl").label("Writing direction"),
+  snapToLines: joi.boolean().label("Snap to lines"),
+  line: joi
+    .alternatives(joi.string().valid("auto"), joi.number())
+    .label("Label"),
+  lineAlign: joi.string().valid("center", "end", "start").label("Line align"),
+  position: joi
+    .alternatives(joi.string().valid("auto"), joi.number())
+    .label("Position"),
   positionAlign: joi
     .string()
-    .valid("auto", "center", "line-left", "line-right"),
-  size: joi.number().max(100).min(0),
-  align: joi.string().valid("center", "end", "left", "right", "start"),
+    .valid("auto", "center", "line-left", "line-right")
+    .label("Position align"),
+  size: joi.number().max(100).min(0).label("Size"),
+  align: joi
+    .string()
+    .valid("center", "end", "left", "right", "start")
+    .label("Align"),
 });
