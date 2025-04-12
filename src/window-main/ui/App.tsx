@@ -9,7 +9,13 @@ export const App = () => {
       <VideoWrapper>
         <Video />
       </VideoWrapper>
-      <SubtitleTableWrapper>
+      <SubtitleTableWrapper
+        onKeyDown={(e) => {
+          if (["ArrowUp", "ArrowDown", "Space"].includes(e.code)) {
+            e.preventDefault();
+          }
+        }}
+      >
         <SubtitleTable />
       </SubtitleTableWrapper>
     </AppWrapper>
