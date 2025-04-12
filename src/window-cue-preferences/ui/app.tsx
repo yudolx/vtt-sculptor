@@ -1,4 +1,5 @@
 import React from "react";
+import joi from "joi";
 import {
   Box,
   Checkbox,
@@ -18,12 +19,44 @@ import {
 import { QuestionMarkCircleIcon } from "@heroicons/react/24/outline";
 import { useQuery } from "@tanstack/react-query";
 import { QueryKey } from "shared/constants";
+import { IVTTCue, mockVttCue } from "shared/libs/vtt/vttcue";
 
 export const App = () => {
   const { data: cue = null } = useQuery({
     queryKey: [QueryKey.PreferenceWindowCue],
     queryFn: window.electronAPI.preferenceWindowFetchCue,
   });
+
+  const [stateCue, setStateCue] = React.useState<IVTTCue>(
+    mockVttCue({
+      endTime: 0,
+      startTime: 0,
+      text: "",
+    }),
+  );
+
+  React.useEffect(() => {
+    if (cue) {
+      setStateCue(cue);
+    } else {
+      setStateCue(
+        mockVttCue({
+          endTime: 0,
+          startTime: 0,
+          text: "",
+        }),
+      );
+    }
+  }, [cue]);
+
+  React.useEffect(() => {
+    const { error, value } = vttCueValidationSchema.validate(stateCue);
+    if (!error) {
+      window.electronAPI.prefenceWindowPatchCue(value);
+    } else {
+      console.log(error);
+    }
+  }, [stateCue]);
 
   return (
     <AppWrapper>
@@ -33,18 +66,48 @@ export const App = () => {
       >
         <FormControl>
           <FormLabel>Text</FormLabel>
-          <Textarea minRows={3} size="sm" value={cue?.text} />
+          <Textarea
+            minRows={3}
+            size="sm"
+            value={stateCue.text}
+            onChange={(e) =>
+              setStateCue({
+                ...stateCue,
+                text: e.currentTarget.value,
+              })
+            }
+          />
         </FormControl>
 
         <Stack direction="row" spacing={2}>
           <FormControl sx={{ flexGrow: 1 }}>
             <FormLabel>Start</FormLabel>
-            <Input type="number" size="sm" value={cue?.startTime} />
+            <Input
+              type="number"
+              size="sm"
+              value={stateCue.startTime}
+              onChange={(e) => {
+                setStateCue({
+                  ...stateCue,
+                  startTime: e.currentTarget.valueAsNumber,
+                });
+              }}
+            />
           </FormControl>
 
           <FormControl sx={{ flexGrow: 1 }}>
             <FormLabel>End</FormLabel>
-            <Input type="number" size="sm" value={cue?.endTime} />
+            <Input
+              type="number"
+              size="sm"
+              value={stateCue.endTime}
+              onChange={(e) => {
+                setStateCue({
+                  ...stateCue,
+                  endTime: e.currentTarget.valueAsNumber,
+                });
+              }}
+            />
           </FormControl>
         </Stack>
 
@@ -57,12 +120,30 @@ export const App = () => {
               </QuestionMarkHelper>
             </Stack>
           </FormLabel>
-          <Input size="sm" value={cue?.id} />
+          <Input
+            size="sm"
+            value={stateCue.id}
+            onChange={(e) => {
+              setStateCue({
+                ...stateCue,
+                id: e.currentTarget.value,
+              });
+            }}
+          />
         </FormControl>
 
         <FormControl>
           <FormLabel>Region</FormLabel>
-          <Select size="sm" value={cue?.region}>
+          <Select
+            size="sm"
+            value={stateCue.region}
+            onChange={(event, value) => {
+              setStateCue({
+                ...stateCue,
+                region: value ?? "",
+              });
+            }}
+          >
             <Option value="placeholder">Region placeholder</Option>
           </Select>
         </FormControl>
@@ -72,7 +153,13 @@ export const App = () => {
             <Checkbox
               size="sm"
               label="Pause on exit"
-              checked={cue?.pauseOnExit}
+              checked={stateCue.pauseOnExit}
+              onChange={(e) => {
+                setStateCue({
+                  ...stateCue,
+                  pauseOnExit: e.currentTarget.checked,
+                });
+              }}
             />
             <QuestionMarkHelper placement="right">
               This checkbox indicates whether playback of the media should pause
@@ -83,7 +170,16 @@ export const App = () => {
 
         <FormControl>
           <FormLabel>Writing direction</FormLabel>
-          <Select size="sm" value={cue?.vertical}>
+          <Select
+            size="sm"
+            value={stateCue.vertical}
+            onChange={(event, value) => {
+              setStateCue({
+                ...stateCue,
+                vertical: value ?? "",
+              });
+            }}
+          >
             <Option value="">Not specified</Option>
             <Option value="lr">Left to right</Option>
             <Option value="rl">Right to left</Option>
@@ -105,12 +201,30 @@ export const App = () => {
                 </QuestionMarkHelper>
               </Stack>
             </FormLabel>
-            <Input size="sm" value={cue?.line} />
+            <Input
+              size="sm"
+              value={stateCue.line}
+              onChange={(e) => {
+                setStateCue({
+                  ...stateCue,
+                  line: e.currentTarget.value as LineAndPositionSetting,
+                });
+              }}
+            />
           </FormControl>
 
           <FormControl sx={{ flexGrow: 1 }}>
             <FormLabel>Line align</FormLabel>
-            <Select size="sm" value={cue?.lineAlign}>
+            <Select
+              size="sm"
+              value={stateCue.lineAlign}
+              onChange={(event, value) => {
+                setStateCue({
+                  ...stateCue,
+                  lineAlign: value ?? "start",
+                });
+              }}
+            >
               <Option value="start">Start</Option>
               <Option value="center">Center</Option>
               <Option value="end">End</Option>
@@ -123,7 +237,13 @@ export const App = () => {
               <Checkbox
                 size="sm"
                 label="Snap to lines"
-                checked={cue?.snapToLines}
+                checked={stateCue.snapToLines}
+                onChange={(event) => {
+                  setStateCue({
+                    ...stateCue,
+                    snapToLines: event.currentTarget.checked,
+                  });
+                }}
               />
               <QuestionMarkHelper placement="left">
                 Check this if{" "}
@@ -157,7 +277,16 @@ export const App = () => {
                 </QuestionMarkHelper>
               </Stack>
             </FormLabel>
-            <Input size="sm" value={cue?.position} />
+            <Input
+              size="sm"
+              value={stateCue.position}
+              onChange={(event) => {
+                setStateCue({
+                  ...stateCue,
+                  position: event.currentTarget.value as LineAndPositionSetting,
+                });
+              }}
+            />
           </FormControl>
 
           <FormControl>
@@ -173,7 +302,16 @@ export const App = () => {
                 </QuestionMarkHelper>
               </Stack>
             </FormLabel>
-            <Select size="sm" value={cue?.positionAlign}>
+            <Select
+              size="sm"
+              value={stateCue.positionAlign}
+              onChange={(event, value) => {
+                setStateCue({
+                  ...stateCue,
+                  positionAlign: value ?? "auto",
+                });
+              }}
+            >
               <Option value="auto">Auto</Option>
               <Option value="center">Center</Option>
               <Option value="line-left">line-left</Option>
@@ -196,7 +334,13 @@ export const App = () => {
             type="number"
             size="sm"
             slotProps={{ input: { min: 0, max: 100 } }}
-            value={cue?.size}
+            value={stateCue.size}
+            onChange={(event) => {
+              setStateCue({
+                ...stateCue,
+                size: event.currentTarget.valueAsNumber,
+              });
+            }}
           />
         </FormControl>
 
@@ -210,7 +354,16 @@ export const App = () => {
               </QuestionMarkHelper>
             </Stack>
           </FormLabel>
-          <Select size="sm" value={cue?.align}>
+          <Select
+            size="sm"
+            value={stateCue.align}
+            onChange={(event, value) => {
+              setStateCue({
+                ...stateCue,
+                align: value ?? "center",
+              });
+            }}
+          >
             <Option value="center">Center</Option>
             <Option value="end">End</Option>
             <Option value="left">Left</Option>
@@ -245,3 +398,23 @@ const QuestionMarkHelper: React.FC<
     </Tooltip>
   );
 };
+
+export const vttCueValidationSchema = joi.object({
+  uuid: joi.string().uuid(),
+  id: joi.string(),
+  pauseOnExit: joi.boolean(),
+  startTime: joi.number().min(0),
+  endTime: joi.number().min(0),
+  text: joi.string(),
+  region: joi.string().allow(null),
+  vertical: joi.string().valid("", "lr", "rl"),
+  snapToLines: joi.boolean(),
+  line: joi.alternatives(joi.string().valid("auto"), joi.number()),
+  lineAlign: joi.string().valid("center", "end", "start"),
+  position: joi.alternatives(joi.string().valid("auto"), joi.number()),
+  positionAlign: joi
+    .string()
+    .valid("auto", "center", "line-left", "line-right"),
+  size: joi.number().max(100).min(0),
+  align: joi.string().valid("center", "end", "left", "right", "start"),
+});

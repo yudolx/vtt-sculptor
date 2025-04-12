@@ -2,6 +2,7 @@ import { IVTTCue } from "shared/libs/vtt/vttcue";
 import { IVTTRegion } from "shared/libs/vtt/vttregion";
 import { assert } from "shared/assert";
 import { IPlaceholderCue, isPlaceholderCue } from "./placeholderCue";
+import { mutableMergeVttCues } from "shared/mergeVttObjects";
 
 export class SubtitlesStore {
   protected file: string | null = null;
@@ -77,9 +78,7 @@ export class SubtitlesStore {
           this.activeCues = new Set([cue.uuid]);
         } else {
           if (!isPlaceholderCue(cue)) {
-            existingCue.text = cue.text;
-            existingCue.startTime = cue.startTime;
-            existingCue.endTime = cue.endTime;
+            mutableMergeVttCues(existingCue, cue);
           }
         }
       } else {

@@ -57,6 +57,9 @@ export const EmitIPCEvent = Object.freeze({
 
   preferenceWindowFetchCue: (): Promise<IVTTCue | null> =>
     ipcRenderer.invoke("ipc/preference/renderer/fetch-cue"),
+
+  prefenceWindowPatchCue: (cue: IVTTCue) =>
+    ipcRenderer.send("ipc/preference/renderer/patch-cue", cue),
 });
 
 declare global {

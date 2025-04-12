@@ -48,4 +48,8 @@ export class WindowManager {
 
     return null;
   }
+
+  getPreferenceWindow(uuid: IVTTCue["uuid"]) {
+    return this.cuePreferences.get(uuid) ?? null;
+  }
 }

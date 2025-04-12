@@ -65,6 +65,12 @@ export class BackgroundProcess {
       .on("ipc/renderer/patch-cues", (event, cues: IVTTCue[]) => {
         this.store.patchCues(cues);
         this.menuManager.update();
+        for (const cue of cues) {
+          const win = this.window.getPreferenceWindow(cue.uuid);
+          if (win) {
+            this.invalidateQuery(QueryKey.PreferenceWindowCue, win);
+          }
+        }
       })
       .on("ipc/renderer/disable-hotkeys", () => {
         this.menuManager.setGlobalShortcutsActive(false);
@@ -83,6 +89,19 @@ export class BackgroundProcess {
             this.menuManager.showCueContextMenu(event, cue);
           }
         },
-      );
+      )
+      .on("ipc/preference/renderer/patch-cue", (event, cue: IVTTCue) => {
+        const entrie = this.window.getPreferenceWindowFromWebContents(
+          event.sender,
+        );
+
+        if (entrie) {
+          const [uuid, win] = entrie;
+          if (uuid === cue.uuid) {
+            this.store.patchCues([cue]);
+            this.invalidateQuery(QueryKey.PreferenceWindowCue, win);
+          }
+        }
+      });
   };
 }
