@@ -13,6 +13,7 @@ export enum WebVTTParserState {
   CueText,
   BadCue,
   BadWebVtt,
+  Style,
 }
 
 type WebVTTCompatibleDecoder = {
@@ -32,11 +33,13 @@ export class WebVTTParser {
     id: string;
     region: IVTTRegion;
   }[] = [];
+  protected style: string = "";
 
   protected cue: IVTTCue | null = null;
 
   public onparsingerror?: (error: ParsingError) => void;
   public oncue?: (cue: IVTTCue) => void;
+  public onstyle?: (style: string) => void;
   public onregion?: (regionId: string, cue: IVTTRegion) => void;
   public onflush?: () => void;
 
@@ -217,10 +220,36 @@ export class WebVTTParser {
               this.state = WebVTTParserState.Id;
             }
             continue;
+          case WebVTTParserState.Style:
+            if (!line) {
+              this.state = WebVTTParserState.Id;
+
+              if (this.style.length > 0) {
+                this.onstyle?.(this.style);
+                this.style = "";
+              }
+
+              break;
+            }
+
+            if (line.indexOf("-->") !== -1) {
+              throw new ParsingError(ParsingError.Errors.BadStyle);
+            }
+
+            if (this.style.length) {
+              this.style += "\n";
+            }
+            this.style += line;
+            break;
           case WebVTTParserState.Id:
             // Check for the start of NOTE blocks.
             if (/^NOTE($|[ \t])/.test(line!)) {
               this.state = WebVTTParserState.Note;
+              break;
+            }
+            // Check for the start of STYLE blocks.
+            if (/^STYLE($|[ \t])/.test(line!)) {
+              this.state = WebVTTParserState.Style;
               break;
             }
             // 19-29 - Allow any number of line terminators, then initialize new cue values.

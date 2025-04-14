@@ -8,6 +8,7 @@ export class SubtitlesStore {
   protected file: string | null = null;
   protected cues: (IVTTCue | IPlaceholderCue)[] = [];
   protected regions: Record<string, IVTTRegion> = {};
+  protected styles: string[] = [];
   protected activeCues = new Set<IVTTCue["uuid"]>();
 
   public getFile() {
@@ -38,6 +39,14 @@ export class SubtitlesStore {
 
   public setCues(cues: IVTTCue[]) {
     this.cues = cues;
+  }
+
+  public setStyles(styles: string[]) {
+    this.styles = styles;
+  }
+
+  public getStyles() {
+    return this.styles;
   }
 
   public getActiveCue() {

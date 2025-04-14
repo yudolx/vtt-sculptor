@@ -14,6 +14,10 @@ export class ParsingError extends ExtendableError {
       code: 1,
       message: "Malformed time stamp.",
     },
+    BadStyle: {
+      code: 2,
+      message: "Malformed STYLE.",
+    },
   } as const;
 
   public name = "ParsingError";

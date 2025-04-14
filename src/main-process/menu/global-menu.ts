@@ -165,6 +165,7 @@ export class GlobalMenu {
       cues: [],
       regions: {},
       file: null,
+      styles: [],
     });
   };
 
@@ -183,11 +184,12 @@ export class GlobalMenu {
     const filePath = selectedFile.filePaths.at(0)!;
     const content = await readFile(filePath, "utf-8");
 
-    const { cues, regions } = parseWebVTT(content.toString());
+    const { cues, regions, styles } = parseWebVTT(content.toString());
 
     this.app.store.setFileAndCues({
       cues,
       regions,
+      styles,
       file: filePath,
     });
   };

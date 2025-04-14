@@ -20,15 +20,18 @@ export class ApplicationStore {
   public setFileAndCues(payload: {
     cues: IVTTCue[];
     regions: Record<string, IVTTRegion>;
+    styles: string[];
     file: string | null;
   }) {
     this.subtitles.setCues(payload.cues);
     this.subtitles.setRegions(payload.regions);
     this.subtitles.setFile(payload.file);
+    this.subtitles.setStyles(payload.styles);
 
     this.app.invalidateQuery(QueryKey.VideoPath);
     this.app.invalidateQuery(QueryKey.CuesList);
     this.app.invalidateQuery(QueryKey.RegionsList);
+    this.app.invalidateQuery(QueryKey.Styles);
   }
 
   public insertCue(cue: IVTTCue | IPlaceholderCue) {

@@ -23,6 +23,7 @@ export const parseWebVTT = (vttContent: string) => {
   const parser = new WebVTTParser(StringDecoder());
   const cues: IVTTCue[] = [];
   const regions: Record<string, IVTTRegion> = {};
+  const styles: string[] = [];
 
   parser.oncue = function (cue) {
     cues.push(cue);
@@ -32,11 +33,16 @@ export const parseWebVTT = (vttContent: string) => {
     regions[id] = region;
   };
 
+  parser.onstyle = function (style) {
+    styles.push(style);
+  };
+
   parser.parse(vttContent);
   parser.flush();
 
   return {
     regions,
     cues,
+    styles,
   };
 };

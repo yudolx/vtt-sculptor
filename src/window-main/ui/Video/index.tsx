@@ -1,5 +1,5 @@
 import React from "react";
-import { Box, styled } from "@mui/joy";
+import { Box, GlobalStyles, styled } from "@mui/joy";
 import { assert } from "shared/assert";
 import { CuesMerger } from "./cues-merger";
 import { VideoElContext } from "../context/video-el";
@@ -22,6 +22,10 @@ export const Video = () => {
     queryKey: [QueryKey.RegionsList],
     queryFn: window.electronAPI.fetchRegions,
   });
+  const stylesQuery = useQuery({
+    queryKey: [QueryKey.Styles],
+    queryFn: window.electronAPI.fetchStyles,
+  });
 
   React.useEffect(() => {
     const blurInterbalCallback = () => {
@@ -43,6 +47,17 @@ export const Video = () => {
       clearInterval(intervalId);
     };
   }, [videoEl]);
+
+  const cueStylesString = React.useMemo(() => {
+    if (!stylesQuery.data) {
+      return "";
+    }
+    return stylesQuery.data
+      .map((css) => {
+        return css.replaceAll("::cue", "video::cue");
+      })
+      .join("\n");
+  }, [stylesQuery.data]);
 
   const regions = React.useMemo(() => {
     return Object.fromEntries(
@@ -74,6 +89,7 @@ export const Video = () => {
 
   return (
     <VideoElementContainer>
+      <GlobalStyles styles={cueStylesString} />
       <StyledVideo controls ref={setVideo} src={pathQuery.data ?? ""} />
     </VideoElementContainer>
   );

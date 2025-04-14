@@ -50,6 +50,9 @@ export class BackgroundProcess {
       }
       return null;
     });
+    ipcMain.handle("ipc/renderer/get-styles", () =>
+      this.store.subtitles.getStyles(),
+    );
 
     ipcMain
       .on("ipc/renderer/set-active-cue", (event, cue: IVTTCue["uuid"]) => {

@@ -3,7 +3,6 @@ import joi, { ValidationError } from "joi";
 import {
   Alert,
   Box,
-  BoxProps,
   Checkbox,
   Chip,
   Divider,

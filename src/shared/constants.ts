@@ -8,4 +8,5 @@ export enum QueryKey {
   RegionsList = "REGIONS_LIST",
   ActiveCue = "ACTIVE_CUE",
   PreferenceWindowCue = "PREFERENCE_WINDOW_CUE",
+  Styles = "STYLES",
 }

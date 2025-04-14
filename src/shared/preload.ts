@@ -23,6 +23,9 @@ export const EmitIPCEvent = Object.freeze({
   fetchRegions: (): Promise<Record<string, VTTRegion>> =>
     ipcRenderer.invoke("ipc/renderer/get-regions"),
 
+  fetchStyles: (): Promise<string[]> =>
+    ipcRenderer.invoke("ipc/renderer/get-styles"),
+
   fetchActiveCue: (): Promise<string[]> =>
     ipcRenderer.invoke("ipc/renderer/get-active-cue"),
 
