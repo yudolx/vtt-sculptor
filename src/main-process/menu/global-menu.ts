@@ -1,8 +1,10 @@
-import { readFile } from "fs/promises";
+import path from "path";
+import { readFile, writeFile } from "fs/promises";
 import { Menu, MenuItemConstructorOptions, dialog } from "electron";
 import { parseWebVTT } from "shared/libs/vtt";
 import { BackgroundProcess } from "../background-process";
 import { IS_DARWIN } from "../constants";
+import { stringifyVTT } from "shared/libs/vtt/WebVTTDeserializer";
 
 export class GlobalMenu {
   protected menu: Menu;
@@ -121,8 +123,13 @@ export class GlobalMenu {
     const saveMenuItem = this.menu.getMenuItemById("fileSave")!;
     const saveAsMenuItem = this.menu.getMenuItemById("fileSaveAs")!;
 
-    saveMenuItem.enabled = this.app.store.subtitles.getCues() === null;
-    saveAsMenuItem.enabled = this.app.store.subtitles.getCues() === null;
+    {
+      const file = this.app.store.subtitles.getFile();
+      const hasCues = this.app.store.subtitles.getCues().length > 0;
+
+      saveMenuItem.enabled = !!file;
+      saveAsMenuItem.enabled = !!file || hasCues;
+    }
   };
 
   public setShortcutsActive(value: boolean) {
@@ -194,12 +201,45 @@ export class GlobalMenu {
     });
   };
 
-  protected handleSave = () => {
+  protected handleSave = async () => {
     if (!this.hotkeysActive) return;
+
+    const file = this.app.store.subtitles.getFile()!;
+    const filename = path.basename(file);
+
+    const result = await dialog.showMessageBox(this.app.window.main, {
+      message: `Overwrite the original file (${filename})?`,
+      type: "question",
+      buttons: ["Yes", "No"],
+    });
+
+    if (result.response === 0) {
+      const vtt = stringifyVTT(
+        this.app.store.subtitles.getCues(),
+        this.app.store.subtitles.getRegions(),
+        this.app.store.subtitles.getStyles(),
+      );
+
+      await writeFile(file, vtt);
+    }
   };
 
-  protected handleSaveAs = () => {
+  protected handleSaveAs = async () => {
     if (!this.hotkeysActive) return;
+
+    const result = await dialog.showSaveDialog(this.app.window.main, {
+      filters: [{ name: "WebVTT", extensions: ["vtt"] }],
+      properties: ["createDirectory", "showOverwriteConfirmation"],
+    });
+
+    if (result.filePath) {
+      const vtt = stringifyVTT(
+        this.app.store.subtitles.getCues(),
+        this.app.store.subtitles.getRegions(),
+        this.app.store.subtitles.getStyles(),
+      );
+      await writeFile(result.filePath, vtt);
+    }
   };
 
   protected handleNewSubtitle = async () => {

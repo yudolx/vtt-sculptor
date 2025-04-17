@@ -431,8 +431,13 @@ export const vttCueValidationSchema = joi.object({
   vertical: joi.string().valid("", "lr", "rl").label("Writing direction"),
   snapToLines: joi.boolean().label("Snap to lines"),
   line: joi
-    .alternatives(joi.string().valid("auto"), joi.number())
-    .label("Label"),
+    .alternatives(
+      joi.string().valid("auto"),
+      joi
+        .number()
+        .when("snapToLines", { is: false, then: joi.number().min(0).max(100) }),
+    )
+    .label("Line"),
   lineAlign: joi.string().valid("center", "end", "start").label("Line align"),
   position: joi
     .alternatives(joi.string().valid("auto"), joi.number())

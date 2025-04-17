@@ -47,9 +47,9 @@ export const mockVttCue = (overrideWith: VttCreateOptions): IVTTCue => {
     snapToLines: true,
     line: "auto",
     lineAlign: "start",
-    position: 50,
+    position: "auto",
     positionAlign: "center",
-    size: 50,
+    size: 100,
     align: "center",
     ...overrideWith,
   };
