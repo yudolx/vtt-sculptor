@@ -1,7 +1,11 @@
 import path from "path";
-import { readFile, writeFile } from "fs/promises";
-import { Menu, MenuItemConstructorOptions, dialog } from "electron";
-import { parseWebVTT } from "shared/libs/vtt";
+import { writeFile } from "fs/promises";
+import {
+  app as electronApp,
+  Menu,
+  MenuItemConstructorOptions,
+  dialog,
+} from "electron";
 import { BackgroundProcess } from "../background-process";
 import { IS_DARWIN } from "../constants";
 import { stringifyVTT } from "shared/libs/vtt/WebVTTDeserializer";
@@ -13,8 +17,18 @@ export class GlobalMenu {
 
   constructor(protected app: BackgroundProcess) {
     this.menu = Menu.buildFromTemplate([
-      ...(IS_DARWIN && __DEVELOPMENT__
-        ? [{ label: "MAC_OS_SKIPS_FIRST_MENU_ITEM_IN_DEVELOPMENT_FIX" }]
+      // macOS-specific application menu
+      ...(IS_DARWIN
+        ? [
+            {
+              label: electronApp.getName(),
+              submenu: [
+                { role: "about" } as const,
+                { type: "separator" } as const,
+                { role: "quit" } as const,
+              ],
+            },
+          ]
         : []),
       {
         label: "File",
@@ -30,6 +44,16 @@ export class GlobalMenu {
             id: "fileOpen",
             accelerator: IS_DARWIN ? "Cmd+O" : "Ctrl+O",
             click: this.handleOpen,
+          },
+          {
+            label: "Open Recent",
+            role: "recentDocuments",
+            submenu: [
+              {
+                label: "Clear Recent",
+                role: "clearRecentDocuments",
+              },
+            ],
           },
           {
             type: "separator",
@@ -54,36 +78,36 @@ export class GlobalMenu {
             {
               label: "Edit",
               submenu: [
-                { role: "undo" } as const,
-                { role: "redo" } as const,
+                {
+                  label: "New cue",
+                  id: "subtitlesNew",
+                  accelerator: "J",
+                  click: this.handleNewSubtitle,
+                },
+                // {
+                //   label: "Remove selected subtitles",
+                //   id: "subtitlesRemove",
+                //   accelerator: "delete",
+                //   click: this.handleRemoveSelectedSubtitles,
+                // },
                 { type: "separator" } as const,
                 { role: "cut" } as const,
                 { role: "copy" } as const,
                 { role: "paste" } as const,
                 { role: "pasteAndMatchStyle" } as const,
-                { role: "delete" } as const,
+                {
+                  role: "delete",
+                  click: this.handleRemoveSelectedSubtitles,
+                } as const,
                 { role: "selectAll" } as const,
               ],
             },
           ]
         : []),
-      {
-        label: "Subtitles",
-        submenu: [
-          {
-            label: "Insert new subtitle",
-            id: "subtitlesNew",
-            accelerator: "J",
-            click: this.handleNewSubtitle,
-          },
-          {
-            label: "Remove selected subtitles",
-            id: "subtitlesRemove",
-            accelerator: "delete",
-            click: this.handleRemoveSelectedSubtitles,
-          },
-        ],
-      },
+      // {
+      //   label: "Subtitles",
+      //   submenu: [],
+      // },
       {
         label: "Regions",
       },
@@ -151,6 +175,7 @@ export class GlobalMenu {
     const [videoPath] = selectedFile.filePaths;
 
     this.app.store.setVideoPath(videoPath);
+    electronApp.addRecentDocument(videoPath);
   };
 
   protected handleNew = () => {
@@ -189,16 +214,7 @@ export class GlobalMenu {
     }
 
     const filePath = selectedFile.filePaths.at(0)!;
-    const content = await readFile(filePath, "utf-8");
-
-    const { cues, regions, styles } = parseWebVTT(content.toString());
-
-    this.app.store.setFileAndCues({
-      cues,
-      regions,
-      styles,
-      file: filePath,
-    });
+    this.app.loadAndParseSubtitleFile(filePath);
   };
 
   protected handleSave = async () => {

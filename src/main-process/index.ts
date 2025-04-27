@@ -10,6 +10,11 @@ const main = async () => {
     app.quit();
   });
 
+  app.setAboutPanelOptions({
+    applicationName: "VTT Sculptor",
+    applicationVersion: "0.0.0",
+  });
+
   const application = new BackgroundProcess();
 };
 
