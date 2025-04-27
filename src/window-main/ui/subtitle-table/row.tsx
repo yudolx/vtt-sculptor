@@ -8,7 +8,7 @@ export interface ISubtitleTableRowProps {
   active: boolean;
   cue: IVTTCue;
   editField: keyof IVTTCue | null;
-  onClick: (cue: IVTTCue) => void;
+  onClick: (cue: IVTTCue, event: React.MouseEvent<HTMLTableRowElement>) => void;
   onCellFocus: () => void;
   onCellBlur: () => void;
   onCellChange: (field: keyof IVTTCue, value: IVTTCue[keyof IVTTCue]) => void;
@@ -35,9 +35,7 @@ export class SubtitleTableRow extends React.Component<
   }
 
   handleRowMouseDown = (event: React.MouseEvent<HTMLTableRowElement>) => {
-    if (!this.props.active) {
-      this.props.onClick(this.props.cue);
-    }
+    this.props.onClick(this.props.cue, event);
   };
 
   handleChange = (value: IVTTCue[keyof IVTTCue], field: keyof IVTTCue) => {

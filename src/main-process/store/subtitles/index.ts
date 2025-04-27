@@ -1,7 +1,11 @@
 import { IVTTCue } from "shared/libs/vtt/vttcue";
 import { IVTTRegion } from "shared/libs/vtt/vttregion";
 import { assert } from "shared/assert";
-import { IPlaceholderCue, isPlaceholderCue } from "./placeholderCue";
+import {
+  IPlaceholderCue,
+  isNotPlaceholderCue,
+  isPlaceholderCue,
+} from "./placeholderCue";
 import { mutableMergeVttCues } from "shared/mergeVttObjects";
 
 export class SubtitlesStore {
@@ -10,6 +14,18 @@ export class SubtitlesStore {
   protected regions: Record<string, IVTTRegion> = {};
   protected styles: string[] = [];
   protected activeCues = new Set<IVTTCue["uuid"]>();
+
+  protected _lastClickedCue: IVTTCue["uuid"] | null = null;
+  protected get lastClickedCue() {
+    return (
+      this._lastClickedCue ??
+      this.cues.filter(isNotPlaceholderCue).at(0)?.uuid ??
+      null
+    );
+  }
+  protected set lastClickedCue(value: IVTTCue["uuid"] | null) {
+    this._lastClickedCue = value;
+  }
 
   public getFile() {
     return this.file;
@@ -57,8 +73,57 @@ export class SubtitlesStore {
     return [...this.activeCues];
   }
 
-  public setActiveCue(value: IVTTCue["uuid"]) {
-    this.activeCues = new Set([value]);
+  public setActiveCue(
+    clickedCueUuid: IVTTCue["uuid"],
+    modifiers: { shiftKey: boolean; ctrlKey: boolean },
+  ) {
+    if (this.lastClickedCue) {
+      const cuesUuid = this.cues.filter(isNotPlaceholderCue).map((c) => c.uuid);
+      const lastClickedCueIndex = cuesUuid.indexOf(this.lastClickedCue);
+      const clickedCueUuidIndex = cuesUuid.indexOf(clickedCueUuid);
+
+      if (lastClickedCueIndex === -1 || clickedCueUuidIndex === -1) {
+        console.error("lastClickedCueIndex or clickedCueUuidIndex is -1", {
+          clickedCueUuidIndex,
+          lastClickedCueIndex,
+        });
+        return;
+      }
+
+      if (modifiers.shiftKey) {
+        if (clickedCueUuidIndex < lastClickedCueIndex) {
+          for (let i = clickedCueUuidIndex; i <= lastClickedCueIndex; i++) {
+            if (
+              this.activeCues.has(cuesUuid[i]) &&
+              cuesUuid[i] !== clickedCueUuid
+            ) {
+              this.activeCues.delete(cuesUuid[i]);
+            } else {
+              this.activeCues.add(cuesUuid[i]);
+            }
+          }
+        } else {
+          for (let i = lastClickedCueIndex; i <= clickedCueUuidIndex; i++) {
+            this.activeCues.add(cuesUuid[i]);
+          }
+        }
+
+        this.lastClickedCue = clickedCueUuid;
+      } else if (modifiers.ctrlKey) {
+        if (this.activeCues.has(clickedCueUuid)) {
+          this.activeCues.delete(clickedCueUuid);
+        } else {
+          this.activeCues.add(clickedCueUuid);
+        }
+      } else {
+        this.activeCues.clear();
+        this.activeCues.add(clickedCueUuid);
+        this.lastClickedCue = clickedCueUuid;
+      }
+    } else {
+      console.warn("(!!! No last clicked cue found");
+      this.lastClickedCue = clickedCueUuid;
+    }
   }
 
   public toggleActiveCue(value: IVTTCue["uuid"]) {

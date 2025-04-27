@@ -55,9 +55,16 @@ export class BackgroundProcess {
     );
 
     ipcMain
-      .on("ipc/renderer/set-active-cue", (event, cue: IVTTCue["uuid"]) => {
-        this.store.setActiveCue(cue);
-      })
+      .on(
+        "ipc/renderer/set-active-cue",
+        (
+          event,
+          cue: IVTTCue["uuid"],
+          modifiers: { shiftKey: boolean; ctrlKey: boolean },
+        ) => {
+          this.store.setActiveCue(cue, modifiers);
+        },
+      )
       .on("ipc/renderer/toggle-active-cue", (event, cue: IVTTCue["uuid"]) => {
         this.store.toggleActiveCue(cue);
       })

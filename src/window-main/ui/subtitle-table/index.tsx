@@ -202,9 +202,17 @@ export const SubtitleTable = () => {
     };
   }, [prevCue, activeCues, nextCue, videoEl, editField]);
 
-  const handleSubtitleTableRowClick = React.useCallback((cue: IVTTCue) => {
-    window.electronAPI.setActiveCue(cue.uuid);
-  }, []);
+  const handleSubtitleTableRowClick = React.useCallback(
+    (cue: IVTTCue, event: React.MouseEvent<HTMLTableRowElement>) => {
+      const shiftKey = event.shiftKey;
+      const ctrlKey = window.electronAPI.IS_DARWIN
+        ? event.metaKey
+        : event.ctrlKey;
+
+      window.electronAPI.setActiveCue(cue.uuid, { ctrlKey, shiftKey });
+    },
+    [],
+  );
 
   const handleCellChange = React.useCallback<
     ISubtitleTableRowProps["onCellChange"]
@@ -247,7 +255,13 @@ export const SubtitleTable = () => {
   }, []);
 
   return (
-    <Table hoverRow stickyHeader tabIndex={1} stripe="odd">
+    <Table
+      sx={{ outline: "none", userSelect: "none" }}
+      hoverRow
+      stickyHeader
+      tabIndex={1}
+      stripe="odd"
+    >
       <thead>
         <tr>
           <th style={{ width: 85 }}>Start</th>

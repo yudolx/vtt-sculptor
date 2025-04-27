@@ -1,9 +1,14 @@
 import { ipcRenderer, IpcRendererEvent } from "electron";
 import { PRELOAD_GLOBAL_KEY, QueryKey } from "./constants";
+import { IS_DARWIN, IS_LINUX, IS_WIN32 } from "../main-process/constants";
 import type { IVTTCue } from "./libs/vtt/vttcue";
 import type { IPlaceholderCue } from "main-process/store/subtitles/placeholderCue";
 
 export const EmitIPCEvent = Object.freeze({
+  IS_DARWIN,
+  IS_LINUX,
+  IS_WIN32,
+
   onInvalidateQuery: (
     callback: (event: IpcRendererEvent, query: QueryKey) => void,
   ) => {
@@ -36,8 +41,11 @@ export const EmitIPCEvent = Object.freeze({
     ipcRenderer.send("ipc/renderer/patch-cues", cues);
   },
 
-  setActiveCue: (cue: IVTTCue["uuid"]) => {
-    ipcRenderer.send("ipc/renderer/set-active-cue", cue);
+  setActiveCue: (
+    cue: IVTTCue["uuid"],
+    modifiers: { shiftKey: boolean; ctrlKey: boolean },
+  ) => {
+    ipcRenderer.send("ipc/renderer/set-active-cue", cue, modifiers);
   },
 
   toggleActiveCue: (cue: IVTTCue["uuid"]) => {

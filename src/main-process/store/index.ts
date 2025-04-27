@@ -55,8 +55,11 @@ export class ApplicationStore {
     this.app.invalidateQuery(QueryKey.CuesList);
   }
 
-  public setActiveCue(uuid: IVTTCue["uuid"]) {
-    this.subtitles.setActiveCue(uuid);
+  public setActiveCue(
+    uuid: IVTTCue["uuid"],
+    modifiers: { shiftKey: boolean; ctrlKey: boolean },
+  ) {
+    this.subtitles.setActiveCue(uuid, modifiers);
     this.app.invalidateQuery(QueryKey.ActiveCue);
   }
 
