@@ -19,6 +19,8 @@ export const SubtitleTable = () => {
     queryFn: window.electronAPI.fetchCues,
   });
 
+  console.log(cues);
+
   const { data: activeCueUuid = [] } = useQuery({
     queryKey: [QueryKey.ActiveCue],
     queryFn: window.electronAPI.fetchActiveCue,
@@ -34,34 +36,6 @@ export const SubtitleTable = () => {
     );
   }, [activeCueUuid, cues]);
 
-  /**
-   * all cues = [1,2,3,4,5,6]
-   * selected = [2,4]
-   * if we want to select the next cue then we should take one from the end of the cues list.
-   * so in this case the next available cue is 5
-   */
-  const nextCue = React.useMemo(() => {
-    const nonPlaceholderCues = cues.filter(isNotPlaceholderCue);
-    const lastCueUuid = activeCueUuid.at(activeCueUuid.length - 1);
-    const nextCueIndex = nonPlaceholderCues.findLastIndex(
-      (value, index, array) => array.at(index - 1)?.uuid === lastCueUuid,
-    );
-    return nextCueIndex >= 0 ? nonPlaceholderCues.at(nextCueIndex)! : null;
-  }, [activeCueUuid, cues]);
-
-  /**
-   * this one follows the same logic as nextCue but it will take previous cue from the start of all cues array
-   * the previous available cue would be 1
-   */
-  const prevCue = React.useMemo(() => {
-    const nonPlaceholderCues = cues.filter(isNotPlaceholderCue);
-    const firstCueUuid = activeCueUuid.at(0);
-    const prevCueIndex = nonPlaceholderCues.findIndex(
-      (value, index, array) => array.at(index + 1)?.uuid === firstCueUuid,
-    );
-    return prevCueIndex >= 0 ? nonPlaceholderCues.at(prevCueIndex)! : null;
-  }, [activeCueUuid, cues]);
-
   React.useEffect(() => {
     const handleSpace = () => {
       if (videoEl) {
@@ -73,21 +47,31 @@ export const SubtitleTable = () => {
       }
     };
 
-    const handleUp = () => {
-      if (prevCue) {
-        window.electronAPI.setActiveCue(prevCue.uuid);
-      }
+    const handleUp = (event: KeyboardEvent) => {
+      const shiftKey = event.shiftKey;
+      const ctrlKey = window.electronAPI.IS_DARWIN
+        ? event.metaKey
+        : event.ctrlKey;
+
+      window.electronAPI.alterSelection("ArrowUp", {
+        ctrlKey,
+        shiftKey,
+      });
     };
-    const handleDown = () => {
-      if (nextCue) {
-        window.electronAPI.setActiveCue(nextCue.uuid);
-      }
+
+    const handleDown = (event: KeyboardEvent) => {
+      const shiftKey = event.shiftKey;
+      const ctrlKey = window.electronAPI.IS_DARWIN
+        ? event.metaKey
+        : event.ctrlKey;
+
+      window.electronAPI.alterSelection("ArrowDown", {
+        ctrlKey,
+        shiftKey,
+      });
     };
+
     const handleDelete = () => {
-      const nextActiveCue = nextCue ?? prevCue ?? null;
-      if (nextActiveCue) {
-        window.electronAPI.toggleActiveCue(nextActiveCue.uuid);
-      }
       if (activeCues.length) {
         window.electronAPI.deleteCues(activeCues.map((cue) => cue.uuid));
       }
@@ -113,7 +97,7 @@ export const SubtitleTable = () => {
           activeCues.map((cue) => {
             let newStartTime = cue.startTime - DEFAULT_CUE_ADJUST_TIME;
             newStartTime = Math.max(newStartTime, 0);
-            return { ...cue, startTime: newStartTime };
+            return { uuid: cue.uuid, startTime: newStartTime };
           }),
         );
       }
@@ -125,7 +109,7 @@ export const SubtitleTable = () => {
           activeCues.map((cue) => {
             let newStartTime = cue.startTime + DEFAULT_CUE_ADJUST_TIME;
             newStartTime = Math.min(newStartTime, cue.endTime);
-            return { ...cue, startTime: newStartTime };
+            return { uuid: cue.uuid, startTime: newStartTime };
           }),
         );
       }
@@ -137,7 +121,7 @@ export const SubtitleTable = () => {
           activeCues.map((cue) => {
             let newEndTime = cue.endTime - DEFAULT_CUE_ADJUST_TIME;
             newEndTime = Math.max(newEndTime, cue.startTime);
-            return { ...cue, endTime: newEndTime };
+            return { uuid: cue.uuid, endTime: newEndTime };
           }),
         );
       }
@@ -149,7 +133,7 @@ export const SubtitleTable = () => {
           activeCues.map((cue) => {
             let newEndTime = cue.endTime + DEFAULT_CUE_ADJUST_TIME;
             newEndTime = Math.min(newEndTime, videoEl.duration);
-            return { ...cue, endTime: newEndTime };
+            return { uuid: cue.uuid, endTime: newEndTime };
           }),
         );
       }
@@ -159,7 +143,7 @@ export const SubtitleTable = () => {
       if (activeCues && videoEl) {
         window.electronAPI.patchCues(
           activeCues.map((cue) => {
-            return { ...cue, endTime: videoEl.currentTime };
+            return { uuid: cue.uuid, endTime: videoEl.currentTime };
           }),
         );
       }
@@ -176,8 +160,11 @@ export const SubtitleTable = () => {
     MouseTrap.bind("enter", handleEnter);
     MouseTrap.bind("esc", handleEsc);
     MouseTrap.bind("space", handleSpace);
-    MouseTrap.bind("up", handleUp);
-    MouseTrap.bind("down", handleDown);
+    MouseTrap.bind(["up", "command+up", "ctrl+up", "shift+up"], handleUp);
+    MouseTrap.bind(
+      ["down", "command+down", "ctrl+down", "shift+down"],
+      handleDown,
+    );
     MouseTrap.bind("del", handleDelete);
     MouseTrap.bind("q", handleQ);
     MouseTrap.bind("w", handleW);
@@ -190,8 +177,8 @@ export const SubtitleTable = () => {
       MouseTrap.unbind("enter");
       MouseTrap.unbind("esc");
       MouseTrap.unbind("space");
-      MouseTrap.unbind("up");
-      MouseTrap.unbind("down");
+      MouseTrap.unbind(["up", "command+up", "ctrl+up", "shift+up"]);
+      MouseTrap.unbind(["down", "command+down", "ctrl+down", "shift+down"]);
       MouseTrap.unbind("del");
       MouseTrap.unbind("q");
       MouseTrap.unbind("w");
@@ -200,7 +187,7 @@ export const SubtitleTable = () => {
       MouseTrap.unbind("k");
       MouseTrap.unbind("o");
     };
-  }, [prevCue, activeCues, nextCue, videoEl, editField]);
+  }, [activeCues, videoEl, editField]);
 
   const handleSubtitleTableRowClick = React.useCallback(
     (cue: IVTTCue, event: React.MouseEvent<HTMLTableRowElement>) => {
@@ -209,7 +196,7 @@ export const SubtitleTable = () => {
         ? event.metaKey
         : event.ctrlKey;
 
-      window.electronAPI.setActiveCue(cue.uuid, { ctrlKey, shiftKey });
+      window.electronAPI.alterSelection(cue.uuid, { ctrlKey, shiftKey });
     },
     [],
   );

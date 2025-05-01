@@ -1,5 +1,5 @@
 import { VideoStore } from "./video";
-import { SubtitlesStore } from "./subtitles";
+import { IPatchCuePayload, SubtitlesStore } from "./subtitles";
 import { IVTTCue } from "shared/libs/vtt/vttcue";
 import { IVTTRegion } from "shared/libs/vtt/vttregion";
 import { QueryKey } from "shared/constants";
@@ -39,7 +39,7 @@ export class ApplicationStore {
     this.app.invalidateQuery(QueryKey.CuesList);
   }
 
-  public patchCues(cues: (IVTTCue | IPlaceholderCue)[]) {
+  public patchCues(cues: (IPatchCuePayload | IPlaceholderCue)[]) {
     this.subtitles.patchOrInsertCues(cues);
     this.app.invalidateQuery(QueryKey.CuesList);
     this.app.invalidateQuery(QueryKey.ActiveCue);
@@ -53,13 +53,23 @@ export class ApplicationStore {
   public deleteCues(uuids: IVTTCue["uuid"][]) {
     this.subtitles.deleteCues(uuids);
     this.app.invalidateQuery(QueryKey.CuesList);
+    this.app.invalidateQuery(QueryKey.ActiveCue);
   }
 
-  public setActiveCue(
-    uuid: IVTTCue["uuid"],
-    modifiers: { shiftKey: boolean; ctrlKey: boolean },
+  public setActiveCue(uuid: IVTTCue["uuid"][]) {
+    this.subtitles.setActiveCue(uuid);
+    this.app.invalidateQuery(QueryKey.ActiveCue);
+  }
+
+  public alterCueSelection(
+    cue: IVTTCue["uuid"] | null,
+    modifiers: {
+      shiftKey: boolean;
+      ctrlKey: boolean;
+      key?: "ArrowUp" | "ArrowDown";
+    },
   ) {
-    this.subtitles.setActiveCue(uuid, modifiers);
+    this.subtitles.alterCueSelection(cue, modifiers);
     this.app.invalidateQuery(QueryKey.ActiveCue);
   }
 

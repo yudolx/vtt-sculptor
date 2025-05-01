@@ -3,6 +3,7 @@ import { PRELOAD_GLOBAL_KEY, QueryKey } from "./constants";
 import { IS_DARWIN, IS_LINUX, IS_WIN32 } from "../main-process/constants";
 import type { IVTTCue } from "./libs/vtt/vttcue";
 import type { IPlaceholderCue } from "main-process/store/subtitles/placeholderCue";
+import { IPatchCuePayload } from "main-process/store/subtitles";
 
 export const EmitIPCEvent = Object.freeze({
   IS_DARWIN,
@@ -37,15 +38,24 @@ export const EmitIPCEvent = Object.freeze({
   deleteCues: (cues: IVTTCue["uuid"][]) =>
     ipcRenderer.send("ipc/renderer/delete-cues", cues),
 
-  patchCues: (cues: IVTTCue[]) => {
+  patchCues: (cues: IPatchCuePayload[]) => {
+    console.log(cues);
     ipcRenderer.send("ipc/renderer/patch-cues", cues);
   },
 
-  setActiveCue: (
-    cue: IVTTCue["uuid"],
-    modifiers: { shiftKey: boolean; ctrlKey: boolean },
+  setActiveCue: (cue: IVTTCue["uuid"][]) => {
+    ipcRenderer.send("ipc/renderer/set-active-cue", cue);
+  },
+
+  alterSelection: (
+    cue: IVTTCue["uuid"] | null,
+    modifiers: {
+      shiftKey: boolean;
+      ctrlKey: boolean;
+      key?: "ArrowUp" | "ArrowDown";
+    },
   ) => {
-    ipcRenderer.send("ipc/renderer/set-active-cue", cue, modifiers);
+    ipcRenderer.send("ipc/renderer/alter-selection", cue, modifiers);
   },
 
   toggleActiveCue: (cue: IVTTCue["uuid"]) => {

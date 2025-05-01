@@ -1,6 +1,7 @@
 import { IVTTCue } from "./libs/vtt/vttcue";
+import { safeHasOwnProperty } from "./safe-has-own-property";
 
-export const mutableMergeVttCues = (cueA: IVTTCue, cueB: IVTTCue) => {
+export const mutableMergeVttCues = (cueA: IVTTCue, cueB: Partial<IVTTCue>) => {
   let changed = false;
   const keys: (keyof IVTTCue)[] = [
     "id",
@@ -20,7 +21,7 @@ export const mutableMergeVttCues = (cueA: IVTTCue, cueB: IVTTCue) => {
   ] as const;
 
   for (const key of keys) {
-    if (cueA[key] !== cueB[key]) {
+    if (safeHasOwnProperty(cueB, key) && cueA[key] !== cueB[key]) {
       // @ts-expect-error
       cueA[key] = cueB[key];
       changed = true;

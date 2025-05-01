@@ -28,15 +28,20 @@ export const Video = () => {
   });
 
   React.useEffect(() => {
-    const blurInterbalCallback = () => {
-      if (videoEl) {
-        if (document.activeElement === videoEl) {
-          videoEl.blur();
-        }
+    const handleVideoKeydownInternal = (event: KeyboardEvent) => {
+      if (
+        ["Space", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(
+          event.code,
+        )
+      ) {
+        videoEl?.blur();
+        event.preventDefault();
       }
     };
 
-    const intervalId = window.setInterval(blurInterbalCallback, 100);
+    if (videoEl) {
+      videoEl.addEventListener("keydown", handleVideoKeydownInternal);
+    }
 
     if (videoEl) {
       const track = videoEl.addTextTrack("captions", "WIP Captions");
@@ -44,7 +49,7 @@ export const Video = () => {
     }
 
     return () => {
-      clearInterval(intervalId);
+      videoEl?.removeEventListener("keydown", handleVideoKeydownInternal);
     };
   }, [videoEl]);
 

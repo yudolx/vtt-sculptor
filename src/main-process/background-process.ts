@@ -7,6 +7,7 @@ import { QueryKey } from "shared/constants";
 import { WindowManager } from "./window-manager";
 import { MenuManager } from "./menu";
 import { parseWebVTT } from "shared/libs/vtt";
+import { IPatchCuePayload } from "./store/subtitles";
 
 export class BackgroundProcess {
   public store = new ApplicationStore(this);
@@ -67,14 +68,21 @@ export class BackgroundProcess {
     );
 
     ipcMain
+      .on("ipc/renderer/set-active-cue", (event, cue: IVTTCue["uuid"][]) => {
+        this.store.setActiveCue(cue);
+      })
       .on(
-        "ipc/renderer/set-active-cue",
+        "ipc/renderer/alter-selection",
         (
           event,
-          cue: IVTTCue["uuid"],
-          modifiers: { shiftKey: boolean; ctrlKey: boolean },
+          cue: IVTTCue["uuid"] | null,
+          modifiers: {
+            shiftKey: boolean;
+            ctrlKey: boolean;
+            key?: "ArrowUp" | "ArrowDown";
+          },
         ) => {
-          this.store.setActiveCue(cue, modifiers);
+          this.store.alterCueSelection(cue, modifiers);
         },
       )
       .on("ipc/renderer/toggle-active-cue", (event, cue: IVTTCue["uuid"]) => {
@@ -84,7 +92,7 @@ export class BackgroundProcess {
         this.store.deleteCues(cues);
         this.menuManager.update();
       })
-      .on("ipc/renderer/patch-cues", (event, cues: IVTTCue[]) => {
+      .on("ipc/renderer/patch-cues", (event, cues: IPatchCuePayload[]) => {
         this.store.patchCues(cues);
         this.menuManager.update();
         for (const cue of cues) {
