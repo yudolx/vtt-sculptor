@@ -251,8 +251,8 @@ export const SubtitleTable = () => {
     >
       <thead>
         <tr>
-          <th style={{ width: 85 }}>Start</th>
-          <th style={{ width: 85 }}>End</th>
+          <th style={{ width: 100 }}>Start</th>
+          <th style={{ width: 100 }}>End</th>
           <th style={{ width: 85 }}>Duration</th>
           <th>Text</th>
         </tr>

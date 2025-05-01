@@ -10,23 +10,25 @@ const stringifyRegions = (regionId: string, region: IVTTRegion) => {
   return `Region: id=${regionId} width=${region.width}% lines=${region.lines} regionanchor=${region.regionAnchorX}%,${region.regionAnchorY}% viewportanchor=${region.viewportAnchorX}%,${region.viewportAnchorY}% scroll=${region.scroll}\n`;
 };
 
+export const stringifyTimestamp = (timestampArg: number) => {
+  let timestamp = timestampArg;
+  let hours: number, minutes: number, seconds: number, mseconds: number;
+
+  /* eslint-disable prettier/prettier */
+  timestamp -= (hours = Math.floor(Math.trunc(timestamp / 60 / 60)), hours * 60 * 60);
+  timestamp -= (minutes = Math.floor(Math.trunc(timestamp / 60)), minutes * 60);
+  timestamp -= seconds = Math.floor(timestamp);
+  mseconds = Math.floor(timestamp * 1000);
+  /* eslint-enable prettier/prettier */
+
+  return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}.${mseconds.toString().padStart(3, "0")}`;
+};
+
 const stringifyCue = (cue: IVTTCue) => {
   const notNull = <T>(data: T | null): data is Exclude<T, null> =>
     data !== null;
 
   const defaultCue = mockVttCue({ endTime: 0, startTime: 0, text: "" });
-
-  const stringifyTimestamp = (timestampArg: number) => {
-    let timestamp = timestampArg;
-    let hours: number, minutes: number, seconds: number, mseconds: number;
-
-    timestamp -= hours = Math.floor(Math.trunc(timestamp / 60 / 60));
-    timestamp -= minutes = Math.floor(Math.trunc(timestamp / 60));
-    timestamp -= seconds = Math.floor(timestamp);
-    mseconds = Math.floor(timestamp * 1000);
-
-    return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}.${mseconds.toString().padStart(3, "0")}`;
-  };
 
   const cueSettings = [
     cue.region !== defaultCue.region ? `region:${cue.region}` : null,

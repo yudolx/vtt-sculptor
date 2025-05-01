@@ -3,6 +3,7 @@ import { styled } from "@mui/joy";
 import { IVTTCue } from "shared/libs/vtt/vttcue";
 import { TextAreaEditableCell } from "./text-area-editable-cell";
 import { toFixedNumber } from "shared/to-fixed-number";
+import { stringifyTimestamp } from "shared/libs/vtt/WebVTTDeserializer";
 
 export interface ISubtitleTableRowProps {
   active: boolean;
@@ -73,8 +74,12 @@ export class SubtitleTableRow extends React.Component<
         onMouseDown={this.handleRowMouseDown}
         onContextMenu={this.handleContextMenu}
       >
-        <td>{toFixedNumber(cue.startTime, 3)}</td>
-        <td>{toFixedNumber(cue.endTime, 3)}</td>
+        <td title={cue.startTime.toString()}>
+          {stringifyTimestamp(cue.startTime)}
+        </td>
+        <td title={cue.endTime.toString()}>
+          {stringifyTimestamp(cue.endTime)}
+        </td>
         <td>{toFixedNumber(cue.endTime - cue.startTime, 3)}</td>
         <TextAreaEditableCell
           edit={this.props.active && this.props.editField === "text"}
