@@ -2,7 +2,7 @@ import { IVTTCue } from "shared/libs/vtt/vttcue";
 import { VTTCueUuid } from "./vtt-cue-uuid";
 
 export class CuesMerger {
-  public lasChangedCue: VTTCueUuid | null = null;
+  // public lasChangedCue: VTTCueUuid | null = null;
   public trackCues: VTTCueUuid[] = [];
 
   constructor(
@@ -14,10 +14,10 @@ export class CuesMerger {
     this.deleteRemovedCues();
     this.updateExistingCues();
 
-    if (this.lasChangedCue && this.lasChangedCue.track) {
-      this.lasChangedCue.track.mode = "hidden";
-      this.lasChangedCue!.track!.mode = "showing";
-    }
+    // if (this.lasChangedCue && this.lasChangedCue.track) {
+    //   this.lasChangedCue.track.mode = "hidden";
+    //   this.lasChangedCue!.track!.mode = "showing";
+    // }
   }
 
   deleteRemovedCues() {
@@ -36,18 +36,14 @@ export class CuesMerger {
         (tCue) => tCue.uuid === propsCue.uuid,
       );
       if (!existingCue) {
-        cue = new VTTCueUuid(
-          propsCue.startTime,
-          propsCue.endTime,
-          propsCue.text,
-          propsCue.uuid,
-        );
+        cue = VTTCueUuid.createFromCueObj(propsCue);
         this.track.addCue(cue);
       } else {
         cue = existingCue;
       }
 
-      this.lasChangedCue ??= this.mergeCueValues(cue, propsCue);
+      cue.update(propsCue);
+      // this.lasChangedCue ??= this.mergeCueValues(cue, propsCue);
 
       // cue.id = propsCue.id;
       // cue.align = propsCue.align;
@@ -63,39 +59,4 @@ export class CuesMerger {
       // cue.track = cue
     });
   }
-
-  mergeCueValues = (cue: VTTCueUuid, obj: IVTTCue) => {
-    let changed = false;
-    const keys: (keyof IVTTCue)[] = [
-      "id",
-      "align",
-      "line",
-      // TODO: NOT SUPPORTED BY CHROME
-      // "lineAlign",
-      "position",
-      // TODO: NOT SUPPORTED BY CHROME
-      // "positionAlign",
-      "size",
-      "snapToLines",
-      "vertical",
-      "text",
-      "endTime",
-      "startTime",
-    ] as const;
-
-    for (const key of keys) {
-      if (cue[key] !== obj[key]) {
-        console.log(key, cue[key], obj[key], cue);
-        // @ts-expect-error
-        cue[key] = obj[key];
-        changed = true;
-      }
-    }
-
-    if (changed) {
-      return cue;
-    } else {
-      return null;
-    }
-  };
 }

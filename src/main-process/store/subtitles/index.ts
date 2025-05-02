@@ -263,7 +263,6 @@ export class SubtitlesStore {
       if (existingCue) {
         if (isPlaceholderCue(existingCue) && !isPlaceholderCue(cue)) {
           this.cues.splice(existingCueIndex, 1);
-          console.log(cue.uuid);
           insertCue(cue);
           this.activeCues = new Set([cue.uuid]);
         } else if (!isPlaceholderCue(existingCue) && !isPlaceholderCue(cue)) {

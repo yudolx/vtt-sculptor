@@ -12,7 +12,6 @@ export const App = () => {
       <SubtitleTableWrapper
         onKeyDown={(e) => {
           if (["ArrowUp", "ArrowDown", "Space"].includes(e.code)) {
-            console.log(e);
             e.preventDefault();
           }
         }}
