@@ -111,17 +111,17 @@ export class GlobalMenu {
       {
         label: "Regions",
       },
-      {
-        label: "Video",
-        submenu: [
-          {
-            label: "Load video",
-            id: "videoLoadVideo",
-            accelerator: IS_DARWIN ? "Cmd+L" : "Ctrl+L",
-            click: this.handleLoadVideo,
-          },
-        ],
-      },
+      // {
+      //   label: "Video",
+      //   submenu: [
+      //     {
+      //       label: "Load video",
+      //       id: "videoLoadVideo",
+      //       accelerator: IS_DARWIN ? "Cmd+L" : "Ctrl+L",
+      //       click: this.handleLoadVideo,
+      //     },
+      //   ],
+      // },
       ...(__DEVELOPMENT__
         ? [
             {
@@ -206,7 +206,9 @@ export class GlobalMenu {
 
     const selectedFile = await dialog.showOpenDialog({
       properties: ["openFile", "showHiddenFiles"],
-      filters: [{ name: "WebVTT Subtitles", extensions: ["vtt"] }],
+      filters: [
+        { name: "Subtitles Or Videos", extensions: ["vtt", "mp4", "webm"] },
+      ],
     });
 
     if (selectedFile.canceled && selectedFile.filePaths.length !== 1) {
@@ -214,7 +216,7 @@ export class GlobalMenu {
     }
 
     const filePath = selectedFile.filePaths.at(0)!;
-    this.app.loadAndParseSubtitleFile(filePath);
+    this.app.openFile(null, filePath);
   };
 
   protected handleSave = async () => {
