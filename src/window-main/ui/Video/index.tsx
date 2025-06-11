@@ -27,6 +27,20 @@ export const Video = () => {
     queryFn: window.electronAPI.fetchStyles,
   });
 
+  // Clear cues from the track when video changed
+  React.useEffect(() => {
+    return () => {
+      if (!videoEl) {
+        return;
+      }
+
+      const track = videoEl.textTracks[0];
+      [...(track.cues ?? [])].forEach((cue) => {
+        track.removeCue(cue);
+      });
+    };
+  }, [pathQuery.data, videoEl]);
+
   React.useEffect(() => {
     const handleVideoKeydownInternal = (event: KeyboardEvent) => {
       if (

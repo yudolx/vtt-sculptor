@@ -18,6 +18,9 @@ const rendererConfig = merge(
 
       window_cue_preferences: path.resolve(SRC_DIR, "./window-cue-preferences/index.tsx"),
       window_cue_preferences_preload: path.resolve(SRC_DIR, "./window-cue-preferences/preload.ts"),
+
+      window_settings: path.resolve(SRC_DIR, "./window-settings/index.tsx"),
+      window_settings_preload: path.resolve(SRC_DIR, "./window-settings/preload.ts"),
     },
     /* eslint-enable prettier/prettier */
     output: {
@@ -34,6 +37,11 @@ const rendererConfig = merge(
         title: "",
         chunks: ["window_cue_preferences", "window_cue_preferences_preload"],
         filename: "window_cue_preferences.html",
+      }),
+      new HTMLWebpackPlugin({
+        title: "",
+        chunks: ["window_settings", "window_settings_preload"],
+        filename: "window_settings.html",
       }),
     ],
   }),

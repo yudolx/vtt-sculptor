@@ -2,10 +2,43 @@ import { createWindowMain } from "window-main/browser-window";
 import { createCuePreferencesWindow } from "window-cue-preferences/browser-window";
 import { IVTTCue } from "shared/libs/vtt/vttcue";
 import { BrowserWindow } from "electron";
+import { createSettingsWindow } from "window-settings/browser-window";
+import { BackgroundProcess } from "./background-process";
 
 export class WindowManager {
-  public main = createWindowMain();
+  public main: BrowserWindow;
   public cuePreferences = new Map<IVTTCue["uuid"], BrowserWindow>();
+  public settings: BrowserWindow;
+
+  constructor(protected app: BackgroundProcess) {
+    this.main = createWindowMain({
+      x: this.app.settings.windowsState.main.x,
+      y: this.app.settings.windowsState.main.y,
+      height: this.app.settings.windowsState.main.height,
+      width: this.app.settings.windowsState.main.width,
+    });
+
+    this.settings = createSettingsWindow({
+      x: this.app.settings.windowsState.main.x,
+      y: this.app.settings.windowsState.main.y,
+      height: this.app.settings.windowsState.main.height,
+      width: this.app.settings.windowsState.main.width,
+    });
+
+    this.app.settings.manageWindow("main", this.main);
+    this.app.settings.manageWindow("settings", this.settings);
+  }
+
+  get permanentWindows() {
+    /* eslint-disable-next-line @typescript-eslint/no-this-alias */
+    const self = this;
+    return {
+      *[Symbol.iterator]() {
+        yield ["main", self.main] as const;
+        yield ["settings", self.settings] as const;
+      },
+    };
+  }
 
   *[Symbol.iterator]() {
     yield this.main;
@@ -13,6 +46,8 @@ export class WindowManager {
     for (const win of this.cuePreferences.values()) {
       yield win;
     }
+
+    yield this.settings;
   }
 
   openCuePreferencesWindow(uuid: IVTTCue["uuid"]) {

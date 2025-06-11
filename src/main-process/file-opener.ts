@@ -59,7 +59,7 @@ export class FileOpener {
     const dir = path.dirname(filePath);
     const filename = path.basename(filePath).replace(".vtt", "");
     const videoFilePaths = supportedVideoExtensions.map((ext) =>
-      path.join(dir, filename, ext),
+      path.join(dir, `${filename}.${ext}`),
     );
 
     try {
@@ -75,6 +75,8 @@ export class FileOpener {
         }),
       );
       this.openVideo(videoPath);
-    } catch {}
+    } catch (e) {
+      console.error(e);
+    }
   };
 }

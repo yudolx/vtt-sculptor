@@ -24,6 +24,11 @@ export class GlobalMenu {
               label: electronApp.getName(),
               submenu: [
                 { role: "about" } as const,
+                {
+                  label: "Settings",
+                  id: "fileOpen",
+                  click: this.handleSettingsClick,
+                },
                 { type: "separator" } as const,
                 { role: "quit" } as const,
               ],
@@ -33,12 +38,12 @@ export class GlobalMenu {
       {
         label: "File",
         submenu: [
-          {
-            label: "New",
-            id: "fileNew",
-            accelerator: IS_DARWIN ? "Cmd+N" : "Ctrl+N",
-            click: this.handleNew,
-          },
+          // {
+          //   label: "New",
+          //   id: "fileNew",
+          //   accelerator: IS_DARWIN ? "Cmd+N" : "Ctrl+N",
+          //   click: this.handleNew,
+          // },
           {
             label: "Open",
             id: "fileOpen",
@@ -70,6 +75,18 @@ export class GlobalMenu {
             accelerator: IS_DARWIN ? "Cmd+Shift+S" : "Ctrl+Shift+S",
             click: this.handleSaveAs,
           },
+          ...(!IS_DARWIN
+            ? [
+                {
+                  type: "separator",
+                } as const,
+                {
+                  label: "Settings",
+                  id: "fileOpen",
+                  click: this.handleSettingsClick,
+                },
+              ]
+            : []),
         ],
       },
       // The app will lack ability to copy and paste text without this menu on mac... for some reason
@@ -178,28 +195,28 @@ export class GlobalMenu {
   //   this.app.store.setVideoPath(videoPath);
   // };
 
-  protected handleNew = () => {
-    if (!this.hotkeysActive) return;
+  // protected handleNew = () => {
+  //   if (!this.hotkeysActive) return;
 
-    const cues = this.app.store.subtitles.getCues();
+  //   const cues = this.app.store.subtitles.getCues();
 
-    const totalCues = cues.length;
-    if (totalCues > 0) {
-      const result = dialog.showMessageBox({
-        message:
-          "This project contains unsaved changes. If you continue these changes will be lost",
-        type: "warning",
-        buttons: ["Continue", "Cancel"],
-      });
-    }
+  //   const totalCues = cues.length;
+  //   if (totalCues > 0) {
+  //     const result = dialog.showMessageBox({
+  //       message:
+  //         "This project contains unsaved changes. If you continue these changes will be lost",
+  //       type: "warning",
+  //       buttons: ["Continue", "Cancel"],
+  //     });
+  //   }
 
-    this.app.store.setFileAndCues({
-      cues: [],
-      regions: {},
-      file: null,
-      styles: [],
-    });
-  };
+  //   this.app.store.setFileAndCues({
+  //     cues: [],
+  //     regions: {},
+  //     file: null,
+  //     styles: [],
+  //   });
+  // };
 
   protected handleOpen = async () => {
     if (!this.hotkeysActive) return;
@@ -277,5 +294,9 @@ export class GlobalMenu {
 
   protected handleRemoveSelectedSubtitles = () => {
     if (!this.hotkeysActive) return;
+  };
+
+  protected handleSettingsClick = () => {
+    this.app.window.settings.show();
   };
 }

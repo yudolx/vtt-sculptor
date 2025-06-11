@@ -5,8 +5,6 @@ export const createWindowMain = (
   options: BrowserWindowConstructorOptions = {},
 ): BrowserWindow => {
   let browser_window: BrowserWindow | null = new BrowserWindow({
-    width: 720,
-    height: 1280,
     title: __APP_NAME__,
     show: false,
     webPreferences: {

@@ -6,12 +6,14 @@ import { WindowManager } from "./window-manager";
 import { MenuManager } from "./menu";
 import { IPatchCuePayload } from "./store/subtitles";
 import { FileOpener } from "./file-opener";
+import { SettingsStore } from "./settings";
 
 export class BackgroundProcess {
+  public settings = new SettingsStore();
   public fileOpener = new FileOpener(this);
   public store = new ApplicationStore(this);
   public menuManager = new MenuManager(this);
-  public window = new WindowManager();
+  public window = new WindowManager(this);
 
   constructor() {
     this.bindIpcEvents();
