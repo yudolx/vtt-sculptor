@@ -17,13 +17,7 @@ export class BackgroundProcess {
   constructor() {
     this.bindIpcEvents();
 
-    electronApp.on("open-file", (event, path) => {
-      if (extname(path) === ".vtt") {
-        this.loadAndParseSubtitleFile(path);
-      } else {
-        this.store.setVideoPath(path);
-      }
-    });
+    electronApp.on("open-file", this.openFile);
 
     this.window.main.show();
   }
@@ -135,18 +129,22 @@ export class BackgroundProcess {
       });
   };
 
-  loadAndParseSubtitleFile = async (filePath: string) => {
-    const content = await readFile(filePath, "utf-8");
+  openFile = async (event: Electron.Event | null, filePath: string) => {
+    if (extname(filePath) === ".vtt") {
+      const content = await readFile(filePath, "utf-8");
 
-    const { cues, regions, styles } = parseWebVTT(content.toString());
+      const { cues, regions, styles } = parseWebVTT(content.toString());
 
-    this.store.setFileAndCues({
-      cues,
-      regions,
-      styles,
-      file: filePath,
-    });
+      this.store.setFileAndCues({
+        cues,
+        regions,
+        styles,
+        file: filePath,
+      });
 
-    electronApp.addRecentDocument(filePath);
+      electronApp.addRecentDocument(filePath);
+    } else {
+      this.store.setVideoPath(filePath);
+    }
   };
 }

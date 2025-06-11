@@ -1,6 +1,6 @@
 import React from "react";
 import { Box, styled } from "@mui/joy";
-import { Video } from "./Video";
+import { Video } from "./video";
 import { SubtitleTable } from "./subtitle-table";
 
 export const App = () => {

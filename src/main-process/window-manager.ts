@@ -29,6 +29,8 @@ export class WindowManager {
         frame: true,
       });
 
+      win.setMenu(null);
+
       win.on("closed", () => {
         this.cuePreferences.delete(uuid);
       });
