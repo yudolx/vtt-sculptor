@@ -19,10 +19,11 @@ export class WindowManager {
     });
 
     this.settings = createSettingsWindow({
-      x: this.app.settings.windowsState.main.x,
-      y: this.app.settings.windowsState.main.y,
-      height: this.app.settings.windowsState.main.height,
-      width: this.app.settings.windowsState.main.width,
+      x: this.app.settings.windowsState.settings.x,
+      y: this.app.settings.windowsState.settings.y,
+      height: this.app.settings.windowsState.settings.height,
+      width: this.app.settings.windowsState.settings.width,
+      parent: this.main,
     });
 
     this.app.settings.manageWindow("main", this.main);

@@ -25,8 +25,8 @@ export class StateManager {
   }
 
   closeHandler(name: "main" | "settings", win: BrowserWindow) {
-    this.unmanage(name, win);
     this.emitChangeForWindow(name, win);
+    this.unmanage(name, win);
   }
 
   isNormal(win: BrowserWindow) {
