@@ -1,5 +1,5 @@
 import path from "path";
-import { writeFile } from "fs/promises";
+import { writeFile, stat } from "fs/promises";
 import {
   app as electronApp,
   Menu,
@@ -9,6 +9,8 @@ import {
 import { BackgroundProcess } from "../background-process";
 import { IS_DARWIN } from "../constants";
 import { stringifyVTT } from "shared/libs/vtt/WebVTTDeserializer";
+
+const supportedVideoExtensions = ["mp4", "webm"];
 
 export class GlobalMenu {
   protected menu: Menu;
@@ -165,7 +167,9 @@ export class GlobalMenu {
 
     const selectedFile = await dialog.showOpenDialog({
       properties: ["openFile", "showHiddenFiles"],
-      filters: [{ name: "Web compatible movies", extensions: ["mp4", "webm"] }],
+      filters: [
+        { name: "WEB compatible videos", extensions: supportedVideoExtensions },
+      ],
     });
 
     if (selectedFile.canceled) {
@@ -173,9 +177,19 @@ export class GlobalMenu {
     }
 
     const [videoPath] = selectedFile.filePaths;
-
     this.app.store.setVideoPath(videoPath);
-    electronApp.addRecentDocument(videoPath);
+
+    const dir = path.dirname(videoPath);
+    const extname = path.extname(videoPath);
+    const filename = path.basename(videoPath).replace(extname, "");
+    const subtitleFilePath = path.join(dir, `${filename}.vtt`);
+
+    try {
+      await stat(subtitleFilePath);
+      this.app.loadAndParseSubtitleFile(subtitleFilePath);
+    } catch (e) {
+      console.error(e);
+    }
   };
 
   protected handleNew = () => {
@@ -215,6 +229,27 @@ export class GlobalMenu {
 
     const filePath = selectedFile.filePaths.at(0)!;
     this.app.loadAndParseSubtitleFile(filePath);
+
+    const dir = path.dirname(filePath);
+    const filename = path.basename(filePath).replace(".vtt", "");
+    const videoFilePaths = supportedVideoExtensions.map((ext) =>
+      path.join(dir, filename, ext),
+    );
+
+    try {
+      const videoPath = await Promise.any(
+        videoFilePaths.map((p) => {
+          return new Promise<string>((resolve, reject) => {
+            stat(p)
+              .then(() => {
+                resolve(p);
+              })
+              .catch(reject);
+          });
+        }),
+      );
+      this.app.store.setVideoPath(videoPath);
+    } catch {}
   };
 
   protected handleSave = async () => {

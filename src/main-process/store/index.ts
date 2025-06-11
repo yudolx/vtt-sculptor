@@ -1,3 +1,4 @@
+import { app as electronApp } from "electron";
 import { VideoStore } from "./video";
 import { IPatchCuePayload, SubtitlesStore } from "./subtitles";
 import { IVTTCue } from "shared/libs/vtt/vttcue";
@@ -14,6 +15,9 @@ export class ApplicationStore {
 
   public setVideoPath(value: string | null) {
     this.video.setPath(value);
+    if (value) {
+      electronApp.addRecentDocument(value);
+    }
     this.app.invalidateQuery(QueryKey.VideoPath);
   }
 

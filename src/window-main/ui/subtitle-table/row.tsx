@@ -7,6 +7,7 @@ import { stringifyTimestamp } from "shared/libs/vtt/WebVTTDeserializer";
 
 export interface ISubtitleTableRowProps {
   active: boolean;
+  isNew?: boolean;
   cue: IVTTCue;
   editField: keyof IVTTCue | null;
   onClick: (cue: IVTTCue, event: React.MouseEvent<HTMLTableRowElement>) => void;
@@ -16,7 +17,9 @@ export interface ISubtitleTableRowProps {
   onDoubleCellClick: (field: keyof IVTTCue) => void;
   onContextMenu: (cue: IVTTCue) => void;
 }
-export interface ISubtitleTableRowState {}
+export interface ISubtitleTableRowState {
+  editField: null;
+}
 
 export class SubtitleTableRow extends React.Component<
   ISubtitleTableRowProps,
@@ -33,6 +36,12 @@ export class SubtitleTableRow extends React.Component<
     return {
       editField: null,
     };
+  }
+
+  componentDidMount() {
+    if (this.props.isNew) {
+      this.rowEl?.scrollIntoView();
+    }
   }
 
   handleRowMouseDown = (event: React.MouseEvent<HTMLTableRowElement>) => {

@@ -8,6 +8,7 @@ import { VideoElContext } from "../context/video-el";
 import { DEFAULT_CUE_ADJUST_TIME, QueryKey } from "shared/constants";
 import { useWatchPlaceholderCues } from "./useWatchPlaceholderCues";
 import { isNotPlaceholderCue } from "main-process/store/subtitles/placeholderCue";
+import { VTTCueUuid } from "../Video/vtt-cue-uuid";
 
 export const SubtitleTable = () => {
   const [editField, setEditField] = React.useState<keyof IVTTCue | null>(null);
@@ -18,8 +19,6 @@ export const SubtitleTable = () => {
     queryKey: [QueryKey.CuesList],
     queryFn: window.electronAPI.fetchCues,
   });
-
-  console.log(cues);
 
   const { data: activeCueUuid = [] } = useQuery({
     queryKey: [QueryKey.ActiveCue],
@@ -241,6 +240,23 @@ export const SubtitleTable = () => {
     window.electronAPI.showCueContextMenu(cue.uuid);
   }, []);
 
+  const cuesIsNew = React.useMemo<Record<IVTTCue["uuid"], boolean>>(() => {
+    const isNew: Record<IVTTCue["uuid"], boolean> = {};
+    const trackCues = [...(videoEl?.textTracks[0]?.cues ?? [])]
+      .filter(VTTCueUuid.is)
+      .map((cue) => cue.uuid);
+
+    cues.forEach((c) => {
+      if (trackCues.length > 0) {
+        isNew[c.uuid] = !trackCues.includes(c.uuid);
+      } else {
+        isNew[c.uuid] = false;
+      }
+    });
+
+    return isNew;
+  }, [videoEl?.textTracks, cues]);
+
   return (
     <Table
       sx={{ outline: "none", userSelect: "none" }}
@@ -261,6 +277,7 @@ export const SubtitleTable = () => {
         {cues.filter(isNotPlaceholderCue).map((cue) => {
           return (
             <SubtitleTableRow
+              isNew={cuesIsNew[cue.uuid] ?? false}
               editField={editField}
               key={cue.uuid}
               cue={cue}
