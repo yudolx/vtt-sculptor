@@ -44,7 +44,6 @@ export class StateManager {
     win.on("resize", change);
     win.on("move", change);
     win.on("close", close);
-    win.on("closed", close);
 
     this._debounceCache.set(name, {
       resize: change,
@@ -60,7 +59,6 @@ export class StateManager {
       win.removeListener("resize", callbackCache.resize);
       win.removeListener("move", callbackCache.move);
       win.removeListener("close", callbackCache.close);
-      win.removeListener("closed", callbackCache.close);
     }
   }
 
