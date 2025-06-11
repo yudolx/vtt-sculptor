@@ -7,10 +7,8 @@ import {
   dialog,
 } from "electron";
 import { BackgroundProcess } from "../background-process";
-import { IS_DARWIN } from "../constants";
+import { IS_DARWIN, supportedVideoExtensions } from "../constants";
 import { stringifyVTT } from "shared/libs/vtt/WebVTTDeserializer";
-
-const supportedVideoExtensions = ["mp4", "webm"];
 
 export class GlobalMenu {
   protected menu: Menu;
@@ -113,17 +111,17 @@ export class GlobalMenu {
       {
         label: "Regions",
       },
-      {
-        label: "Video",
-        submenu: [
-          {
-            label: "Load video",
-            id: "videoLoadVideo",
-            accelerator: IS_DARWIN ? "Cmd+L" : "Ctrl+L",
-            click: this.handleLoadVideo,
-          },
-        ],
-      },
+      // {
+      //   label: "Video",
+      //   submenu: [
+      //     {
+      //       label: "Load video",
+      //       id: "videoLoadVideo",
+      //       accelerator: IS_DARWIN ? "Cmd+L" : "Ctrl+L",
+      //       click: this.handleLoadVideo,
+      //     },
+      //   ],
+      // },
       ...(__DEVELOPMENT__
         ? [
             {
@@ -162,35 +160,23 @@ export class GlobalMenu {
     this.hotkeysActive = value;
   }
 
-  protected handleLoadVideo = async () => {
-    if (!this.hotkeysActive) return;
+  // protected handleLoadVideo = async () => {
+  //   if (!this.hotkeysActive) return;
 
-    const selectedFile = await dialog.showOpenDialog({
-      properties: ["openFile", "showHiddenFiles"],
-      filters: [
-        { name: "WEB compatible videos", extensions: supportedVideoExtensions },
-      ],
-    });
+  //   const selectedFile = await dialog.showOpenDialog({
+  //     properties: ["openFile", "showHiddenFiles"],
+  //     filters: [
+  //       { name: "WEB compatible videos", extensions: supportedVideoExtensions },
+  //     ],
+  //   });
 
-    if (selectedFile.canceled) {
-      return;
-    }
+  //   if (selectedFile.canceled) {
+  //     return;
+  //   }
 
-    const [videoPath] = selectedFile.filePaths;
-    this.app.store.setVideoPath(videoPath);
-
-    const dir = path.dirname(videoPath);
-    const extname = path.extname(videoPath);
-    const filename = path.basename(videoPath).replace(extname, "");
-    const subtitleFilePath = path.join(dir, `${filename}.vtt`);
-
-    try {
-      await stat(subtitleFilePath);
-      this.app.loadAndParseSubtitleFile(subtitleFilePath);
-    } catch (e) {
-      console.error(e);
-    }
-  };
+  //   const [videoPath] = selectedFile.filePaths;
+  //   this.app.store.setVideoPath(videoPath);
+  // };
 
   protected handleNew = () => {
     if (!this.hotkeysActive) return;
@@ -220,7 +206,12 @@ export class GlobalMenu {
 
     const selectedFile = await dialog.showOpenDialog({
       properties: ["openFile", "showHiddenFiles"],
-      filters: [{ name: "WebVTT Subtitles", extensions: ["vtt"] }],
+      filters: [
+        {
+          name: "Subtitles or Video",
+          extensions: ["vtt", ...supportedVideoExtensions],
+        },
+      ],
     });
 
     if (selectedFile.canceled && selectedFile.filePaths.length !== 1) {
@@ -228,28 +219,7 @@ export class GlobalMenu {
     }
 
     const filePath = selectedFile.filePaths.at(0)!;
-    this.app.loadAndParseSubtitleFile(filePath);
-
-    const dir = path.dirname(filePath);
-    const filename = path.basename(filePath).replace(".vtt", "");
-    const videoFilePaths = supportedVideoExtensions.map((ext) =>
-      path.join(dir, filename, ext),
-    );
-
-    try {
-      const videoPath = await Promise.any(
-        videoFilePaths.map((p) => {
-          return new Promise<string>((resolve, reject) => {
-            stat(p)
-              .then(() => {
-                resolve(p);
-              })
-              .catch(reject);
-          });
-        }),
-      );
-      this.app.store.setVideoPath(videoPath);
-    } catch {}
+    this.app.fileOpener.open(null, filePath);
   };
 
   protected handleSave = async () => {

@@ -1,15 +1,14 @@
 import { BrowserWindow, ipcMain, app as electronApp } from "electron";
-import { readFile } from "fs/promises";
-import { extname } from "path";
 import { ApplicationStore } from "./store";
 import { IVTTCue } from "shared/libs/vtt/vttcue";
 import { QueryKey } from "shared/constants";
 import { WindowManager } from "./window-manager";
 import { MenuManager } from "./menu";
-import { parseWebVTT } from "shared/libs/vtt";
 import { IPatchCuePayload } from "./store/subtitles";
+import { FileOpener } from "./file-opener";
 
 export class BackgroundProcess {
+  public fileOpener = new FileOpener(this);
   public store = new ApplicationStore(this);
   public menuManager = new MenuManager(this);
   public window = new WindowManager();
@@ -17,7 +16,7 @@ export class BackgroundProcess {
   constructor() {
     this.bindIpcEvents();
 
-    electronApp.on("open-file", this.openFile);
+    electronApp.on("open-file", this.fileOpener.open);
 
     this.window.main.show();
   }
@@ -127,24 +126,5 @@ export class BackgroundProcess {
           }
         }
       });
-  };
-
-  openFile = async (event: Electron.Event | null, filePath: string) => {
-    if (extname(filePath) === ".vtt") {
-      const content = await readFile(filePath, "utf-8");
-
-      const { cues, regions, styles } = parseWebVTT(content.toString());
-
-      this.store.setFileAndCues({
-        cues,
-        regions,
-        styles,
-        file: filePath,
-      });
-
-      electronApp.addRecentDocument(filePath);
-    } else {
-      this.store.setVideoPath(filePath);
-    }
   };
 }

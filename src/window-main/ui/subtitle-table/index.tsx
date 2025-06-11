@@ -8,7 +8,7 @@ import { VideoElContext } from "../context/video-el";
 import { DEFAULT_CUE_ADJUST_TIME, QueryKey } from "shared/constants";
 import { useWatchPlaceholderCues } from "./useWatchPlaceholderCues";
 import { isNotPlaceholderCue } from "main-process/store/subtitles/placeholderCue";
-import { VTTCueUuid } from "../Video/vtt-cue-uuid";
+import { VTTCueUuid } from "../video/vtt-cue-uuid";
 
 export const SubtitleTable = () => {
   const [editField, setEditField] = React.useState<keyof IVTTCue | null>(null);
