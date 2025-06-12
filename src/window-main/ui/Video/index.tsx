@@ -6,9 +6,10 @@ import { VideoElContext } from "../context/video-el";
 import { useQuery } from "@tanstack/react-query";
 import { QueryKey } from "shared/constants";
 import { isNotPlaceholderCue } from "main-process/store/subtitles/placeholderCue";
+import { VideoComponent } from "./styledVideo";
 
 export const Video = () => {
-  const { videoEl, setVideoEl: setVideo } = React.useContext(VideoElContext);
+  const { videoEl } = React.useContext(VideoElContext);
 
   const pathQuery = useQuery({
     queryKey: [QueryKey.VideoPath],
@@ -109,7 +110,7 @@ export const Video = () => {
   return (
     <VideoElementContainer>
       <GlobalStyles styles={cueStylesString} />
-      <StyledVideo controls ref={setVideo} src={pathQuery.data ?? ""} />
+      <VideoComponent src={pathQuery.data ?? ""} />
     </VideoElementContainer>
   );
 };
@@ -126,11 +127,3 @@ const VideoElementContainer = styled(Box, { name: "VideoElementContainer" })(
     };
   },
 );
-
-const StyledVideo = styled("video", { name: "StyledVideo" })(() => {
-  return {
-    // maxWidth: "100%",
-    maxHeight: "100%",
-    width: "100%",
-  };
-});

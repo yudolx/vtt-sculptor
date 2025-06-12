@@ -40,7 +40,7 @@ export class SubtitleTableRow extends React.Component<
 
   componentDidMount() {
     if (this.props.isNew) {
-      this.rowEl?.scrollIntoView();
+      this.rowEl?.scrollIntoView({ block: "nearest" });
     }
   }
 
