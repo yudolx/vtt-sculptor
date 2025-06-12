@@ -4,6 +4,7 @@ import { IS_DARWIN, IS_LINUX, IS_WIN32 } from "../main-process/constants";
 import type { IVTTCue } from "./libs/vtt/vttcue";
 import type { IPlaceholderCue } from "main-process/store/subtitles/placeholderCue";
 import { IPatchCuePayload } from "main-process/store/subtitles";
+import { ISettings } from "main-process/settings/types";
 
 export const EmitIPCEvent = Object.freeze({
   IS_DARWIN,
@@ -81,6 +82,14 @@ export const EmitIPCEvent = Object.freeze({
 
   prefenceWindowPatchCue: (cue: IVTTCue) =>
     ipcRenderer.send("ipc/preference/renderer/patch-cue", cue),
+
+  // -----------------------------------------------------------------
+
+  fetchSettings: (): Promise<ISettings> =>
+    ipcRenderer.invoke("ipc/renderer/get-settings"),
+
+  settingsSetExternalCueIds: (ids: ISettings["externalCueIds"]) =>
+    ipcRenderer.send("ipc/settings/renderer/set-external-ids", ids),
 });
 
 declare global {

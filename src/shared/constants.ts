@@ -9,4 +9,5 @@ export enum QueryKey {
   ActiveCue = "ACTIVE_CUE",
   PreferenceWindowCue = "PREFERENCE_WINDOW_CUE",
   Styles = "STYLES",
+  Settings = "SETTINGS",
 }

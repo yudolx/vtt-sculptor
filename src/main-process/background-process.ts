@@ -7,6 +7,7 @@ import { MenuManager } from "./menu";
 import { IPatchCuePayload } from "./store/subtitles";
 import { FileOpener } from "./file-opener";
 import { SettingsStore } from "./settings";
+import { ISettings } from "./settings/types";
 
 export class BackgroundProcess {
   public settings = new SettingsStore();
@@ -61,6 +62,7 @@ export class BackgroundProcess {
     ipcMain.handle("ipc/renderer/get-styles", () =>
       this.store.subtitles.getStyles(),
     );
+    ipcMain.handle("ipc/renderer/get-settings", () => this.settings.getState());
 
     ipcMain
       .on("ipc/renderer/set-active-cue", (event, cue: IVTTCue["uuid"][]) => {
@@ -127,6 +129,13 @@ export class BackgroundProcess {
             this.invalidateQuery(QueryKey.PreferenceWindowCue, win);
           }
         }
-      });
+      })
+      .on(
+        "ipc/settings/renderer/set-external-ids",
+        (event, ids: ISettings["externalCueIds"]) => {
+          this.settings.externalCueIds = ids;
+          this.invalidateQuery(QueryKey.Settings);
+        },
+      );
   };
 }

@@ -2,6 +2,7 @@ import React from "react";
 import joi, { ValidationError } from "joi";
 import {
   Alert,
+  Autocomplete,
   Box,
   Checkbox,
   Chip,
@@ -26,6 +27,11 @@ export const App = () => {
   const { data: cue = null } = useQuery({
     queryKey: [QueryKey.PreferenceWindowCue],
     queryFn: window.electronAPI.preferenceWindowFetchCue,
+  });
+
+  const { data: settings } = useQuery({
+    queryKey: [QueryKey.Settings],
+    queryFn: window.electronAPI.fetchSettings,
   });
 
   const [stateCue, setStateCue] = React.useState<IVTTCue>(
@@ -125,13 +131,14 @@ export const App = () => {
               </QuestionMarkHelper>
             </Stack>
           </FormLabel>
-          <Input
-            size="sm"
+          <Autocomplete
+            freeSolo={true}
             value={stateCue.id}
-            onChange={(e) => {
+            options={settings?.externalCueIds ?? []}
+            onChange={(e, value) => {
               setStateCue({
                 ...stateCue,
-                id: e.currentTarget.value,
+                id: value ?? "",
               });
             }}
           />

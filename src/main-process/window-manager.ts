@@ -25,6 +25,7 @@ export class WindowManager {
       width: this.app.settings.windowsState.settings.width,
       parent: this.main,
     });
+    this.settings.setMenu(null);
 
     this.app.settings.manageWindow("main", this.main);
     this.app.settings.manageWindow("settings", this.settings);
