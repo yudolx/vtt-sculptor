@@ -11,10 +11,17 @@ export class FileOpener {
   open = async (event: Electron.Event | null, filePath: string) => {
     if (this.isSubtitles(filePath)) {
       this.openSubtitles(filePath);
-      this.tryLoadVideo(filePath);
+
+      // load the video only if it is not already loaded
+      if (!this.app.store.video.getPath()) {
+        this.tryLoadVideo(filePath);
+      }
     } else {
       this.openVideo(filePath);
-      this.tryLoadSubtitles(filePath);
+
+      if (!this.app.store.subtitles.getFile()) {
+        this.tryLoadSubtitles(filePath);
+      }
     }
 
     electronApp.addRecentDocument(filePath);

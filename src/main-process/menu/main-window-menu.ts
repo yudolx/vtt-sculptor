@@ -75,6 +75,14 @@ export class MainWindowMenu {
             accelerator: IS_DARWIN ? "Cmd+Shift+S" : "Ctrl+Shift+S",
             click: this.handleSaveAs,
           },
+          {
+            type: "separator",
+          },
+          {
+            label: "Close all",
+            id: "fileCloseAll",
+            click: this.handleCloseAll,
+          },
           ...(!IS_DARWIN
             ? [
                 {
@@ -256,6 +264,16 @@ export class MainWindowMenu {
       );
       await writeFile(result.filePath, vtt);
     }
+  };
+
+  protected handleCloseAll = () => {
+    this.app.store.setVideoPath(null);
+    this.app.store.setFileAndCues({
+      cues: [],
+      regions: {},
+      styles: [],
+      file: null,
+    });
   };
 
   protected handleNewSubtitle = async () => {
