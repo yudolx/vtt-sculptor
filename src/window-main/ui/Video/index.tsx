@@ -104,7 +104,7 @@ export const Video = () => {
     assert(track, "No WIP captions track found");
 
     new CuesMerger(track, (cuesQuery.data ?? []).filter(isNotPlaceholderCue));
-  }, [cuesQuery.data, videoEl]);
+  }, [cuesQuery.data, videoEl, pathQuery.data]);
 
   return (
     <VideoElementContainer>
