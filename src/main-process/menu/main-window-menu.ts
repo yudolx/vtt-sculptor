@@ -10,7 +10,7 @@ import { BackgroundProcess } from "../background-process";
 import { IS_DARWIN, supportedVideoExtensions } from "../constants";
 import { stringifyVTT } from "shared/libs/vtt/WebVTTDeserializer";
 
-export class GlobalMenu {
+export class MainWindowMenu {
   protected menu: Menu;
 
   protected hotkeysActive = true;
@@ -101,12 +101,6 @@ export class GlobalMenu {
                   accelerator: "J",
                   click: this.handleNewSubtitle,
                 },
-                // {
-                //   label: "Remove selected subtitles",
-                //   id: "subtitlesRemove",
-                //   accelerator: "delete",
-                //   click: this.handleRemoveSelectedSubtitles,
-                // },
                 { type: "separator" } as const,
                 { role: "cut" } as const,
                 { role: "copy" } as const,
@@ -121,24 +115,6 @@ export class GlobalMenu {
             },
           ]
         : []),
-      // {
-      //   label: "Subtitles",
-      //   submenu: [],
-      // },
-      {
-        label: "Regions",
-      },
-      // {
-      //   label: "Video",
-      //   submenu: [
-      //     {
-      //       label: "Load video",
-      //       id: "videoLoadVideo",
-      //       accelerator: IS_DARWIN ? "Cmd+L" : "Ctrl+L",
-      //       click: this.handleLoadVideo,
-      //     },
-      //   ],
-      // },
       ...(__DEVELOPMENT__
         ? [
             {
@@ -155,9 +131,11 @@ export class GlobalMenu {
         : []),
     ]);
 
-    Menu.setApplicationMenu(this.menu);
-
     this.update();
+  }
+
+  getMenu() {
+    return this.menu;
   }
 
   public update = () => {
@@ -297,6 +275,6 @@ export class GlobalMenu {
   };
 
   protected handleSettingsClick = () => {
-    this.app.window.settings.show();
+    this.app.window.openSettingsWindow();
   };
 }

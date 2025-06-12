@@ -1,45 +1,17 @@
 import { createWindowMain } from "window-main/browser-window";
 import { createCuePreferencesWindow } from "window-cue-preferences/browser-window";
 import { IVTTCue } from "shared/libs/vtt/vttcue";
-import { BrowserWindow } from "electron";
+import { BrowserWindow, Menu } from "electron";
 import { createSettingsWindow } from "window-settings/browser-window";
 import { BackgroundProcess } from "./background-process";
 
 export class WindowManager {
   public main: BrowserWindow;
   public cuePreferences = new Map<IVTTCue["uuid"], BrowserWindow>();
-  public settings: BrowserWindow;
+  public settings: BrowserWindow | null = null;
 
   constructor(protected app: BackgroundProcess) {
-    this.main = createWindowMain({
-      x: this.app.settings.windowsState.main.x,
-      y: this.app.settings.windowsState.main.y,
-      height: this.app.settings.windowsState.main.height,
-      width: this.app.settings.windowsState.main.width,
-    });
-
-    this.settings = createSettingsWindow({
-      x: this.app.settings.windowsState.settings.x,
-      y: this.app.settings.windowsState.settings.y,
-      height: this.app.settings.windowsState.settings.height,
-      width: this.app.settings.windowsState.settings.width,
-      parent: this.main,
-    });
-    this.settings.setMenu(null);
-
-    this.app.settings.manageWindow("main", this.main);
-    this.app.settings.manageWindow("settings", this.settings);
-  }
-
-  get permanentWindows() {
-    /* eslint-disable-next-line @typescript-eslint/no-this-alias */
-    const self = this;
-    return {
-      *[Symbol.iterator]() {
-        yield ["main", self.main] as const;
-        yield ["settings", self.settings] as const;
-      },
-    };
+    this.main = this.createMainWindow();
   }
 
   *[Symbol.iterator]() {
@@ -49,7 +21,50 @@ export class WindowManager {
       yield win;
     }
 
-    yield this.settings;
+    if (this.settings) {
+      yield this.settings;
+    }
+  }
+
+  protected createMainWindow() {
+    const win = createWindowMain({
+      x: this.app.settings.windowsState.main.x,
+      y: this.app.settings.windowsState.main.y,
+      height: this.app.settings.windowsState.main.height,
+      width: this.app.settings.windowsState.main.width,
+    });
+    this.app.settings.trackWindowState("main", win);
+
+    win.on("focus", () => {
+      Menu.setApplicationMenu(this.app.menuManager.mainWindow.getMenu());
+    });
+
+    return win;
+  }
+
+  protected createSettingsWindow() {
+    const win = createSettingsWindow({
+      x: this.app.settings.windowsState.settings.x,
+      y: this.app.settings.windowsState.settings.y,
+      height: this.app.settings.windowsState.settings.height,
+      width: this.app.settings.windowsState.settings.width,
+      parent: this.main,
+    });
+    this.app.settings.trackWindowState("settings", win);
+
+    win.on("focus", () => {
+      Menu.setApplicationMenu(this.app.menuManager.settingsWindow.getMenu());
+    });
+
+    return win;
+  }
+
+  openSettingsWindow() {
+    this.settings = this.createSettingsWindow();
+    this.settings.on("closed", () => {
+      this.settings = null;
+    });
+    this.settings.show();
   }
 
   openCuePreferencesWindow(uuid: IVTTCue["uuid"]) {
@@ -66,11 +81,15 @@ export class WindowManager {
         frame: true,
       });
 
-      win.setMenu(null);
-
-      win.on("closed", () => {
-        this.cuePreferences.delete(uuid);
-      });
+      win
+        .on("closed", () => {
+          this.cuePreferences.delete(uuid);
+        })
+        .on("focus", () => {
+          Menu.setApplicationMenu(
+            this.app.menuManager.cuePreferenceWindow.getMenu(),
+          );
+        });
 
       win.show();
 

@@ -1,18 +1,26 @@
-import { GlobalMenu } from "./global-menu";
+import { MainWindowMenu } from "./main-window-menu";
 import type { BackgroundProcess } from "main-process/background-process";
+import { SettingsWindowMenu } from "./settings-window-menu";
+import { CuePreferenceWindowMenu } from "./cue-preference-menu";
 
 export class MenuManager {
-  public globalMenu: GlobalMenu;
+  public mainWindow: MainWindowMenu;
+  public settingsWindow: SettingsWindowMenu;
+  public cuePreferenceWindow: CuePreferenceWindowMenu;
 
   constructor(public app: BackgroundProcess) {
-    this.globalMenu = new GlobalMenu(app);
+    this.mainWindow = new MainWindowMenu(app);
+    this.settingsWindow = new SettingsWindowMenu(app);
+    this.cuePreferenceWindow = new CuePreferenceWindowMenu(app);
   }
 
   public update() {
-    this.globalMenu.update();
+    this.mainWindow.update();
   }
 
   public setGlobalShortcutsActive(active: boolean) {
-    this.globalMenu.setShortcutsActive(active);
+    this.mainWindow.setShortcutsActive(active);
+    this.settingsWindow.setShortcutsActive(active);
+    this.cuePreferenceWindow.setShortcutsActive(active);
   }
 }

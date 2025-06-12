@@ -2,7 +2,6 @@ import path from "path";
 import { BrowserWindow, dialog, app as electronApp, Rectangle } from "electron";
 import { Stats, statSync, readFileSync, writeFileSync } from "fs";
 import { writeFile as writeFileAsync } from "fs/promises";
-import type { BackgroundProcess } from "main-process/background-process";
 import { StateManager } from "./state-manager";
 import { ISettings } from "./types";
 
@@ -71,7 +70,7 @@ export class SettingsStore {
     };
   }
 
-  public manageWindow(name: "main" | "settings", win: BrowserWindow) {
+  public trackWindowState(name: "main" | "settings", win: BrowserWindow) {
     this.stateManager.manage(name, win);
   }
 
