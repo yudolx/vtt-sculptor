@@ -4,11 +4,13 @@ import { IVTTCue } from "shared/libs/vtt/vttcue";
 import { BrowserWindow, Menu } from "electron";
 import { createSettingsWindow } from "window-settings/browser-window";
 import { BackgroundProcess } from "./background-process";
+import { createCueSplitWindow } from "window-cue-split/browser-window";
 
 export class WindowManager {
   public main: BrowserWindow;
   public cuePreferences = new Map<IVTTCue["uuid"], BrowserWindow>();
   public settings: BrowserWindow | null = null;
+  public cueSplit: BrowserWindow | null = null;
 
   constructor(protected app: BackgroundProcess) {
     this.main = this.createMainWindow();
@@ -59,6 +61,25 @@ export class WindowManager {
     return win;
   }
 
+  protected createCueSplitWindow() {
+    const win = createCueSplitWindow({
+      x: this.app.settings.windowsState.cueSplit.x,
+      y: this.app.settings.windowsState.cueSplit.y,
+      height: this.app.settings.windowsState.cueSplit.height,
+      width: this.app.settings.windowsState.cueSplit.width,
+      parent: this.main,
+      closable: true,
+      modal: true,
+    });
+    this.app.settings.trackWindowState("cueSplit", win);
+
+    win.on("focus", () => {
+      Menu.setApplicationMenu(null);
+    });
+
+    return win;
+  }
+
   openSettingsWindow() {
     this.settings = this.createSettingsWindow();
     this.settings.on("closed", () => {
@@ -95,6 +116,14 @@ export class WindowManager {
 
       this.cuePreferences.set(uuid, win);
     }
+  }
+
+  openCueSplitWindow() {
+    this.cueSplit = this.createCueSplitWindow();
+    this.cueSplit.on("closed", () => {
+      this.cueSplit = null;
+    });
+    this.cueSplit.show();
   }
 
   getPreferenceWindowFromWebContents(webContents: Electron.WebContents) {

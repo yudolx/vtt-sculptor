@@ -21,6 +21,9 @@ const rendererConfig = merge(
 
       window_settings: path.resolve(SRC_DIR, "./window-settings/index.tsx"),
       window_settings_preload: path.resolve(SRC_DIR, "./window-settings/preload.ts"),
+
+      window_cue_split: path.resolve(SRC_DIR, "./window-cue-split/index.tsx"),
+      window_cue_split_preload: path.resolve(SRC_DIR, "./window-cue-split/preload.ts"),
     },
     /* eslint-enable prettier/prettier */
     output: {
@@ -42,6 +45,11 @@ const rendererConfig = merge(
         title: "",
         chunks: ["window_settings", "window_settings_preload"],
         filename: "window_settings.html",
+      }),
+      new HTMLWebpackPlugin({
+        title: "",
+        chunks: ["window_cue_split", "window_cue_split_preload"],
+        filename: "window_cue_split.html",
       }),
     ],
   }),

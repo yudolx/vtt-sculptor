@@ -10,4 +10,5 @@ export enum QueryKey {
   PreferenceWindowCue = "PREFERENCE_WINDOW_CUE",
   Styles = "STYLES",
   Settings = "SETTINGS",
+  SplitCue = "SPLIT_CUE",
 }

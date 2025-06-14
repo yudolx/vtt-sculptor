@@ -45,6 +45,12 @@ export class ApplicationStore {
     this.app.invalidateQuery(QueryKey.ActiveCue);
   }
 
+  public replaceCue(cue: IVTTCue["uuid"], cues: IVTTCue[]) {
+    this.subtitles.replaceCue(cue, cues);
+    this.app.invalidateQuery(QueryKey.CuesList);
+    this.app.invalidateQuery(QueryKey.ActiveCue);
+  }
+
   public setVideoDuration(value: number | null) {
     this.video.setDuration(value);
     console.log("Video duration set. No update emmited");
@@ -59,6 +65,11 @@ export class ApplicationStore {
   public setActiveCue(uuid: IVTTCue["uuid"][]) {
     this.subtitles.setActiveCue(uuid);
     this.app.invalidateQuery(QueryKey.ActiveCue);
+  }
+
+  public setSplitCue(uuid: IVTTCue["uuid"] | null) {
+    this.subtitles.setSplittingCue(uuid);
+    this.app.invalidateQuery(QueryKey.SplitCue);
   }
 
   public alterCueSelection(

@@ -90,6 +90,21 @@ export const EmitIPCEvent = Object.freeze({
 
   settingsSetExternalCueIds: (ids: ISettings["externalCueIds"]) =>
     ipcRenderer.send("ipc/settings/renderer/set-external-ids", ids),
+
+  // -----------------------------------------------------------------
+
+  splitCue: (cue: IVTTCue["uuid"] | null, windowOpen = true) =>
+    ipcRenderer.send("ipc/renderer/cue-split", cue, windowOpen),
+
+  fetchSplitCue: (): Promise<IVTTCue | null> =>
+    ipcRenderer.invoke("ipc/renderer/fetch-split-cue"),
+
+  submitSplitCue: (originalCueId: IVTTCue["uuid"], replaceWith: IVTTCue[]) =>
+    ipcRenderer.send(
+      "ipc/preference/renderer/submit-split-cue",
+      originalCueId,
+      replaceWith,
+    ),
 });
 
 declare global {

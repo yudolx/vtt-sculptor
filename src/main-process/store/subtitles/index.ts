@@ -16,6 +16,8 @@ export class SubtitlesStore {
   protected styles: string[] = [];
   protected activeCues = new Set<IVTTCue["uuid"]>();
 
+  protected splittingCueId: IVTTCue["uuid"] | null = null;
+
   protected _lastClickedCue: IVTTCue | null = null;
   protected get lastClickedCue() {
     return (
@@ -77,6 +79,18 @@ export class SubtitlesStore {
   public setActiveCue(clickedCueUuid: IVTTCue["uuid"][]) {
     this.activeCues = new Set(clickedCueUuid);
     this.lastClickedCue = null; // TOOD:
+  }
+
+  public getSplittingCue() {
+    return (
+      this.cues
+        .filter(isNotPlaceholderCue)
+        .find((c) => c.uuid === this.splittingCueId) ?? null
+    );
+  }
+
+  public setSplittingCue(id: IVTTCue["uuid"] | null) {
+    this.splittingCueId = id;
   }
 
   public alterCueSelection(
@@ -301,6 +315,21 @@ export class SubtitlesStore {
     if (this.lastClickedCue && uuids.includes(this.lastClickedCue.uuid)) {
       this.lastClickedCue = null;
     }
+  }
+
+  public replaceCue(uuid: IVTTCue["uuid"], cues: IVTTCue[]) {
+    const index = this.cues.findIndex((cue) => cue.uuid === uuid);
+
+    if (index === -1) {
+      console.warn(`No cue with uuid=${uuid} was found`);
+      return;
+    }
+
+    if (this.activeCues.has(uuid)) {
+      this.activeCues.delete(uuid);
+    }
+
+    this.cues.splice(index, 1, ...cues);
   }
 }
 

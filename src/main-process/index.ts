@@ -1,7 +1,10 @@
 import { app } from "electron";
+import { setAutoFreeze } from "immer";
 import { BackgroundProcess } from "./background-process";
 
 // app.commandLine.appendSwitch("--no-sandbox");
+
+setAutoFreeze(false);
 
 const main = async () => {
   await app.whenReady();

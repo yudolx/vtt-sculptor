@@ -63,6 +63,9 @@ export class BackgroundProcess {
       this.store.subtitles.getStyles(),
     );
     ipcMain.handle("ipc/renderer/get-settings", () => this.settings.getState());
+    ipcMain.handle("ipc/renderer/fetch-split-cue", () =>
+      this.store.subtitles.getSplittingCue(),
+    );
 
     ipcMain
       .on("ipc/renderer/set-active-cue", (event, cue: IVTTCue["uuid"][]) => {
@@ -117,6 +120,8 @@ export class BackgroundProcess {
           }
         },
       )
+      // -----------------------------------------------------------------
+
       .on("ipc/preference/renderer/patch-cue", (event, cue: IVTTCue) => {
         const entrie = this.window.getPreferenceWindowFromWebContents(
           event.sender,
@@ -135,6 +140,28 @@ export class BackgroundProcess {
         (event, ids: ISettings["externalCueIds"]) => {
           this.settings.externalCueIds = ids;
           this.invalidateQuery(QueryKey.Settings);
+        },
+      )
+      // -----------------------------------------------------------------
+      .on(
+        "ipc/renderer/cue-split",
+        (event, cueId: IVTTCue["uuid"] | null, windowOpen: boolean) => {
+          console.log(cueId, windowOpen);
+          this.store.setSplitCue(cueId);
+
+          if (windowOpen) {
+            this.window.openCueSplitWindow();
+          } else {
+            this.window.cueSplit?.close();
+          }
+        },
+      )
+      .on(
+        "ipc/preference/renderer/submit-split-cue",
+        (event, originalCueId: IVTTCue["uuid"], replaceWith: IVTTCue[]) => {
+          this.store.setSplitCue(null);
+          this.window.cueSplit?.close();
+          this.store.replaceCue(originalCueId, replaceWith);
         },
       );
   };

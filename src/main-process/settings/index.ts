@@ -3,13 +3,15 @@ import { BrowserWindow, dialog, app as electronApp, Rectangle } from "electron";
 import { Stats, statSync, readFileSync, writeFileSync } from "fs";
 import { writeFile as writeFileAsync } from "fs/promises";
 import { StateManager } from "./state-manager";
-import { ISettings } from "./types";
+import { ISettings, validateSettings } from "./types";
+import { migrationManifest } from "./migration";
 
 const settingsDir = electronApp.getPath("userData");
 const settingsFilename = "settings.json";
 const settingsFilePath = path.join(settingsDir, settingsFilename);
 
 const SAVE_DEBOUNCE_MS = 500;
+const LATEST_SETTINGS_VERSION = 2;
 
 export class SettingsStore {
   protected stateManager: StateManager;
@@ -26,6 +28,10 @@ export class SettingsStore {
     settings: {
       width: 600,
       height: 400,
+    },
+    cueSplit: {
+      width: 400,
+      height: 300,
     },
   };
 
@@ -47,7 +53,9 @@ export class SettingsStore {
         JSON.stringify(settings),
       );
 
-      settings = JSON.parse(content) as ISettings;
+      settings = validateSettings(JSON.parse(content));
+      settings =
+        migrationManifest(settings, LATEST_SETTINGS_VERSION) ?? settings;
     } catch (e) {
       console.error(e);
       dialog.showMessageBox({
@@ -64,18 +72,22 @@ export class SettingsStore {
 
   public getState(): ISettings {
     return {
+      version: LATEST_SETTINGS_VERSION,
       externalCueIds: this.externalCueIds,
       generalSettings: this.generalSettings,
       windowsState: this.windowsState,
     };
   }
 
-  public trackWindowState(name: "main" | "settings", win: BrowserWindow) {
+  public trackWindowState(
+    name: keyof ISettings["windowsState"],
+    win: BrowserWindow,
+  ) {
     this.stateManager.manage(name, win);
   }
 
   protected handleStateManagerChange = async (
-    name: "main" | "settings",
+    name: keyof ISettings["windowsState"],
     bounds: Rectangle,
   ) => {
     this.windowsState[name] = bounds;

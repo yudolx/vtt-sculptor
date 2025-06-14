@@ -156,6 +156,13 @@ export const SubtitleTable = () => {
       }
     };
 
+    const handleS = () => {
+      const activeCue = activeCues.length === 1 ? activeCues.at(0)! : null;
+      if (activeCue) {
+        window.electronAPI.splitCue(activeCue.uuid);
+      }
+    };
+
     MouseTrap.bind("enter", handleEnter);
     MouseTrap.bind("esc", handleEsc);
     MouseTrap.bind("space", handleSpace);
@@ -171,6 +178,7 @@ export const SubtitleTable = () => {
     MouseTrap.bind("r", handleR);
     MouseTrap.bind("k", handleK);
     MouseTrap.bind("o", handleO);
+    MouseTrap.bind("s", handleS);
 
     return () => {
       MouseTrap.unbind("enter");
@@ -185,6 +193,7 @@ export const SubtitleTable = () => {
       MouseTrap.unbind("r");
       MouseTrap.unbind("k");
       MouseTrap.unbind("o");
+      MouseTrap.unbind("s");
     };
   }, [activeCues, videoEl, editField]);
 

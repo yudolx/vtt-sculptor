@@ -1,5 +1,6 @@
 import { BrowserWindow, Rectangle } from "electron";
 import debounce from "lodash.debounce";
+import { ISettings } from "./types";
 
 export class StateManager {
   private _debounceCache = new Map<
@@ -10,11 +11,14 @@ export class StateManager {
   constructor(
     protected options: {
       debounce: number;
-      onChange: (name: "main" | "settings", bounds: Rectangle) => void;
+      onChange: (
+        name: keyof ISettings["windowsState"],
+        bounds: Rectangle,
+      ) => void;
     },
   ) {}
 
-  changeHandler(name: "main" | "settings", win: BrowserWindow) {
+  changeHandler(name: keyof ISettings["windowsState"], win: BrowserWindow) {
     try {
       if (this.isNormal(win)) {
         this.emitChangeForWindow(name, win);
@@ -24,7 +28,7 @@ export class StateManager {
     }
   }
 
-  closeHandler(name: "main" | "settings", win: BrowserWindow) {
+  closeHandler(name: keyof ISettings["windowsState"], win: BrowserWindow) {
     this.emitChangeForWindow(name, win);
     this.unmanage(name, win);
   }
@@ -33,7 +37,7 @@ export class StateManager {
     return !win.isMaximized() && !win.isMinimized() && !win.isFullScreen();
   }
 
-  manage(name: "main" | "settings", win: BrowserWindow) {
+  manage(name: keyof ISettings["windowsState"], win: BrowserWindow) {
     const change = debounce(
       () => this.changeHandler(name, win),
       this.options.debounce,
@@ -62,7 +66,10 @@ export class StateManager {
     }
   }
 
-  emitChangeForWindow(name: "main" | "settings", win: BrowserWindow) {
+  emitChangeForWindow(
+    name: keyof ISettings["windowsState"],
+    win: BrowserWindow,
+  ) {
     const winBounds = win.getBounds();
     this.options.onChange(name, winBounds);
   }
