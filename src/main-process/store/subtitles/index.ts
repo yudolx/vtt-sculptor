@@ -329,6 +329,10 @@ export class SubtitlesStore {
       this.activeCues.delete(uuid);
     }
 
+    if (this.activeCues.size === 0) {
+      this.activeCues.add(cues[cues.length - 1].uuid);
+    }
+
     this.cues.splice(index, 1, ...cues);
   }
 }
