@@ -148,6 +148,26 @@ export const SubtitleTable = () => {
       }
     };
 
+    const handleCtrlK = () => {
+      if (activeCues.length === 1 && videoEl) {
+        const activeCue = activeCues.at(0)!;
+        const prevCue = cues
+          .filter(isNotPlaceholderCue)
+          .at(cues.indexOf(activeCue) - 1);
+
+        if (prevCue) {
+          window.electronAPI.patchCues([
+            { uuid: activeCue.uuid, startTime: prevCue.endTime + 0.001 },
+          ]);
+        } else {
+          console.warn("No previous cue for the specified cue was found");
+          return;
+        }
+      } else {
+        alert("This function requires only 1 cue to be selected");
+      }
+    };
+
     const handleO = () => {
       const START_BUFFER = 0.5;
       if (activeCues.length === 1 && videoEl) {
@@ -177,6 +197,7 @@ export const SubtitleTable = () => {
     MouseTrap.bind("e", handleE);
     MouseTrap.bind("r", handleR);
     MouseTrap.bind("k", handleK);
+    MouseTrap.bind(["command+k", "ctrl+k"], handleCtrlK);
     MouseTrap.bind("o", handleO);
     MouseTrap.bind("s", handleS);
 
@@ -192,10 +213,11 @@ export const SubtitleTable = () => {
       MouseTrap.unbind("e");
       MouseTrap.unbind("r");
       MouseTrap.unbind("k");
+      MouseTrap.unbind(["command+k", "ctrl+k"]);
       MouseTrap.unbind("o");
       MouseTrap.unbind("s");
     };
-  }, [activeCues, videoEl, editField]);
+  }, [activeCues, videoEl, editField, cues]);
 
   const handleSubtitleTableRowClick = React.useCallback(
     (cue: IVTTCue, event: React.MouseEvent<HTMLTableRowElement>) => {
