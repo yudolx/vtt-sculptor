@@ -59,9 +59,10 @@ export const SubtitleTable = () => {
         ? event.metaKey
         : event.ctrlKey;
 
-      window.electronAPI.alterSelection("ArrowUp", {
+      window.electronAPI.alterSelection(null, {
         ctrlKey,
         shiftKey,
+        key: "ArrowUp",
       });
     };
 
@@ -71,9 +72,10 @@ export const SubtitleTable = () => {
         ? event.metaKey
         : event.ctrlKey;
 
-      window.electronAPI.alterSelection("ArrowDown", {
+      window.electronAPI.alterSelection(null, {
         ctrlKey,
         shiftKey,
+        key: "ArrowDown",
       });
     };
 

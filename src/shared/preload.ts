@@ -44,10 +44,6 @@ export const EmitIPCEvent = Object.freeze({
     ipcRenderer.send("ipc/renderer/patch-cues", cues);
   },
 
-  setActiveCue: (cue: IVTTCue["uuid"][]) => {
-    ipcRenderer.send("ipc/renderer/set-active-cue", cue);
-  },
-
   alterSelection: (
     cue: IVTTCue["uuid"] | null,
     modifiers: {
@@ -57,10 +53,6 @@ export const EmitIPCEvent = Object.freeze({
     },
   ) => {
     ipcRenderer.send("ipc/renderer/alter-selection", cue, modifiers);
-  },
-
-  toggleActiveCue: (cue: IVTTCue["uuid"]) => {
-    ipcRenderer.send("ipc/renderer/toggle-active-cue", cue);
   },
 
   disableHotkeys: () => {

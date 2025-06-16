@@ -62,11 +62,6 @@ export class ApplicationStore {
     this.app.invalidateQuery(QueryKey.ActiveCue);
   }
 
-  public setActiveCue(uuid: IVTTCue["uuid"][]) {
-    this.subtitles.setActiveCue(uuid);
-    this.app.invalidateQuery(QueryKey.ActiveCue);
-  }
-
   public setSplitCue(uuid: IVTTCue["uuid"] | null) {
     this.subtitles.setSplittingCue(uuid);
     this.app.invalidateQuery(QueryKey.SplitCue);
@@ -81,11 +76,6 @@ export class ApplicationStore {
     },
   ) {
     this.subtitles.alterCueSelection(cue, modifiers);
-    this.app.invalidateQuery(QueryKey.ActiveCue);
-  }
-
-  public toggleActiveCue(uuid: IVTTCue["uuid"]) {
-    this.subtitles.toggleActiveCue(uuid);
     this.app.invalidateQuery(QueryKey.ActiveCue);
   }
 }

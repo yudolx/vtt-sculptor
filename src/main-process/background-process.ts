@@ -68,9 +68,6 @@ export class BackgroundProcess {
     );
 
     ipcMain
-      .on("ipc/renderer/set-active-cue", (event, cue: IVTTCue["uuid"][]) => {
-        this.store.setActiveCue(cue);
-      })
       .on(
         "ipc/renderer/alter-selection",
         (
@@ -85,9 +82,6 @@ export class BackgroundProcess {
           this.store.alterCueSelection(cue, modifiers);
         },
       )
-      .on("ipc/renderer/toggle-active-cue", (event, cue: IVTTCue["uuid"]) => {
-        this.store.toggleActiveCue(cue);
-      })
       .on("ipc/renderer/delete-cues", (event, cues: IVTTCue["uuid"][]) => {
         this.store.deleteCues(cues);
         this.menuManager.update();
