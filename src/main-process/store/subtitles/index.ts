@@ -30,6 +30,16 @@ export class SubtitlesStore {
     this._lastClickedCue = value;
   }
 
+  public sortCues() {
+    this.cues.sort((cueA, cueB) => {
+      if (isPlaceholderCue(cueA) || isPlaceholderCue(cueB)) {
+        return 0;
+      } else {
+        return cueA.startTime - cueB.startTime;
+      }
+    });
+  }
+
   public getFile() {
     return this.file;
   }
@@ -58,6 +68,7 @@ export class SubtitlesStore {
 
   public setCues(cues: IVTTCue[]) {
     this.cues = cues;
+    this.sortCues();
   }
 
   public setStyles(styles: string[]) {
@@ -293,6 +304,8 @@ export class SubtitlesStore {
         this.activeCues = new Set([cue.uuid]);
       }
     }
+
+    this.sortCues();
   }
 
   public deleteCues(uuids: IVTTCue["uuid"][]) {

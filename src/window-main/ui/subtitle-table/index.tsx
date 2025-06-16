@@ -36,7 +36,14 @@ export const SubtitleTable = () => {
   }, [activeCueUuid, cues]);
 
   React.useEffect(() => {
-    const handleSpace = () => {
+    const handleSpace = (event: MouseTrap.ExtendedKeyboardEvent) => {
+      const el = event.target as Element;
+
+      if (el.tagName !== "INPUT" && el.tagName !== "TEXTAREA") {
+        event.stopPropagation();
+        event.preventDefault();
+      }
+
       if (videoEl) {
         if (videoEl.paused) {
           videoEl.play();
