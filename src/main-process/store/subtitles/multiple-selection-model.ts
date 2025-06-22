@@ -32,10 +32,10 @@ export class MultipleSelectionModel<Q> {
       return this.lastClickedItem;
     }
 
-    for (let i = lastClickedCueIndex; i < this.items.length; i++) {
+    for (let i = lastClickedCueIndex + 1; i < this.items.length; i++) {
       const condition = selectedArg
-        ? this.selected.has(this.items[i])
-        : !this.selected.has(this.items[i]);
+        ? !this.selected.has(this.items[i])
+        : this.selected.has(this.items[i]);
 
       if (condition) {
         return this.items[i];
@@ -53,17 +53,17 @@ export class MultipleSelectionModel<Q> {
       return this.lastClickedItem;
     }
 
-    for (let i = 0; i < lastClickedItemIndex; i++) {
+    for (let i = lastClickedItemIndex - 1; i >= 0; i--) {
       const condition = selectedArg
-        ? this.selected.has(this.items[i])
-        : !this.selected.has(this.items[i]);
+        ? !this.selected.has(this.items[i])
+        : this.selected.has(this.items[i]);
 
       if (condition) {
         return this.items[i];
       }
     }
 
-    throw new Error("No next inactive item found");
+    throw new Error("No prev inactive item found");
   }
 
   protected toggleSelected(item: Q) {
@@ -134,24 +134,39 @@ export class MultipleSelectionModel<Q> {
       }
     } else {
       if (modifiers.shiftKey) {
-        if (modifiers.key === "ArrowDown") {
-          const next = this.seekNext();
-          const isNextSelected = this.selected.has(next);
-          if (isNextSelected) {
-            this.selected.delete(next);
+        if (!this.lastClickedItem) {
+          this.lastClickedItem = this.items[0];
+        }
+
+        const previousRowIndex = this.items.indexOf(this.lastClickedItem);
+        const nextRowIndex =
+          modifiers.key === "ArrowDown"
+            ? Math.min(previousRowIndex + 1, this.items.length - 1)
+            : Math.max(previousRowIndex - 1, 0);
+
+        const nextRow = this.items.at(nextRowIndex)!;
+        const isNextRowSelected = this.selected.has(nextRow);
+
+        if (nextRowIndex > previousRowIndex) {
+          if (isNextRowSelected) {
+            // We are navigating to the bottom of the page and removing selected rows
+            this.selected.delete(this.lastClickedItem);
+            this.lastClickedItem = nextRow;
           } else {
-            this.selected.add(next);
+            // We are navigating to the bottom of the page and adding selected rows
+            this.selected.add(nextRow);
+            this.lastClickedItem = nextRow;
           }
-          this.lastClickedItem = next;
-        } else if (modifiers.key === "ArrowUp") {
-          const prev = this.seekPrev();
-          const isPrevSelected = this.selected.has(prev);
-          if (isPrevSelected) {
-            this.selected.delete(prev);
+        } else {
+          if (isNextRowSelected) {
+            // We are navigating to the top of the page and removing selected rows
+            this.selected.delete(this.lastClickedItem);
+            this.lastClickedItem = nextRow;
           } else {
-            this.selected.add(prev);
+            // We are navigating to the top of the page and adding selected rows
+            this.selected.add(nextRow);
+            this.lastClickedItem = nextRow;
           }
-          this.lastClickedItem = prev;
         }
       }
 

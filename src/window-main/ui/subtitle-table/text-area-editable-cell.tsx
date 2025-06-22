@@ -1,5 +1,5 @@
 import React from "react";
-import { Textarea, styled } from "@mui/joy";
+import { Divider, Textarea, Typography, styled } from "@mui/joy";
 import { IVTTCue } from "shared/libs/vtt/vttcue";
 
 export interface ITextAreaEditableCellProps<Field extends keyof IVTTCue> {
@@ -123,6 +123,9 @@ export class TextAreaEditableCell<
     return (
       <StyledTextTd onDoubleClick={this.handleCueTextDoubleClick}>
         {this.props.edit ? this.renderEdit() : this.renderCueText()}
+        <div>
+          <Typography level="body-xs">{this.props.cue.uuid}</Typography>
+        </div>
       </StyledTextTd>
     );
   }
