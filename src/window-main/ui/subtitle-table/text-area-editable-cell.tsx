@@ -1,6 +1,7 @@
 import React from "react";
-import { Divider, Textarea, Typography, styled } from "@mui/joy";
+import { Chip, Divider, Stack, Textarea, Typography, styled } from "@mui/joy";
 import { IVTTCue } from "shared/libs/vtt/vttcue";
+import { notNull } from "shared/notNull";
 
 export interface ITextAreaEditableCellProps<Field extends keyof IVTTCue> {
   cue: IVTTCue;
@@ -120,12 +121,19 @@ export class TextAreaEditableCell<
   }
 
   render() {
+    const { cue } = this.props;
     return (
       <StyledTextTd onDoubleClick={this.handleCueTextDoubleClick}>
         {this.props.edit ? this.renderEdit() : this.renderCueText()}
-        <div>
-          <Typography level="body-xs">{this.props.cue.uuid}</Typography>
-        </div>
+        <Divider sx={{ margin: "5px 0" }} />
+        <Stack direction="row" alignItems="center" spacing={1}>
+          {cue.id ? (
+            <Chip color="danger" size="sm" title={cue.id}>
+              ID
+            </Chip>
+          ) : null}
+          <Typography level="body-xs">{cue.uuid}</Typography>
+        </Stack>
       </StyledTextTd>
     );
   }

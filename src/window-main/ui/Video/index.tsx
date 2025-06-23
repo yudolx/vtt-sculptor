@@ -1,12 +1,11 @@
 import React from "react";
 import { Box, GlobalStyles, styled } from "@mui/joy";
-import { assert } from "shared/assert";
-import { CuesMerger } from "./cues-merger";
+
 import { VideoElContext } from "../context/video-el";
 import { useQuery } from "@tanstack/react-query";
 import { QueryKey } from "shared/constants";
-import { isNotPlaceholderCue } from "main-process/store/subtitles/placeholderCue";
 import { VideoComponent } from "./styledVideo";
+import { useCueMerger } from "./useCueMerger";
 
 export const Video = () => {
   const { videoEl } = React.useContext(VideoElContext);
@@ -28,19 +27,27 @@ export const Video = () => {
     queryFn: window.electronAPI.fetchStyles,
   });
 
-  // Clear cues from the track when video changed
-  React.useEffect(() => {
-    return () => {
-      if (!videoEl) {
-        return;
+  const { setTextTrack } = useCueMerger(
+    cuesQuery.data ?? null,
+    pathQuery.data ?? null,
+  );
+
+  React.useEffect(
+    () => {
+      if (videoEl) {
+        const track = videoEl.addTextTrack("captions", "VTTSculpt");
+        track.mode = "showing";
+
+        setTextTrack(track);
       }
 
-      const track = videoEl.textTracks[0];
-      [...(track.cues ?? [])].forEach((cue) => {
-        track.removeCue(cue);
-      });
-    };
-  }, [pathQuery.data, videoEl]);
+      return () => {
+        setTextTrack(null);
+      };
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [videoEl],
+  );
 
   React.useEffect(() => {
     const handleVideoKeydownInternal = (event: KeyboardEvent) => {
@@ -56,11 +63,6 @@ export const Video = () => {
 
     if (videoEl) {
       videoEl.addEventListener("keydown", handleVideoKeydownInternal);
-    }
-
-    if (videoEl) {
-      const track = videoEl.addTextTrack("captions", "WIP Captions");
-      track.mode = "showing";
     }
 
     return () => {
@@ -95,17 +97,6 @@ export const Video = () => {
       }),
     );
   }, [regionsQuery.data]);
-
-  React.useEffect(() => {
-    if (!videoEl) {
-      return;
-    }
-
-    const track = videoEl.textTracks[0];
-    assert(track, "No WIP captions track found");
-
-    new CuesMerger(track, (cuesQuery.data ?? []).filter(isNotPlaceholderCue));
-  }, [cuesQuery.data, videoEl, pathQuery.data]);
 
   return (
     <VideoElementContainer>

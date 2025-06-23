@@ -29,6 +29,7 @@ export class CuesMerger {
   }
 
   updateExistingCues() {
+    let atLeastOneCueChanged = false;
     // Update existing cues and add new
     this.propCues.forEach((propsCue) => {
       let cue: VTTCueUuid;
@@ -42,7 +43,7 @@ export class CuesMerger {
         cue = existingCue;
       }
 
-      cue.update(propsCue);
+      atLeastOneCueChanged = atLeastOneCueChanged || cue.update(propsCue);
       // this.lasChangedCue ??= this.mergeCueValues(cue, propsCue);
 
       // cue.id = propsCue.id;
@@ -58,5 +59,10 @@ export class CuesMerger {
       // cue.text = propsCue.text;
       // cue.track = cue
     });
+
+    if (atLeastOneCueChanged) {
+      this.track.mode = "disabled";
+      this.track.mode = "showing";
+    }
   }
 }
