@@ -107,9 +107,9 @@ export class SubtitlesStore {
       });
       const suitableIndex =
         this.cues.length > 0
-          ? this.cues.findLastIndex(
-              (c) => !isPlaceholderCue(c) && c.startTime <= newCue.startTime,
-            )
+          ? this.cues.findIndex((c) => {
+              return !isPlaceholderCue(c) && newCue.startTime <= c.endTime;
+            })
           : 0;
 
       assert(
