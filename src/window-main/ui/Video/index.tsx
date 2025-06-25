@@ -6,6 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import { QueryKey } from "shared/constants";
 import { VideoComponent } from "./styledVideo";
 import { useCueMerger } from "./useCueMerger";
+import { useVideoKeyboardNavigation } from "./useVideoKeyboardNavigation";
 
 export const Video = () => {
   const { videoEl } = React.useContext(VideoElContext);
@@ -32,6 +33,8 @@ export const Video = () => {
     pathQuery.data ?? null,
   );
 
+  useVideoKeyboardNavigation(videoEl);
+
   React.useEffect(
     () => {
       if (videoEl) {
@@ -48,27 +51,6 @@ export const Video = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [videoEl],
   );
-
-  React.useEffect(() => {
-    const handleVideoKeydownInternal = (event: KeyboardEvent) => {
-      if (
-        ["Space", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(
-          event.code,
-        )
-      ) {
-        videoEl?.blur();
-        event.preventDefault();
-      }
-    };
-
-    if (videoEl) {
-      videoEl.addEventListener("keydown", handleVideoKeydownInternal);
-    }
-
-    return () => {
-      videoEl?.removeEventListener("keydown", handleVideoKeydownInternal);
-    };
-  }, [videoEl]);
 
   const cueStylesString = React.useMemo(() => {
     if (!stylesQuery.data) {

@@ -168,6 +168,34 @@ export class MultipleSelectionModel<Q> {
             this.lastClickedItem = nextRow;
           }
         }
+      } else if (modifiers.key === "ArrowDown" || modifiers.key === "ArrowUp") {
+        const selectedArr = [...this.selected];
+        const fromItem =
+          this.lastClickedItem ??
+          selectedArr[selectedArr.length - 1] ??
+          this.items.at(0);
+
+        assert(fromItem, 'No "from" item found');
+        const fromItemIndex = this.items.indexOf(fromItem);
+        assert(fromItemIndex !== -1, 'No "from" item found');
+
+        let nextItemIndex: number;
+
+        if (modifiers.key === "ArrowDown") {
+          nextItemIndex = Math.min(fromItemIndex + 1, this.items.length - 1);
+        } else if (modifiers.key === "ArrowUp") {
+          nextItemIndex = Math.max(fromItemIndex - 1, 0);
+        } else {
+          throw new Error();
+        }
+
+        const nextItem = this.items.at(nextItemIndex);
+
+        assert(nextItem, "Next item not found");
+
+        this.selected.clear();
+        this.selected.add(nextItem);
+        this.lastClickedItem = nextItem;
       }
 
       return this.selected;
