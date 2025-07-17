@@ -9,6 +9,12 @@ export interface IVideoComponentProps {
 export const VideoComponent = (props: IVideoComponentProps) => {
   const { videoEl, setVideoEl } = React.useContext(VideoElContext);
 
+  const blurVideoEl = React.useCallback(() => {
+    if (document.activeElement === videoEl) {
+      videoEl?.blur();
+    }
+  }, [videoEl]);
+
   React.useEffect(() => {
     let holdTimeout: number | null = null;
 
@@ -26,6 +32,9 @@ export const VideoComponent = (props: IVideoComponentProps) => {
 
       if (videoEl) {
         videoEl.playbackRate = 1;
+        if (document.activeElement === videoEl) {
+          videoEl.blur();
+        }
       }
     };
 
@@ -38,6 +47,9 @@ export const VideoComponent = (props: IVideoComponentProps) => {
 
       if (videoEl) {
         videoEl.playbackRate = 1;
+        if (document.activeElement === videoEl) {
+          videoEl.blur();
+        }
       }
     };
 
@@ -83,7 +95,16 @@ export const VideoComponent = (props: IVideoComponentProps) => {
     };
   }, [videoEl]);
 
-  return <StyledVideo controls ref={setVideoEl} src={props.src} />;
+  return (
+    <StyledVideo
+      controls
+      ref={setVideoEl}
+      onPause={blurVideoEl}
+      onPlay={blurVideoEl}
+      onSeeked={blurVideoEl}
+      src={props.src}
+    />
+  );
 };
 
 const StyledVideo = styled("video", { name: "StyledVideo" })(() => {

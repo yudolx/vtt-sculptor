@@ -105,12 +105,12 @@ export class SubtitlesStore {
         text: "",
         ...cueArg,
       });
-      const suitableIndex =
-        this.cues.length > 0
-          ? this.cues.findIndex((c) => {
-              return !isPlaceholderCue(c) && newCue.startTime <= c.endTime;
-            })
-          : 0;
+
+      let suitableIndex = this.cues.findIndex((c) => {
+        return !isPlaceholderCue(c) && newCue.startTime >= c.startTime;
+      });
+
+      suitableIndex = suitableIndex !== -1 ? suitableIndex : 0;
 
       assert(
         typeof suitableIndex === "number" && suitableIndex !== -1,

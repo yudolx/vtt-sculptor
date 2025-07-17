@@ -1,16 +1,17 @@
 import { createWindowMain } from "window-main/browser-window";
 import { createCuePreferencesWindow } from "window-cue-preferences/browser-window";
 import { IVTTCue } from "shared/libs/vtt/vttcue";
-import { BrowserWindow, Menu } from "electron";
+import { Menu } from "electron";
 import { createSettingsWindow } from "window-settings/browser-window";
 import { BackgroundProcess } from "./background-process";
 import { createCueSplitWindow } from "window-cue-split/browser-window";
+import { VTTSculptorBrowserWindow } from "shared/VttSculptorBrowserWindow";
 
 export class WindowManager {
-  public main: BrowserWindow;
-  public cuePreferences = new Map<IVTTCue["uuid"], BrowserWindow>();
-  public settings: BrowserWindow | null = null;
-  public cueSplit: BrowserWindow | null = null;
+  public main: VTTSculptorBrowserWindow;
+  public cuePreferences = new Map<IVTTCue["uuid"], VTTSculptorBrowserWindow>();
+  public settings: VTTSculptorBrowserWindow | null = null;
+  public cueSplit: VTTSculptorBrowserWindow | null = null;
 
   constructor(protected app: BackgroundProcess) {
     this.main = this.createMainWindow();
