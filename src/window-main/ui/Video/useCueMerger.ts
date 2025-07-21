@@ -61,7 +61,7 @@ export const useCueMerger = (
       new CuesMerger(textTrack, (cues ?? []).filter(isNotPlaceholderCue));
     } else {
       console.log(
-        "mode is ",
+        "mode is",
         textTrack.mode,
         "skipping update and setting debt",
       );

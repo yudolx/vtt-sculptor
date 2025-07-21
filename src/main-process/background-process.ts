@@ -46,18 +46,11 @@ export class BackgroundProcess {
     ipcMain.handle("ipc/renderer/get-regions", () =>
       this.store.subtitles.getRegions(),
     );
-    ipcMain.handle("ipc/renderer/get-active-cue", () =>
+    ipcMain.handle("ipc/renderer/get-active-cues-uuid", () =>
       this.store.subtitles.getActiveCueArray(),
     );
-    ipcMain.handle("ipc/preference/renderer/fetch-cue", (event) => {
-      const entrie = this.window.getPreferenceWindowFromWebContents(
-        event.sender,
-      );
-      if (entrie) {
-        const [uuid] = entrie;
-        return this.store.subtitles.getCues(uuid);
-      }
-      return null;
+    ipcMain.handle("ipc/renderer/get-active-cues", () => {
+      return this.store.subtitles.getActiveCues();
     });
     ipcMain.handle("ipc/renderer/get-styles", () =>
       this.store.subtitles.getStyles(),
@@ -89,12 +82,6 @@ export class BackgroundProcess {
       .on("ipc/renderer/patch-cues", (event, cues: IPatchCuePayload[]) => {
         this.store.patchCues(cues);
         this.menuManager.update();
-        for (const cue of cues) {
-          const win = this.window.getPreferenceWindow(cue.uuid);
-          if (win) {
-            this.invalidateQuery(QueryKey.PreferenceWindowCue, win);
-          }
-        }
       })
       .on("ipc/renderer/disable-hotkeys", () => {
         this.menuManager.setGlobalShortcutsActive(false);
@@ -105,29 +92,20 @@ export class BackgroundProcess {
       .on(
         "ipc/renderer/cue-context-menu",
         (event, uuidArg: IVTTCue["uuid"]) => {
-          const cue = this.store.subtitles
-            .getCues()
-            .find((c) => c.uuid === uuidArg);
-
-          if (cue) {
-            this.window.openCuePreferencesWindow(cue.uuid);
+          const currentActiveCues = this.store.subtitles.getActiveCueArray();
+          if (!currentActiveCues.includes(uuidArg)) {
+            this.store.alterCueSelection(uuidArg, {
+              ctrlKey: false,
+              shiftKey: false,
+            });
           }
+          this.window.openCuePreferencesWindow();
         },
       )
       // -----------------------------------------------------------------
 
-      .on("ipc/preference/renderer/patch-cue", (event, cue: IVTTCue) => {
-        const entrie = this.window.getPreferenceWindowFromWebContents(
-          event.sender,
-        );
-
-        if (entrie) {
-          const [uuid, win] = entrie;
-          if (uuid === cue.uuid) {
-            this.store.patchCues([cue]);
-            this.invalidateQuery(QueryKey.PreferenceWindowCue, win);
-          }
-        }
+      .on("ipc/preference/renderer/close-window", () => {
+        this.window.cuePreferences?.close();
       })
       .on(
         "ipc/settings/renderer/set-external-ids",
@@ -140,7 +118,6 @@ export class BackgroundProcess {
       .on(
         "ipc/renderer/cue-split",
         (event, cueId: IVTTCue["uuid"] | null, windowOpen: boolean) => {
-          console.log(cueId, windowOpen);
           this.store.setSplitCue(cueId);
 
           if (windowOpen) {

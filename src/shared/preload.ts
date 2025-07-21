@@ -33,8 +33,11 @@ export const EmitIPCEvent = Object.freeze({
   fetchStyles: (): Promise<string[]> =>
     ipcRenderer.invoke("ipc/renderer/get-styles"),
 
-  fetchActiveCue: (): Promise<string[]> =>
-    ipcRenderer.invoke("ipc/renderer/get-active-cue"),
+  fetchActiveCuesUuid: (): Promise<string[]> =>
+    ipcRenderer.invoke("ipc/renderer/get-active-cues-uuid"),
+
+  fetchActiveCues: (): Promise<IVTTCue[]> =>
+    ipcRenderer.invoke("ipc/renderer/get-active-cues"),
 
   deleteCues: (cues: IVTTCue["uuid"][]) =>
     ipcRenderer.send("ipc/renderer/delete-cues", cues),
@@ -69,11 +72,9 @@ export const EmitIPCEvent = Object.freeze({
 
   // -----------------------------------------------------------------
 
-  preferenceWindowFetchCue: (): Promise<IVTTCue | null> =>
-    ipcRenderer.invoke("ipc/preference/renderer/fetch-cue"),
-
-  prefenceWindowPatchCue: (cue: IVTTCue) =>
-    ipcRenderer.send("ipc/preference/renderer/patch-cue", cue),
+  closePreferenceWindow: () => {
+    ipcRenderer.send("ipc/preference/renderer/close-window");
+  },
 
   // -----------------------------------------------------------------
 

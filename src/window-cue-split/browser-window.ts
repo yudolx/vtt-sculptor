@@ -1,5 +1,5 @@
 import path from "path";
-import { BrowserWindow, BrowserWindowConstructorOptions } from "electron";
+import { BrowserWindowConstructorOptions } from "electron";
 import { VTTSculptorBrowserWindow } from "shared/VttSculptorBrowserWindow";
 
 export const createCueSplitWindow = (

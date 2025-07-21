@@ -22,7 +22,7 @@ export const SubtitleTable = () => {
 
   const { data: activeCueUuid = [] } = useQuery({
     queryKey: [QueryKey.ActiveCue],
-    queryFn: window.electronAPI.fetchActiveCue,
+    queryFn: window.electronAPI.fetchActiveCuesUuid,
   });
 
   useWatchPlaceholderCues(videoEl, cues);

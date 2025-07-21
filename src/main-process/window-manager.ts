@@ -1,6 +1,5 @@
 import { createWindowMain } from "window-main/browser-window";
 import { createCuePreferencesWindow } from "window-cue-preferences/browser-window";
-import { IVTTCue } from "shared/libs/vtt/vttcue";
 import { Menu } from "electron";
 import { createSettingsWindow } from "window-settings/browser-window";
 import { BackgroundProcess } from "./background-process";
@@ -9,7 +8,7 @@ import { VTTSculptorBrowserWindow } from "shared/VttSculptorBrowserWindow";
 
 export class WindowManager {
   public main: VTTSculptorBrowserWindow;
-  public cuePreferences = new Map<IVTTCue["uuid"], VTTSculptorBrowserWindow>();
+  public cuePreferences: VTTSculptorBrowserWindow | null = null;
   public settings: VTTSculptorBrowserWindow | null = null;
   public cueSplit: VTTSculptorBrowserWindow | null = null;
 
@@ -20,8 +19,8 @@ export class WindowManager {
   *[Symbol.iterator]() {
     yield this.main;
 
-    for (const win of this.cuePreferences.values()) {
-      yield win;
+    if (this.cuePreferences) {
+      yield this.cuePreferences;
     }
 
     if (this.settings) {
@@ -36,6 +35,7 @@ export class WindowManager {
       height: this.app.settings.windowsState.main.height,
       width: this.app.settings.windowsState.main.width,
     });
+
     this.app.settings.trackWindowState("main", win);
 
     win.on("focus", () => {
@@ -45,25 +45,50 @@ export class WindowManager {
     return win;
   }
 
-  protected createSettingsWindow() {
-    const win = createSettingsWindow({
+  openSettingsWindow() {
+    this.settings = createSettingsWindow({
       x: this.app.settings.windowsState.settings.x,
       y: this.app.settings.windowsState.settings.y,
       height: this.app.settings.windowsState.settings.height,
       width: this.app.settings.windowsState.settings.width,
       parent: this.main,
     });
-    this.app.settings.trackWindowState("settings", win);
 
-    win.on("focus", () => {
-      Menu.setApplicationMenu(this.app.menuManager.settingsWindow.getMenu());
-    });
+    this.app.settings.trackWindowState("settings", this.settings);
 
-    return win;
+    this.settings
+      .on("focus", () => {
+        Menu.setApplicationMenu(this.app.menuManager.settingsWindow.getMenu());
+      })
+      .on("closed", () => {
+        this.settings = null;
+      });
+
+    this.settings.show();
   }
 
-  protected createCueSplitWindow() {
-    const win = createCueSplitWindow({
+  openCuePreferencesWindow() {
+    this.cuePreferences = createCuePreferencesWindow({
+      parent: this.main,
+      frame: true,
+      modal: true,
+    });
+
+    this.cuePreferences
+      .on("closed", () => {
+        this.cuePreferences = null;
+      })
+      .on("focus", () => {
+        Menu.setApplicationMenu(
+          this.app.menuManager.cuePreferenceWindow.getMenu(),
+        );
+      });
+
+    this.cuePreferences.show();
+  }
+
+  openCueSplitWindow() {
+    this.cueSplit = createCueSplitWindow({
       x: this.app.settings.windowsState.cueSplit.x,
       y: this.app.settings.windowsState.cueSplit.y,
       height: this.app.settings.windowsState.cueSplit.height,
@@ -72,72 +97,17 @@ export class WindowManager {
       closable: true,
       modal: true,
     });
-    this.app.settings.trackWindowState("cueSplit", win);
 
-    win.on("focus", () => {
-      Menu.setApplicationMenu(null);
-    });
+    this.app.settings.trackWindowState("cueSplit", this.cueSplit);
 
-    return win;
-  }
-
-  openSettingsWindow() {
-    this.settings = this.createSettingsWindow();
-    this.settings.on("closed", () => {
-      this.settings = null;
-    });
-    this.settings.show();
-  }
-
-  openCuePreferencesWindow(uuid: IVTTCue["uuid"]) {
-    if (this.cuePreferences.has(uuid)) {
-      const win = this.cuePreferences.get(uuid)!;
-      win.flashFrame(true);
-      if (win.isMinimized()) {
-        win.restore();
-      }
-      win.once("focus", () => win.flashFrame(false));
-    } else {
-      const win = createCuePreferencesWindow({
-        parent: this.main,
-        frame: true,
+    this.cueSplit
+      .on("focus", () => {
+        Menu.setApplicationMenu(null);
+      })
+      .on("closed", () => {
+        this.cueSplit = null;
       });
 
-      win
-        .on("closed", () => {
-          this.cuePreferences.delete(uuid);
-        })
-        .on("focus", () => {
-          Menu.setApplicationMenu(
-            this.app.menuManager.cuePreferenceWindow.getMenu(),
-          );
-        });
-
-      win.show();
-
-      this.cuePreferences.set(uuid, win);
-    }
-  }
-
-  openCueSplitWindow() {
-    this.cueSplit = this.createCueSplitWindow();
-    this.cueSplit.on("closed", () => {
-      this.cueSplit = null;
-    });
     this.cueSplit.show();
-  }
-
-  getPreferenceWindowFromWebContents(webContents: Electron.WebContents) {
-    for (const [uuid, win] of this.cuePreferences.entries()) {
-      if (win.webContents === webContents) {
-        return [uuid, win] as const;
-      }
-    }
-
-    return null;
-  }
-
-  getPreferenceWindow(uuid: IVTTCue["uuid"]) {
-    return this.cuePreferences.get(uuid) ?? null;
   }
 }

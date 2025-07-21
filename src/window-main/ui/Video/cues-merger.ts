@@ -43,7 +43,8 @@ export class CuesMerger {
         cue = existingCue;
       }
 
-      atLeastOneCueChanged = atLeastOneCueChanged || cue.update(propsCue);
+      const cueUpdateResult = cue.update(propsCue);
+      atLeastOneCueChanged = atLeastOneCueChanged || cueUpdateResult;
       // this.lasChangedCue ??= this.mergeCueValues(cue, propsCue);
 
       // cue.id = propsCue.id;

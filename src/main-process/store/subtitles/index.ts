@@ -72,6 +72,18 @@ export class SubtitlesStore {
     return this.styles;
   }
 
+  public getActiveCues() {
+    const activeCues = this.activeCues.getSelected();
+    const cues = this.getCues();
+    return activeCues.map((cueUuid) => {
+      const cue = cues.find((c) => c.uuid === cueUuid);
+      if (!cue) {
+        console.log(`[getActiveCues] No cue with ${cueUuid} found.`);
+      }
+      return cue!;
+    });
+  }
+
   public getActiveCueArray() {
     return this.activeCues.getSelected();
   }

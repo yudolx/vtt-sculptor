@@ -45,7 +45,9 @@ export class SubtitleTableRow extends React.Component<
   }
 
   handleRowMouseDown = (event: React.MouseEvent<HTMLTableRowElement>) => {
-    this.props.onClick(this.props.cue, event);
+    if (event.button === 0) {
+      this.props.onClick(this.props.cue, event);
+    }
   };
 
   handleChange = (value: IVTTCue[keyof IVTTCue], field: keyof IVTTCue) => {
