@@ -25,7 +25,6 @@ import { useQuery } from "@tanstack/react-query";
 import { QueryKey } from "shared/constants";
 import { IVTTCue } from "shared/libs/vtt/vttcue";
 import { useAccumulatedCue } from "./useAccumulatedCue";
-import Mousetrap from "shared/libs/mousetrap";
 
 export const App = () => {
   const { data: cues = [], isLoading: isFetchActiveCuesLoading } = useQuery({
@@ -48,8 +47,10 @@ export const App = () => {
     React.useState<ValidationError | null>(null);
 
   React.useEffect(() => {
-    Mousetrap.bind("esc", () => {
-      window.electronAPI.closePreferenceWindow();
+    window.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") {
+        window.electronAPI.closePreferenceWindow();
+      }
     });
   }, []);
 
@@ -58,7 +59,7 @@ export const App = () => {
   }, [accumulatedCue]);
 
   const patchCuesWrapper = React.useCallback(
-    (stateCueArg = stateCue) => {
+    (stateCueArg: Partial<IVTTCue>) => {
       const { error, value } = vttCueValidationSchema.validate(stateCueArg);
 
       if (!error) {
@@ -78,25 +79,26 @@ export const App = () => {
         return false;
       }
     },
-    [cues, stateCue],
+    [cues],
   );
 
   const setStateCue = React.useCallback(
     (value: Partial<IVTTCue>) => {
       setStateCueRaw(value);
+
       if (!isMultipleEdit) {
-        patchCuesWrapper();
+        patchCuesWrapper(value);
       }
     },
     [isMultipleEdit, patchCuesWrapper],
   );
 
   const handleSignleEditSubmit = React.useCallback(() => {
-    const patchSuccess = patchCuesWrapper();
+    const patchSuccess = patchCuesWrapper(stateCue);
     if (patchSuccess) {
       window.electronAPI.closePreferenceWindow();
     }
-  }, [patchCuesWrapper]);
+  }, [patchCuesWrapper, stateCue]);
 
   if (isFetchActiveCuesLoading || isFetchSettingsLoading) {
     return (
