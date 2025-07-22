@@ -1,7 +1,6 @@
 import React from "react";
 import { Chip, Divider, Stack, Textarea, Typography, styled } from "@mui/joy";
 import { IVTTCue } from "shared/libs/vtt/vttcue";
-import { notNull } from "shared/notNull";
 
 export interface ITextAreaEditableCellProps<Field extends keyof IVTTCue> {
   cue: IVTTCue;

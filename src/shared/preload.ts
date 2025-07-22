@@ -58,6 +58,10 @@ export const EmitIPCEvent = Object.freeze({
     ipcRenderer.send("ipc/renderer/alter-selection", cue, modifiers);
   },
 
+  reorderCue: (payload: { uuid: IVTTCue["uuid"]; over: IVTTCue["uuid"] }) => {
+    // ipcRenderer.send("ipc/renderer/reorder-cue", payload);
+  },
+
   disableHotkeys: () => {
     ipcRenderer.send("ipc/renderer/disable-hotkeys");
   },

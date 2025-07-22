@@ -1,0 +1,31 @@
+import React from "react";
+import { useQuery } from "@tanstack/react-query";
+import { QueryKey } from "shared/constants";
+import { IVTTCue } from "shared/libs/vtt/vttcue";
+import { IPlaceholderCue } from "main-process/store/subtitles/placeholderCue";
+
+/**
+ * A wrapper for the useQuery for the cues list. Keeps a local copy of cues in local state
+ * Adds ability to update the cues immediatly by updating the local copy of it.
+ *
+ * The main purpose is to remove the delay when setting the cues using setQueryData
+ * or sending ipc events and then waiting for query invalidation events.
+ */
+export const useImmediateCuesList = () => {
+  const query = useQuery({
+    queryKey: [QueryKey.CuesList],
+    queryFn: window.electronAPI.fetchCues,
+  });
+
+  const [cues, setCues] = React.useState<(IVTTCue | IPlaceholderCue)[]>([]);
+
+  React.useEffect(() => {
+    setCues(query.data ?? []);
+  }, [query.data]);
+
+  return {
+    ...query,
+    data: cues,
+    setDataInternally: setCues,
+  };
+};

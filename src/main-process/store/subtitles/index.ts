@@ -11,6 +11,7 @@ import {
   IAlterationModifiersPayload,
   MultipleSelectionModel,
 } from "./multiple-selection-model";
+import { arrayMove } from "@dnd-kit/sortable";
 
 export class SubtitlesStore {
   protected file: string | null = null;
@@ -105,6 +106,15 @@ export class SubtitlesStore {
     modifiers: IAlterationModifiersPayload,
   ) {
     this.activeCues.alterSelection(cueArg, modifiers);
+  }
+
+  public reoderCue(payload: { uuid: IVTTCue["uuid"]; over: IVTTCue["uuid"] }) {
+    const fromIndex = this.cues.findIndex((cue) => cue.uuid === payload.uuid);
+    const overIndex = this.cues.findIndex((cue) => cue.uuid === payload.over);
+    this.cues = arrayMove(this.cues, fromIndex, overIndex);
+
+    const renderableItems = this.cues.filter(isNotPlaceholderCue);
+    this.activeCues.setItems(renderableItems.map((i) => i.uuid));
   }
 
   // ---------------------------------------------------------------------

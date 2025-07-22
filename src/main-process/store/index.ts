@@ -78,4 +78,9 @@ export class ApplicationStore {
     this.subtitles.alterCueSelection(cue, modifiers);
     this.app.invalidateQuery(QueryKey.ActiveCue);
   }
+
+  public reoderCue(payload: { uuid: IVTTCue["uuid"]; over: IVTTCue["uuid"] }) {
+    this.subtitles.reoderCue(payload);
+    this.app.invalidateQuery(QueryKey.CuesList);
+  }
 }
