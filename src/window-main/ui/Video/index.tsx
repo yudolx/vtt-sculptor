@@ -6,7 +6,6 @@ import { useQuery } from "@tanstack/react-query";
 import { QueryKey } from "shared/constants";
 import { VideoComponent } from "./styledVideo";
 import { useCueMerger } from "./useCueMerger";
-import { useVideoKeyboardNavigation } from "./useVideoKeyboardNavigation";
 
 export const Video = () => {
   const { videoEl } = React.useContext(VideoElContext);
@@ -33,24 +32,18 @@ export const Video = () => {
     pathQuery.data ?? null,
   );
 
-  useVideoKeyboardNavigation(videoEl);
+  React.useEffect(() => {
+    if (videoEl) {
+      const track = videoEl.addTextTrack("captions", "VTTSculpt");
+      track.mode = "showing";
 
-  React.useEffect(
-    () => {
-      if (videoEl) {
-        const track = videoEl.addTextTrack("captions", "VTTSculpt");
-        track.mode = "showing";
+      setTextTrack(track);
+    }
 
-        setTextTrack(track);
-      }
-
-      return () => {
-        setTextTrack(null);
-      };
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [videoEl],
-  );
+    return () => {
+      setTextTrack(null);
+    };
+  }, [videoEl, setTextTrack]);
 
   const cueStylesString = React.useMemo(() => {
     if (!stylesQuery.data) {

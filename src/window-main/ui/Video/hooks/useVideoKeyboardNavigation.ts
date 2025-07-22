@@ -7,6 +7,33 @@ export const useVideoKeyboardNavigation = (
   React.useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (
+        !videoEl ||
+        window.document.activeElement?.tagName === "INPUT" ||
+        window.document.activeElement?.tagName === "TEXTAREA"
+      ) {
+        return;
+      }
+
+      if (event.key === ",") {
+        videoEl.currentTime = Math.max(videoEl.currentTime - 0.5, 0);
+      } else if (event.key === ".") {
+        videoEl.currentTime = Math.min(
+          videoEl.currentTime + 0.5,
+          videoEl.duration,
+        );
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [videoEl]);
+
+  React.useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (
         window.document.activeElement?.tagName === "INPUT" ||
         window.document.activeElement?.tagName === "TEXTAREA"
       ) {
@@ -39,24 +66,4 @@ export const useVideoKeyboardNavigation = (
       window.removeEventListener("keydown", handleKeyDown);
     };
   }, [videoEl]);
-
-  // React.useEffect(() => {
-  //   const handleVideoKeydownInternal = (event: KeyboardEvent) => {
-  //     if (
-  //       ["Space", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(
-  //         event.code,
-  //       )
-  //     ) {
-  //       event.preventDefault();
-  //       event.stopPropagation();
-  //       videoEl?.blur();
-  //     }
-  //   };
-  //   if (videoEl) {
-  //     videoEl.addEventListener("keydown", handleVideoKeydownInternal);
-  //   }
-  //   return () => {
-  //     videoEl?.removeEventListener("keydown", handleVideoKeydownInternal);
-  //   };
-  // }, [videoEl]);
 };

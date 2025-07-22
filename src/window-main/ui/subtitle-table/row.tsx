@@ -38,13 +38,13 @@ export const SubtitleTableRow = (props: ISubtitleTableRowProps) => {
   const { attributes, listeners, setNodeRef, transform, transition } =
     useSortable({ id: cue.uuid });
 
-  const rowEl = React.useRef<HTMLTableRowElement | null>(null);
+  const [rowEl, setRowEl] = React.useState<HTMLTableRowElement | null>(null);
 
   React.useEffect(() => {
     if (isNew) {
-      rowEl.current?.scrollIntoView({ block: "nearest" });
+      rowEl?.scrollIntoView({ block: "nearest" });
     }
-  }, [isNew]);
+  }, [isNew, rowEl]);
 
   const handleRowMouseDown = React.useCallback(
     (event: React.MouseEvent<HTMLTableRowElement>) => {
@@ -97,7 +97,7 @@ export const SubtitleTableRow = (props: ISubtitleTableRowProps) => {
         transition,
       }}
       ref={(el) => {
-        rowEl.current = el;
+        setRowEl(el);
         setNodeRef(el);
       }}
       onMouseDown={handleRowMouseDown}
