@@ -59,7 +59,7 @@ export const EmitIPCEvent = Object.freeze({
   },
 
   reorderCue: (payload: { uuid: IVTTCue["uuid"]; over: IVTTCue["uuid"] }) => {
-    // ipcRenderer.send("ipc/renderer/reorder-cue", payload);
+    ipcRenderer.send("ipc/renderer/reorder-cue", payload);
   },
 
   disableHotkeys: () => {

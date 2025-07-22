@@ -334,12 +334,12 @@ export const SubtitleTable = () => {
           uuid: active.id as string,
           over: over.id as string,
         });
+
+        const oldIndex = cues.findIndex((cue) => cue.uuid === active.id);
+        const newIndex = cues.findIndex((cue) => cue.uuid === over!.id);
+
+        setDataInternally(arrayMove(cues, oldIndex, newIndex));
       }
-
-      const oldIndex = cues.findIndex((cue) => cue.uuid === active.id);
-      const newIndex = cues.findIndex((cue) => cue.uuid === over!.id);
-
-      setDataInternally(arrayMove(cues, oldIndex, newIndex));
     },
     [setDataInternally, cues],
   );

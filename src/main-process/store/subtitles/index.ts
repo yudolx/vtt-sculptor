@@ -22,15 +22,22 @@ export class SubtitlesStore {
 
   protected splittingCueId: IVTTCue["uuid"] | null = null;
 
-  public sortCues() {
-    this.cues.sort((cueA, cueB) => {
-      if (isPlaceholderCue(cueA) || isPlaceholderCue(cueB)) {
-        return 0;
-      } else {
-        return cueA.startTime - cueB.startTime;
-      }
-    });
-  }
+  // public sortCues(affectedCues?: IVTTCue["uuid"][]) {
+  //   this.cues.sort((cueA, cueB) => {
+  //     if (
+  //       (affectedCues && affectedCues.length === 0) ||
+  //       (affectedCues &&
+  //         !affectedCues.includes(cueA.uuid) &&
+  //         !affectedCues.includes(cueB.uuid)) ||
+  //       isPlaceholderCue(cueA) ||
+  //       isPlaceholderCue(cueB)
+  //     ) {
+  //       return 0;
+  //     } else {
+  //       return cueA.startTime - cueB.startTime;
+  //     }
+  //   });
+  // }
 
   public getFile() {
     return this.file;
@@ -62,7 +69,7 @@ export class SubtitlesStore {
     this.cues = cues;
 
     this.updateItemsForSelectionModel([]);
-    this.sortCues();
+    // this.sortCues();
   }
 
   public setStyles(styles: string[]) {
@@ -111,6 +118,7 @@ export class SubtitlesStore {
   public reoderCue(payload: { uuid: IVTTCue["uuid"]; over: IVTTCue["uuid"] }) {
     const fromIndex = this.cues.findIndex((cue) => cue.uuid === payload.uuid);
     const overIndex = this.cues.findIndex((cue) => cue.uuid === payload.over);
+
     this.cues = arrayMove(this.cues, fromIndex, overIndex);
 
     const renderableItems = this.cues.filter(isNotPlaceholderCue);
@@ -128,7 +136,7 @@ export class SubtitlesStore {
         ...cueArg,
       });
 
-      let suitableIndex = this.cues.findIndex((c) => {
+      let suitableIndex = this.cues.findLastIndex((c) => {
         return !isPlaceholderCue(c) && newCue.startTime >= c.startTime;
       });
 
@@ -175,7 +183,7 @@ export class SubtitlesStore {
       }
     }
 
-    this.sortCues();
+    // this.sortCues(cuesArg.map((c) => c.uuid));
   }
 
   public deleteCues(uuids: IVTTCue["uuid"][]) {

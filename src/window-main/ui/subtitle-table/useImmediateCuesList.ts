@@ -12,7 +12,7 @@ import { IPlaceholderCue } from "main-process/store/subtitles/placeholderCue";
  * or sending ipc events and then waiting for query invalidation events.
  */
 export const useImmediateCuesList = () => {
-  const query = useQuery({
+  const { data, ...restQuery } = useQuery({
     queryKey: [QueryKey.CuesList],
     queryFn: window.electronAPI.fetchCues,
   });
@@ -20,11 +20,11 @@ export const useImmediateCuesList = () => {
   const [cues, setCues] = React.useState<(IVTTCue | IPlaceholderCue)[]>([]);
 
   React.useEffect(() => {
-    setCues(query.data ?? []);
-  }, [query.data]);
+    setCues(data ?? []);
+  }, [data]);
 
   return {
-    ...query,
+    ...restQuery,
     data: cues,
     setDataInternally: setCues,
   };
