@@ -1,6 +1,7 @@
 import React from "react";
 import { styled } from "@mui/joy";
 import { VideoElContext } from "../context/video-el";
+import Mousetrap from "shared/libs/mousetrap";
 
 export interface IVideoComponentProps {
   src: string;
@@ -14,6 +15,32 @@ export const VideoComponent = (props: IVideoComponentProps) => {
       videoEl?.blur();
     }
   }, [videoEl]);
+
+  React.useEffect(() => {
+    Mousetrap.bind("f", () => {
+      if (!document.fullscreenElement) {
+        videoEl?.requestFullscreen();
+      } else {
+        document.exitFullscreen();
+      }
+    });
+
+    return () => {
+      Mousetrap.unbind("f");
+    };
+  }, [videoEl]);
+
+  React.useEffect(() => {
+    if (videoEl) {
+      videoEl.addEventListener("fullscreenchange", blurVideoEl);
+    }
+
+    return () => {
+      if (videoEl) {
+        videoEl.removeEventListener("fullscreenchange", blurVideoEl);
+      }
+    };
+  }, [videoEl, blurVideoEl]);
 
   React.useEffect(() => {
     let holdTimeout: number | null = null;
