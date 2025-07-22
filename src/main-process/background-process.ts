@@ -142,4 +142,9 @@ export class BackgroundProcess {
         },
       );
   };
+
+  requestInsertNewCue = () => {
+    const time = Date.now();
+    this.window.main.webContents.send("ipc/main/request-insert-new-cue", time);
+  };
 }

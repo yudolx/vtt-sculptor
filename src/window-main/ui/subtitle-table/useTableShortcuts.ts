@@ -1,15 +1,11 @@
 import React from "react";
 import MouseTrap from "shared/libs/mousetrap/index";
 import { DEFAULT_CUE_ADJUST_TIME } from "shared/constants";
-import {
-  IPlaceholderCue,
-  isNotPlaceholderCue,
-} from "main-process/store/subtitles/placeholderCue";
 import { IVTTCue } from "shared/libs/vtt/vttcue";
 
 export const useTableShortcuts = (
   videoEl: HTMLVideoElement | null,
-  cues: (IVTTCue | IPlaceholderCue)[],
+  cues: IVTTCue[],
   activeCues: IVTTCue[],
   editField: keyof IVTTCue | null,
   setEditField: (field: keyof IVTTCue | null) => void,
@@ -139,9 +135,7 @@ export const useTableShortcuts = (
     const handleCtrlK = () => {
       if (activeCues.length === 1 && videoEl) {
         const activeCue = activeCues.at(0)!;
-        const prevCue = cues
-          .filter(isNotPlaceholderCue)
-          .at(cues.indexOf(activeCue) - 1);
+        const prevCue = cues.at(cues.indexOf(activeCue) - 1);
 
         if (prevCue) {
           window.electronAPI.patchCues([

@@ -20,9 +20,9 @@ import {
 import { IVTTCue } from "shared/libs/vtt/vttcue";
 import { ISubtitleTableRowProps, SubtitleTableRow } from "./row";
 import { VideoElContext } from "../context/video-el";
-import { useWatchPlaceholderCues } from "./useWatchPlaceholderCues";
 import { useTableDataWrapper } from "./useTableDataWrapper";
 import { useTableShortcuts } from "./useTableShortcuts";
+import { useGlobalShortcuts } from "./useGlobalShortcuts";
 
 export const SubtitleTable = () => {
   const [editField, setEditField] = React.useState<keyof IVTTCue | null>(null);
@@ -33,13 +33,12 @@ export const SubtitleTable = () => {
     activeCueUuid,
     activeCues,
     cues,
-    renderableCueItems,
-    renderableCueItemsUuid,
+    cueItemsUuid,
     cuesIsNew,
     setDataInternally,
   } = useTableDataWrapper(videoEl);
 
-  useWatchPlaceholderCues(videoEl, cues);
+  useGlobalShortcuts(videoEl);
   useTableShortcuts(videoEl, cues, activeCues, editField, setEditField);
 
   const sensors = useSensors(useSensor(PointerSensor));
@@ -139,10 +138,10 @@ export const SubtitleTable = () => {
         </thead>
         <tbody>
           <SortableContext
-            items={renderableCueItemsUuid}
+            items={cueItemsUuid}
             strategy={verticalListSortingStrategy}
           >
-            {renderableCueItems.map((cue) => {
+            {cues.map((cue) => {
               return (
                 <SubtitleTableRow
                   isNew={cuesIsNew[cue.uuid] ?? false}

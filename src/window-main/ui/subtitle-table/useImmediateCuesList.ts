@@ -2,7 +2,6 @@ import React from "react";
 import { useQuery } from "@tanstack/react-query";
 import { QueryKey } from "shared/constants";
 import { IVTTCue } from "shared/libs/vtt/vttcue";
-import { IPlaceholderCue } from "main-process/store/subtitles/placeholderCue";
 
 /**
  * A wrapper for the useQuery for the cues list. Keeps a local copy of cues in local state
@@ -17,7 +16,7 @@ export const useImmediateCuesList = () => {
     queryFn: window.electronAPI.fetchCues,
   });
 
-  const [cues, setCues] = React.useState<(IVTTCue | IPlaceholderCue)[]>([]);
+  const [cues, setCues] = React.useState<IVTTCue[]>([]);
 
   React.useEffect(() => {
     setCues(data ?? []);

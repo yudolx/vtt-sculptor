@@ -4,7 +4,6 @@ import { IVTTCue } from "shared/libs/vtt/vttcue";
 import { IVTTRegion } from "shared/libs/vtt/vttregion";
 import { QueryKey } from "shared/constants";
 import type { BackgroundProcess } from "main-process/background-process";
-import { IPlaceholderCue } from "./subtitles/placeholderCue";
 
 export class ApplicationStore {
   public video = new VideoStore();
@@ -34,12 +33,12 @@ export class ApplicationStore {
     this.app.invalidateQuery(QueryKey.Styles);
   }
 
-  public insertCue(cue: IVTTCue | IPlaceholderCue) {
+  public insertCue(cue: IVTTCue) {
     this.subtitles.patchOrInsertCues([cue]);
     this.app.invalidateQuery(QueryKey.CuesList);
   }
 
-  public patchCues(cues: (IPatchCuePayload | IPlaceholderCue)[]) {
+  public patchCues(cues: IPatchCuePayload[]) {
     this.subtitles.patchOrInsertCues(cues);
     this.app.invalidateQuery(QueryKey.CuesList);
     this.app.invalidateQuery(QueryKey.ActiveCue);

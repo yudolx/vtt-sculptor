@@ -1,13 +1,9 @@
 import React from "react";
 import { CuesMerger } from "./cues-merger";
-import {
-  IPlaceholderCue,
-  isNotPlaceholderCue,
-} from "main-process/store/subtitles/placeholderCue";
 import { IVTTCue } from "shared/libs/vtt/vttcue";
 
 export const useCueMerger = (
-  cues: (IVTTCue | IPlaceholderCue)[] | null,
+  cues: IVTTCue[] | null,
   videoPath: string | null,
 ) => {
   const [textTrack, setTextTrack] = React.useState<TextTrack | null>(null);
@@ -43,7 +39,7 @@ export const useCueMerger = (
 
       if (textTrack) {
         console.log("update debt");
-        new CuesMerger(textTrack, (cues ?? []).filter(isNotPlaceholderCue));
+        new CuesMerger(textTrack, cues ?? []);
       } else {
         console.log("skipping update because no textTrack is set");
       }
@@ -58,7 +54,7 @@ export const useCueMerger = (
     // Only do update if the track is visible. The track will not have any
     // cues accessable if it's hidden or disabled
     if (textTrack.mode === "showing") {
-      new CuesMerger(textTrack, (cues ?? []).filter(isNotPlaceholderCue));
+      new CuesMerger(textTrack, cues ?? []);
     } else {
       console.log(
         "mode is",

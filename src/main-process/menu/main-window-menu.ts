@@ -278,14 +278,7 @@ export class MainWindowMenu {
 
   protected handleNewSubtitle = async () => {
     if (!this.hotkeysActive) return;
-
-    const time = Date.now();
-
-    this.app.store.insertCue({
-      type: "placeholder",
-      uuid: crypto.randomUUID(),
-      timestamp: time,
-    });
+    this.app.requestInsertNewCue();
   };
 
   protected handleRemoveSelectedSubtitles = () => {

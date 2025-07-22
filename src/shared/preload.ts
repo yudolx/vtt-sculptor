@@ -2,7 +2,6 @@ import { ipcRenderer, IpcRendererEvent } from "electron";
 import { PRELOAD_GLOBAL_KEY, QueryKey } from "./constants";
 import { IS_DARWIN, IS_LINUX, IS_WIN32 } from "../main-process/constants";
 import type { IVTTCue } from "./libs/vtt/vttcue";
-import type { IPlaceholderCue } from "main-process/store/subtitles/placeholderCue";
 import { IPatchCuePayload } from "main-process/store/subtitles";
 import { ISettings } from "main-process/settings/types";
 
@@ -21,10 +20,20 @@ export const EmitIPCEvent = Object.freeze({
     };
   },
 
+  onRequestInsertNewCue: (
+    callback: (event: IpcRendererEvent, timestamp: number) => void,
+  ) => {
+    ipcRenderer.on("ipc/main/request-insert-new-cue", callback);
+
+    return () => {
+      ipcRenderer.off("ipc/main/request-insert-new-cue", callback);
+    };
+  },
+
   fetchVideoPath: (): Promise<string> =>
     ipcRenderer.invoke("ipc/renderer/get-video-path"),
 
-  fetchCues: (): Promise<(IVTTCue | IPlaceholderCue)[]> =>
+  fetchCues: (): Promise<IVTTCue[]> =>
     ipcRenderer.invoke("ipc/renderer/get-cues"),
 
   fetchRegions: (): Promise<Record<string, VTTRegion>> =>
