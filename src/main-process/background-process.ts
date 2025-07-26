@@ -4,7 +4,7 @@ import { IVTTCue } from "shared/libs/vtt/vttcue";
 import { QueryKey } from "shared/constants";
 import { WindowManager } from "./window-manager";
 import { MenuManager } from "./menu";
-import { IPatchCuePayload } from "./store/subtitles";
+import { IMinimalPartialVTTCue } from "./store/subtitles";
 import { FileOpener } from "./file-opener";
 import { SettingsStore } from "./settings";
 import { ISettings } from "./settings/types";
@@ -83,11 +83,12 @@ export class BackgroundProcess {
       )
       .on("ipc/renderer/delete-cues", (event, cues: IVTTCue["uuid"][]) => {
         this.store.deleteCues(cues);
-        this.menuManager.update();
       })
-      .on("ipc/renderer/patch-cues", (event, cues: IPatchCuePayload[]) => {
+      .on("ipc/renderer/insert-cues", (event, cue: IVTTCue) => {
+        this.store.insertCue(cue);
+      })
+      .on("ipc/renderer/patch-cues", (event, cues: IMinimalPartialVTTCue[]) => {
         this.store.patchCues(cues);
-        this.menuManager.update();
       })
       .on("ipc/renderer/disable-hotkeys", () => {
         this.menuManager.setGlobalShortcutsActive(false);

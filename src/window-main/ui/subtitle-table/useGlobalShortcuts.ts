@@ -19,7 +19,7 @@ export const useGlobalShortcuts = (videoEl: HTMLVideoElement | null) => {
           text: "",
         });
 
-        window.electronAPI.patchCues([cue]);
+        window.electronAPI.insertCues(cue);
       },
     );
 

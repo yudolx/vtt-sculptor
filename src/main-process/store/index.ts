@@ -1,13 +1,20 @@
 import { VideoStore } from "./video";
-import { IPatchCuePayload, SubtitlesStore } from "./subtitles";
+import { IMinimalPartialVTTCue, SubtitlesStore } from "./subtitles";
 import { IVTTCue } from "shared/libs/vtt/vttcue";
 import { IVTTRegion } from "shared/libs/vtt/vttregion";
 import { QueryKey } from "shared/constants";
 import type { BackgroundProcess } from "main-process/background-process";
+import { HistoryManager } from "main-process/history";
+import { AddCueAction } from "main-process/history/actions/add-cue";
+import { CuePatchAction } from "main-process/history/actions/cue-patch";
+import { assert } from "shared/assert";
+import { deepClone } from "shared/deepClone";
+import { DeleteCueAction } from "main-process/history/actions/delete-cue";
 
 export class ApplicationStore {
   public video = new VideoStore();
   public subtitles = new SubtitlesStore();
+  public historyManager = new HistoryManager();
 
   constructor(protected app: BackgroundProcess) {}
 
@@ -34,29 +41,97 @@ export class ApplicationStore {
   }
 
   public insertCue(cue: IVTTCue) {
-    this.subtitles.patchOrInsertCues([cue]);
-    this.app.invalidateQuery(QueryKey.CuesList);
-  }
+    const index = this.subtitles.insert(cue);
 
-  public patchCues(cues: IPatchCuePayload[]) {
-    this.subtitles.patchOrInsertCues(cues);
-    this.app.invalidateQuery(QueryKey.CuesList);
-    this.app.invalidateQuery(QueryKey.ActiveCue);
-  }
+    this.historyManager.push(
+      new AddCueAction(cue, index, {
+        deleteCue: (...args) => this.subtitles.delete(...args),
+        insertCue: (...args) => this.subtitles.insert(...args),
+      }),
+    );
 
-  public replaceCue(cue: IVTTCue["uuid"], cues: IVTTCue[]) {
-    this.subtitles.replaceCue(cue, cues);
+    this.app.menuManager.update();
     this.app.invalidateQuery(QueryKey.CuesList);
     this.app.invalidateQuery(QueryKey.ActiveCue);
   }
 
-  public setVideoDuration(value: number | null) {
-    this.video.setDuration(value);
-    console.log("Video duration set. No update emmited");
+  public patchCues(cues: IMinimalPartialVTTCue[]) {
+    for (const cue of cues) {
+      const fullCue = this.subtitles.getCues(cue.uuid);
+      assert(fullCue, "Full cue not found");
+
+      this.historyManager.push(
+        new CuePatchAction(deepClone(fullCue), deepClone(cue), {
+          patch: (...args) => this.subtitles.patch(...args),
+        }),
+      );
+
+      this.subtitles.patch(cue);
+    }
+
+    this.app.menuManager.update();
+    this.app.invalidateQuery(QueryKey.CuesList);
+    this.app.invalidateQuery(QueryKey.ActiveCue);
+  }
+
+  public replaceCue(cueUuid: IVTTCue["uuid"], replaceWithCue: IVTTCue[]) {
+    const cues = this.subtitles.getCues();
+    const cue = cues.find((c) => c.uuid === cueUuid);
+
+    assert(cue, "[replaceCue] No cue found");
+
+    let index = this.subtitles.delete(cueUuid);
+    this.historyManager.push(
+      new DeleteCueAction(cue, index, {
+        deleteCue: (...args) => this.subtitles.delete(...args),
+        insertCue: (...args) => this.subtitles.insert(...args),
+      }),
+    );
+
+    for (const replaceCue of replaceWithCue) {
+      index = this.subtitles.insert(replaceCue, index);
+
+      this.historyManager.push(
+        new AddCueAction(replaceCue, index, {
+          deleteCue: (...args) => this.subtitles.delete(...args),
+          insertCue: (...args) => this.subtitles.insert(...args),
+        }),
+      );
+
+      index += 1;
+    }
+
+    this.app.menuManager.update();
+    this.app.invalidateQuery(QueryKey.CuesList);
+    this.app.invalidateQuery(QueryKey.ActiveCue);
   }
 
   public deleteCues(uuids: IVTTCue["uuid"][]) {
-    this.subtitles.deleteCues(uuids);
+    let latestCueIndex: number = -1;
+    const cues = this.subtitles.getCues();
+
+    for (const uuid of uuids) {
+      const cue = cues.find((c) => c.uuid === uuid);
+      const index = this.subtitles.delete(uuid);
+
+      assert(cue, "[deleteCues] No cue found");
+
+      this.historyManager.push(
+        new DeleteCueAction(cue, index, {
+          deleteCue: (...args) => this.subtitles.delete(...args),
+          insertCue: (...args) => this.subtitles.insert(...args),
+        }),
+      );
+
+      latestCueIndex = Math.max(latestCueIndex, index);
+    }
+
+    const latestAvailableCueIndex = Math.min(latestCueIndex, cues.length - 1);
+    const latestAvailableCue = cues.at(latestAvailableCueIndex)!;
+
+    this.subtitles.updateItemsForSelectionModel([latestAvailableCue.uuid]);
+
+    this.app.menuManager.update();
     this.app.invalidateQuery(QueryKey.CuesList);
     this.app.invalidateQuery(QueryKey.ActiveCue);
   }
@@ -81,5 +156,13 @@ export class ApplicationStore {
   public reoderCue(payload: { uuid: IVTTCue["uuid"]; over: IVTTCue["uuid"] }) {
     this.subtitles.reoderCue(payload);
     this.app.invalidateQuery(QueryKey.CuesList);
+  }
+
+  public undo() {
+    this.historyManager.undo(this.subtitles.getCues());
+  }
+
+  public redo() {
+    this.historyManager.redo(this.subtitles.getCues());
   }
 }

@@ -2,7 +2,7 @@ import { ipcRenderer, IpcRendererEvent } from "electron";
 import { PRELOAD_GLOBAL_KEY, QueryKey } from "./constants";
 import { IS_DARWIN, IS_LINUX, IS_WIN32 } from "../main-process/constants";
 import type { IVTTCue } from "./libs/vtt/vttcue";
-import { IPatchCuePayload } from "main-process/store/subtitles";
+import { IMinimalPartialVTTCue } from "main-process/store/subtitles";
 import { ISettings } from "main-process/settings/types";
 
 export const EmitIPCEvent = Object.freeze({
@@ -51,9 +51,13 @@ export const EmitIPCEvent = Object.freeze({
   deleteCues: (cues: IVTTCue["uuid"][]) =>
     ipcRenderer.send("ipc/renderer/delete-cues", cues),
 
-  patchCues: (cues: IPatchCuePayload[]) => {
+  patchCues: (cues: IMinimalPartialVTTCue[]) => {
     console.log(cues);
     ipcRenderer.send("ipc/renderer/patch-cues", cues);
+  },
+
+  insertCues: (cues: IVTTCue) => {
+    ipcRenderer.send("ipc/renderer/insert-cues", cues);
   },
 
   alterSelection: (

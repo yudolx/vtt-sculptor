@@ -1,6 +1,5 @@
-import { IVTTCue, mockVttCue } from "shared/libs/vtt/vttcue";
+import { IVTTCue } from "shared/libs/vtt/vttcue";
 import { IVTTRegion } from "shared/libs/vtt/vttregion";
-import { assert } from "shared/assert";
 import { mutableMergeVttCues } from "shared/mergeVttObjects";
 import {
   IAlterationModifiersPayload,
@@ -13,8 +12,7 @@ export class SubtitlesStore {
   protected cues: IVTTCue[] = [];
   protected regions: Record<string, IVTTRegion> = {};
   protected styles: string[] = [];
-  protected activeCues = new MultipleSelectionModel<IVTTCue["uuid"]>([]);
-
+  protected selectionModel = new MultipleSelectionModel<IVTTCue["uuid"]>([]);
   protected splittingCueId: IVTTCue["uuid"] | null = null;
 
   // public sortCues(affectedCues?: IVTTCue["uuid"][]) {
@@ -76,7 +74,7 @@ export class SubtitlesStore {
   }
 
   public getActiveCues() {
-    const activeCues = this.activeCues.getSelected();
+    const activeCues = this.selectionModel.getSelected();
     const cues = this.getCues();
     return activeCues.map((cueUuid) => {
       const cue = cues.find((c) => c.uuid === cueUuid);
@@ -88,7 +86,7 @@ export class SubtitlesStore {
   }
 
   public getActiveCueArray() {
-    return this.activeCues.getSelected();
+    return this.selectionModel.getSelected();
   }
 
   public getSplittingCue() {
@@ -103,7 +101,7 @@ export class SubtitlesStore {
     cueArg: IVTTCue["uuid"] | null,
     modifiers: IAlterationModifiersPayload,
   ) {
-    this.activeCues.alterSelection(cueArg, modifiers);
+    this.selectionModel.alterSelection(cueArg, modifiers);
   }
 
   public reoderCue(payload: { uuid: IVTTCue["uuid"]; over: IVTTCue["uuid"] }) {
@@ -112,84 +110,59 @@ export class SubtitlesStore {
 
     this.cues = arrayMove(this.cues, fromIndex, overIndex);
 
-    this.activeCues.setItems(this.cues.map((i) => i.uuid));
+    this.selectionModel.setItems(this.cues.map((i) => i.uuid));
   }
 
-  // ---------------------------------------------------------------------
-
-  public patchOrInsertCues(cuesArg: IPatchCuePayload[]) {
-    const insertCue = (cueArg: IPatchCuePayload) => {
-      const newCue = mockVttCue({
-        startTime: 0,
-        endTime: 0,
-        text: "",
-        ...cueArg,
-      });
-
-      let suitableIndex = this.cues.findLastIndex((c) => {
-        return newCue.startTime >= c.startTime;
-      });
-
-      suitableIndex = suitableIndex !== -1 ? suitableIndex : 0;
-      this.cues.splice(suitableIndex + 1, 0, newCue);
-    };
-
-    for (const cue of cuesArg) {
-      const existingCue = this.cues.find(
-        (stateCue) => stateCue.uuid === cue.uuid,
-      );
-
-      if (existingCue) {
-        mutableMergeVttCues(existingCue, cue);
-      } else {
-        insertCue(cue);
-        this.updateItemsForSelectionModel([cue.uuid]);
-      }
-    }
-  }
-
-  public deleteCues(uuids: IVTTCue["uuid"][]) {
-    const latestCueIndex = Math.max(
-      ...uuids.map((uuid) => this.cues.findIndex((cue) => cue.uuid === uuid)),
+  public patch(cue: IMinimalPartialVTTCue) {
+    const existingCue = this.cues.find(
+      (stateCue) => stateCue.uuid === cue.uuid,
     );
 
-    let latestAvailableCue = this.cues.at(latestCueIndex + 1);
-
-    this.cues = this.cues.filter((c) => !uuids.includes(c.uuid));
-
-    latestAvailableCue =
-      latestAvailableCue ?? this.cues.at(this.cues.length - 1);
-
-    this.updateItemsForSelectionModel(
-      latestAvailableCue ? [latestAvailableCue.uuid] : undefined,
-    );
-  }
-
-  public replaceCue(uuid: IVTTCue["uuid"], cues: IVTTCue[]) {
-    const index = this.cues.findIndex((cue) => cue.uuid === uuid);
-
-    if (index === -1) {
-      console.warn(`No cue with uuid=${uuid} was found`);
-      return;
-    }
-
-    this.cues.splice(index, 1, ...cues);
-    this.updateItemsForSelectionModel();
-
-    this.activeCues.removeSelection(uuid);
-    if (this.activeCues.size() === 0) {
-      this.activeCues.addSelection(cues[cues.length - 1].uuid);
+    if (existingCue) {
+      mutableMergeVttCues(existingCue, cue);
+      return existingCue;
+    } else {
+      console.log(`[patchCue] No cue with uuid=${cue.uuid} found. Skipping`);
+      return null;
     }
   }
 
-  protected updateItemsForSelectionModel(selected?: IVTTCue["uuid"][]) {
-    this.activeCues.setItems(
+  public insert(cue: IVTTCue, index?: number) {
+    let suitableIndex =
+      index ??
+      this.cues.findLastIndex((c) => {
+        return cue.startTime >= c.startTime;
+      });
+
+    if (this.cues.at(suitableIndex)?.startTime === cue.startTime) {
+      suitableIndex += 1;
+    }
+
+    suitableIndex = Math.max(0, suitableIndex);
+    this.cues.splice(suitableIndex, 0, cue);
+    this.updateItemsForSelectionModel([cue.uuid]);
+
+    return suitableIndex;
+  }
+
+  public delete(uuid: IVTTCue["uuid"]) {
+    const index = this.cues.findIndex((c) => c.uuid === uuid);
+
+    if (index !== -1) {
+      this.cues.splice(index, 1);
+    }
+
+    return index;
+  }
+
+  public updateItemsForSelectionModel(selected?: IVTTCue["uuid"][]) {
+    this.selectionModel.setItems(
       this.cues.map((i) => i.uuid),
       selected,
     );
   }
 }
 
-export interface IPatchCuePayload extends Partial<IVTTCue> {
+export interface IMinimalPartialVTTCue extends Partial<IVTTCue> {
   uuid: IVTTCue["uuid"];
 }

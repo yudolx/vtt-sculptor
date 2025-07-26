@@ -9,6 +9,7 @@ import {
 import { BackgroundProcess } from "../background-process";
 import { IS_DARWIN, supportedVideoExtensions } from "../constants";
 import { stringifyVTT } from "shared/libs/vtt/WebVTTDeserializer";
+import { QueryKey } from "shared/constants";
 
 export class MainWindowMenu {
   protected menu: Menu;
@@ -97,32 +98,45 @@ export class MainWindowMenu {
             : []),
         ],
       },
-      // The app will lack ability to copy and paste text without this menu on mac... for some reason
-      ...(IS_DARWIN
-        ? [
-            {
-              label: "Edit",
-              submenu: [
-                {
-                  label: "New cue",
-                  id: "subtitlesNew",
-                  accelerator: "J",
-                  click: this.handleNewSubtitle,
-                },
+      {
+        label: "Edit",
+        submenu: [
+          {
+            label: "Undo",
+            id: "undo",
+            accelerator: IS_DARWIN ? "Cmd+Z" : "Ctrl+Z",
+            click: this.undo,
+          },
+          {
+            label: "Redo",
+            id: "redo",
+            accelerator: IS_DARWIN ? "Cmd+Shift+Z" : "Ctrl+Shift+Z",
+            click: this.redo,
+          },
+          {
+            label: "New cue",
+            id: "subtitlesNew",
+            accelerator: "J",
+            click: this.handleNewSubtitle,
+          },
+          ...(IS_DARWIN
+            ? [
                 { type: "separator" } as const,
                 { role: "cut" } as const,
                 { role: "copy" } as const,
                 { role: "paste" } as const,
                 { role: "pasteAndMatchStyle" } as const,
-                {
-                  role: "delete",
-                  click: this.handleRemoveSelectedSubtitles,
-                } as const,
-                { role: "selectAll" } as const,
-              ],
-            },
-          ]
-        : []),
+                { type: "separator" } as const,
+              ]
+            : []),
+          {
+            role: "delete",
+            click: this.handleRemoveSelectedSubtitles,
+          } as const,
+          { role: "selectAll" } as const,
+        ],
+      },
+      // The app will lack ability to copy and paste text without this menu on mac... for some reason
       ...(__DEVELOPMENT__
         ? [
             {
@@ -149,6 +163,8 @@ export class MainWindowMenu {
   public update = () => {
     const saveMenuItem = this.menu.getMenuItemById("fileSave")!;
     const saveAsMenuItem = this.menu.getMenuItemById("fileSaveAs")!;
+    const undoMenuItem = this.menu.getMenuItemById("undo")!;
+    const redoMenuItem = this.menu.getMenuItemById("redo")!;
 
     {
       const file = this.app.store.subtitles.getFile();
@@ -157,52 +173,20 @@ export class MainWindowMenu {
       saveMenuItem.enabled = !!file;
       saveAsMenuItem.enabled = !!file || hasCues;
     }
+
+    {
+      const { historyManager } = this.app.store;
+      const undoAction = historyManager.getLatestUndoableAction();
+      const redoAction = historyManager.getLatestRedoableAction();
+
+      undoMenuItem.enabled = !!undoAction;
+      redoMenuItem.enabled = !!redoAction;
+    }
   };
 
   public setShortcutsActive(value: boolean) {
     this.hotkeysActive = value;
   }
-
-  // protected handleLoadVideo = async () => {
-  //   if (!this.hotkeysActive) return;
-
-  //   const selectedFile = await dialog.showOpenDialog({
-  //     properties: ["openFile", "showHiddenFiles"],
-  //     filters: [
-  //       { name: "WEB compatible videos", extensions: supportedVideoExtensions },
-  //     ],
-  //   });
-
-  //   if (selectedFile.canceled) {
-  //     return;
-  //   }
-
-  //   const [videoPath] = selectedFile.filePaths;
-  //   this.app.store.setVideoPath(videoPath);
-  // };
-
-  // protected handleNew = () => {
-  //   if (!this.hotkeysActive) return;
-
-  //   const cues = this.app.store.subtitles.getCues();
-
-  //   const totalCues = cues.length;
-  //   if (totalCues > 0) {
-  //     const result = dialog.showMessageBox({
-  //       message:
-  //         "This project contains unsaved changes. If you continue these changes will be lost",
-  //       type: "warning",
-  //       buttons: ["Continue", "Cancel"],
-  //     });
-  //   }
-
-  //   this.app.store.setFileAndCues({
-  //     cues: [],
-  //     regions: {},
-  //     file: null,
-  //     styles: [],
-  //   });
-  // };
 
   protected handleOpen = async () => {
     if (!this.hotkeysActive) return;
@@ -287,5 +271,21 @@ export class MainWindowMenu {
 
   protected handleSettingsClick = () => {
     this.app.window.openSettingsWindow();
+  };
+
+  protected undo = () => {
+    this.app.store.undo();
+
+    this.update();
+    this.app.invalidateQuery(QueryKey.CuesList);
+    this.app.invalidateQuery(QueryKey.ActiveCue);
+  };
+
+  protected redo = () => {
+    this.app.store.redo();
+
+    this.update();
+    this.app.invalidateQuery(QueryKey.CuesList);
+    this.app.invalidateQuery(QueryKey.ActiveCue);
   };
 }
