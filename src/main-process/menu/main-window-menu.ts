@@ -274,6 +274,7 @@ export class MainWindowMenu {
   };
 
   protected undo = () => {
+    if (!this.hotkeysActive) return;
     this.app.store.undo();
 
     this.update();
@@ -282,6 +283,7 @@ export class MainWindowMenu {
   };
 
   protected redo = () => {
+    if (!this.hotkeysActive) return;
     this.app.store.redo();
 
     this.update();
