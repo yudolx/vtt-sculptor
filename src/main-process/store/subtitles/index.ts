@@ -128,11 +128,7 @@ export class SubtitlesStore {
       index ??
       this.cues.findLastIndex((c) => {
         return cue.startTime >= c.startTime;
-      });
-
-    if (this.cues.at(suitableIndex)?.startTime === cue.startTime) {
-      suitableIndex += 1;
-    }
+      }) + 1; // +1 because we want to insert the cue AFTER the cue we found in findLastIndex
 
     suitableIndex = Math.max(0, suitableIndex);
     this.cues.splice(suitableIndex, 0, cue);

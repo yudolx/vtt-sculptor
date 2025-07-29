@@ -129,9 +129,13 @@ export class ApplicationStore {
     }
 
     const latestAvailableCueIndex = Math.min(latestCueIndex, cues.length - 1);
-    const latestAvailableCue = cues.at(latestAvailableCueIndex)!;
+    const latestAvailableCue = cues.at(latestAvailableCueIndex);
 
-    this.subtitles.updateItemsForSelectionModel([latestAvailableCue.uuid]);
+    if (latestAvailableCue) {
+      this.subtitles.updateItemsForSelectionModel([latestAvailableCue.uuid]);
+    } else {
+      this.subtitles.updateItemsForSelectionModel([]);
+    }
 
     this.app.menuManager.update();
     this.app.invalidateQuery(QueryKey.CuesList);
