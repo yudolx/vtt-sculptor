@@ -14,7 +14,7 @@ export class AddCueAction implements IUndoableAction {
     },
   ) {}
 
-  undo(cues: IVTTCue[]): void {
+  undo(): void {
     assert(
       this.state === UndoableActionState.Undoable,
       `[undo}] The aciton can not be undone`,
@@ -23,7 +23,7 @@ export class AddCueAction implements IUndoableAction {
     this.state = UndoableActionState.Redoable;
   }
 
-  redo(cues: IVTTCue[]): void {
+  redo(): void {
     assert(
       this.state === UndoableActionState.Redoable,
       `[redo}] The aciton can not be redone`,

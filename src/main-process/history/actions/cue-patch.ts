@@ -12,7 +12,7 @@ export class CuePatchAction implements IUndoableAction {
     protected options: { patch: (cue: IMinimalPartialVTTCue) => void },
   ) {}
 
-  undo(cues: IVTTCue[]) {
+  undo() {
     assert(
       this.state === UndoableActionState.Undoable,
       "[undo] The aciton can not be undone",
@@ -23,7 +23,7 @@ export class CuePatchAction implements IUndoableAction {
     this.state = UndoableActionState.Redoable;
   }
 
-  redo(cues: IVTTCue[]) {
+  redo() {
     assert(
       this.state === UndoableActionState.Redoable,
       "[redo] The aciton can not be redone",

@@ -77,8 +77,8 @@ export class BackgroundProcess {
       )
       .on(
         "ipc/renderer/reorder-cue",
-        (event, payload: { uuid: IVTTCue["uuid"]; over: IVTTCue["uuid"] }) => {
-          this.store.reoderCue(payload);
+        (event, index: number, overIndex: number) => {
+          this.store.reoderCue(index, overIndex);
         },
       )
       .on("ipc/renderer/delete-cues", (event, cues: IVTTCue["uuid"][]) => {

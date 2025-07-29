@@ -104,12 +104,8 @@ export class SubtitlesStore {
     this.selectionModel.alterSelection(cueArg, modifiers);
   }
 
-  public reoderCue(payload: { uuid: IVTTCue["uuid"]; over: IVTTCue["uuid"] }) {
-    const fromIndex = this.cues.findIndex((cue) => cue.uuid === payload.uuid);
-    const overIndex = this.cues.findIndex((cue) => cue.uuid === payload.over);
-
-    this.cues = arrayMove(this.cues, fromIndex, overIndex);
-
+  public reoderCue(index: number, overIndex: number) {
+    this.cues = arrayMove(this.cues, index, overIndex);
     this.selectionModel.setItems(this.cues.map((i) => i.uuid));
   }
 

@@ -17,7 +17,7 @@ export class DeleteCueAction implements IUndoableAction {
     assert(this.savedCueIndex !== -1, "Cue index can not be -1");
   }
 
-  undo(cues: IVTTCue[]): void {
+  undo(): void {
     assert(
       this.state === UndoableActionState.Undoable,
       `[redo ${this.name}] The aciton can not be undone`,
@@ -27,7 +27,7 @@ export class DeleteCueAction implements IUndoableAction {
     this.state = UndoableActionState.Redoable;
   }
 
-  redo(cues: IVTTCue[]): void {
+  redo(): void {
     assert(
       this.state === UndoableActionState.Redoable,
       `[redo ${this.name}] The aciton can not be redone`,

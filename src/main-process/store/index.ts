@@ -10,6 +10,7 @@ import { CuePatchAction } from "main-process/history/actions/cue-patch";
 import { assert } from "shared/assert";
 import { deepClone } from "shared/deepClone";
 import { DeleteCueAction } from "main-process/history/actions/delete-cue";
+import { ReorderCueAction } from "main-process/history/actions/reorder-cue";
 
 export class ApplicationStore {
   public video = new VideoStore();
@@ -33,6 +34,7 @@ export class ApplicationStore {
     this.subtitles.setRegions(payload.regions);
     this.subtitles.setFile(payload.file);
     this.subtitles.setStyles(payload.styles);
+    this.historyManager.clear();
 
     this.app.invalidateQuery(QueryKey.VideoPath);
     this.app.invalidateQuery(QueryKey.CuesList);
@@ -153,16 +155,24 @@ export class ApplicationStore {
     this.app.invalidateQuery(QueryKey.ActiveCue);
   }
 
-  public reoderCue(payload: { uuid: IVTTCue["uuid"]; over: IVTTCue["uuid"] }) {
-    this.subtitles.reoderCue(payload);
+  public reoderCue(index: number, overIndex: number) {
+    this.subtitles.reoderCue(index, overIndex);
+
+    this.historyManager.push(
+      new ReorderCueAction(index, overIndex, {
+        reorder: (...args) => this.subtitles.reoderCue(...args),
+      }),
+    );
+
+    this.app.menuManager.update();
     this.app.invalidateQuery(QueryKey.CuesList);
   }
 
   public undo() {
-    this.historyManager.undo(this.subtitles.getCues());
+    this.historyManager.undo();
   }
 
   public redo() {
-    this.historyManager.redo(this.subtitles.getCues());
+    this.historyManager.redo();
   }
 }

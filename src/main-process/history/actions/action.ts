@@ -1,5 +1,3 @@
-import { IVTTCue } from "shared/libs/vtt/vttcue";
-
 export enum UndoableActionState {
   Undoable,
   Redoable,
@@ -7,6 +5,6 @@ export enum UndoableActionState {
 
 export interface IUndoableAction {
   state: UndoableActionState;
-  undo(cues: IVTTCue[]): void;
-  redo(cues: IVTTCue[]): void;
+  undo(): void;
+  redo(): void;
 }

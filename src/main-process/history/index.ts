@@ -1,10 +1,9 @@
-import { IVTTCue } from "shared/libs/vtt/vttcue";
 import { IUndoableAction, UndoableActionState } from "./actions/action";
 
 export class HistoryManager {
   protected list: IUndoableAction[] = [];
 
-  public undo(cues: IVTTCue[]) {
+  public undo() {
     const item = this.list.findLast(
       (item) => item.state === UndoableActionState.Undoable,
     );
@@ -14,10 +13,10 @@ export class HistoryManager {
       return;
     }
 
-    item.undo(cues);
+    item.undo();
   }
 
-  public redo(cues: IVTTCue[]) {
+  public redo() {
     const item = this.list.find(
       (item) => item.state === UndoableActionState.Redoable,
     );
@@ -27,7 +26,7 @@ export class HistoryManager {
       return;
     }
 
-    item.redo(cues);
+    item.redo();
   }
 
   public push(action: IUndoableAction) {
@@ -36,6 +35,10 @@ export class HistoryManager {
     );
 
     this.list.push(action);
+  }
+
+  public clear() {
+    this.list = [];
   }
 
   public getLatestUndoableAction() {

@@ -100,15 +100,12 @@ export const SubtitleTable = () => {
       const { active, over } = event;
 
       if (over && active.id !== over.id) {
-        window.electronAPI.reorderCue({
-          uuid: active.id as string,
-          over: over.id as string,
-        });
+        const activeIndex = cues.findIndex((cue) => cue.uuid === active.id);
+        const overIndex = cues.findIndex((cue) => cue.uuid === over!.id);
 
-        const oldIndex = cues.findIndex((cue) => cue.uuid === active.id);
-        const newIndex = cues.findIndex((cue) => cue.uuid === over!.id);
+        window.electronAPI.reorderCue(activeIndex, overIndex);
 
-        setDataInternally(arrayMove(cues, oldIndex, newIndex));
+        setDataInternally(arrayMove(cues, activeIndex, overIndex));
       }
     },
     [setDataInternally, cues],
