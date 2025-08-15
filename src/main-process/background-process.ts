@@ -38,7 +38,7 @@ export class BackgroundProcess {
 
   private bindIpcEvents = () => {
     ipcMain.handle("ipc/renderer/get-video-path", () =>
-      this.store.video.getPath(),
+      this.store.video.getSafePath(),
     );
     ipcMain.handle("ipc/renderer/get-cues", () =>
       this.store.subtitles.getCues(),
