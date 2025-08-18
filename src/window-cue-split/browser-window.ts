@@ -1,12 +1,14 @@
 import path from "path";
 import { BrowserWindowConstructorOptions } from "electron";
 import { VTTSculptorBrowserWindow } from "shared/VttSculptorBrowserWindow";
+import { VttSculptorWindowMenu } from "main-process/menu/vttSculptorMenu";
 
 export const createCueSplitWindow = (
+  menu: VttSculptorWindowMenu,
   options: BrowserWindowConstructorOptions = {},
-): VTTSculptorBrowserWindow => {
-  let browser_window: VTTSculptorBrowserWindow | null =
-    new VTTSculptorBrowserWindow({
+) => {
+  let browserWindow: VTTSculptorBrowserWindow | null =
+    new VTTSculptorBrowserWindow(menu, {
       width: 400,
       height: 300,
       title: __APP_NAME__,
@@ -20,11 +22,11 @@ export const createCueSplitWindow = (
       ...options,
     });
 
-  browser_window.on("closed", () => {
-    browser_window = null;
+  browserWindow.on("closed", () => {
+    browserWindow = null;
   });
 
-  browser_window.loadURL(`file://${__dirname}/window_cue_split.html`);
+  browserWindow.loadURL(`file://${__dirname}/window_cue_split.html`);
 
-  return browser_window;
+  return browserWindow;
 };

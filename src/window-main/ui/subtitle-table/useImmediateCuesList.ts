@@ -4,7 +4,7 @@ import { QueryKey } from "shared/constants";
 import { IVTTCue } from "shared/libs/vtt/vttcue";
 
 /**
- * A wrapper for the useQuery for the cues list. Keeps a local copy of cues in local state
+ * A wrapper for the cues list useQuery. Keeps a local copy of cues in a state
  * Adds ability to update the cues immediatly by updating the local copy of it.
  *
  * The main purpose is to remove the delay when setting the cues using setQueryData

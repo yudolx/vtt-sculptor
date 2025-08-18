@@ -3,7 +3,6 @@ import { ApplicationStore } from "./store";
 import { IVTTCue } from "shared/libs/vtt/vttcue";
 import { QueryKey } from "shared/constants";
 import { WindowManager } from "./window-manager";
-import { MenuManager } from "./menu";
 import { IMinimalPartialVTTCue } from "./store/subtitles";
 import { FileOpener } from "./file-opener";
 import { SettingsStore } from "./settings";
@@ -13,7 +12,6 @@ export class BackgroundProcess {
   public settings = new SettingsStore();
   public fileOpener = new FileOpener(this);
   public store = new ApplicationStore(this);
-  public menuManager = new MenuManager(this);
   public window = new WindowManager(this);
 
   constructor() {
@@ -59,8 +57,17 @@ export class BackgroundProcess {
     ipcMain.handle("ipc/renderer/fetch-split-cue", () =>
       this.store.subtitles.getSplittingCue(),
     );
+    ipcMain.handle("ipc/renderer/video-subtitles-visible", () =>
+      this.store.video.getSubtitlesVisible(),
+    );
 
     ipcMain
+      .on(
+        "ipc/renderer/set-video-subtitles-visible",
+        (event, value: boolean) => {
+          this.store.setVideoSubtitlesVisible(value);
+        },
+      )
       .on(
         "ipc/renderer/alter-selection",
         (
@@ -91,10 +98,10 @@ export class BackgroundProcess {
         this.store.patchCues(cues);
       })
       .on("ipc/renderer/disable-hotkeys", () => {
-        this.menuManager.setGlobalShortcutsActive(false);
+        this.window.setGlobalShortcutsActive(false);
       })
       .on("ipc/renderer/enable-hotkeys", () => {
-        this.menuManager.setGlobalShortcutsActive(true);
+        this.window.setGlobalShortcutsActive(true);
       })
       .on(
         "ipc/renderer/cue-context-menu",

@@ -11,4 +11,5 @@ export enum QueryKey {
   Styles = "STYLES",
   Settings = "SETTINGS",
   SplitCue = "SPLIT_CUE",
+  VideoSubtitlesVisible = "VIDEO_SUBTITLES_VISIBLE",
 }

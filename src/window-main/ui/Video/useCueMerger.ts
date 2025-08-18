@@ -1,34 +1,15 @@
 import React from "react";
 import { CuesMerger } from "./cues-merger";
 import { IVTTCue } from "shared/libs/vtt/vttcue";
+import { useTrackModeObserver } from "./hooks/useTrackModeObserver";
 
 export const useCueMerger = (
   cues: IVTTCue[] | null,
   videoPath: string | null,
 ) => {
   const [textTrack, setTextTrack] = React.useState<TextTrack | null>(null);
-  const checkModeInterval = React.useRef<number | null>(null);
+  const { mode: textTrackMode } = useTrackModeObserver(textTrack);
   const hasUpdateDebt = React.useRef(false);
-  const [textTrackMode, setTextTrackMode] =
-    React.useState<TextTrackMode | null>(null);
-
-  // Standart TextTrack interface lacks dedicated event for `mode` change.
-  // So we set up an interval and check if it was changed ourselfs.
-  React.useEffect(() => {
-    checkModeInterval.current = window.setInterval(() => {
-      if (textTrackMode !== textTrack?.mode) {
-        console.log("mode changed to = ", textTrack?.mode);
-        setTextTrackMode(textTrack?.mode ?? null);
-      }
-    }, 100);
-
-    return () => {
-      if (typeof checkModeInterval.current === "number") {
-        clearInterval(checkModeInterval.current);
-        checkModeInterval.current = null;
-      }
-    };
-  }, [textTrack, textTrackMode]);
 
   // When textTrack.mode changes we check if it has an update debt and merge
   // cues for all the previous times the track should have been updated but was

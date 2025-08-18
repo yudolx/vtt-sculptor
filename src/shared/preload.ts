@@ -33,6 +33,13 @@ export const EmitIPCEvent = Object.freeze({
   fetchVideoPath: (): Promise<string> =>
     ipcRenderer.invoke("ipc/renderer/get-video-path"),
 
+  fetchVideoTrackVisible: (): Promise<boolean> =>
+    ipcRenderer.invoke("ipc/renderer/video-subtitles-visible"),
+
+  setVideoTrackVisible: (value: boolean) => {
+    ipcRenderer.send("ipc/renderer/set-video-subtitles-visible", value);
+  },
+
   fetchCues: (): Promise<IVTTCue[]> =>
     ipcRenderer.invoke("ipc/renderer/get-cues"),
 

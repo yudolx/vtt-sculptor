@@ -1,13 +1,15 @@
 import { Menu, MenuItemConstructorOptions, app as electronApp } from "electron";
 import type { BackgroundProcess } from "main-process/background-process";
 import { IS_DARWIN } from "main-process/constants";
+import { VttSculptorWindowMenu } from "./vttSculptorMenu";
 
-export class CueSplitWindowMenu {
-  protected menu: Menu;
-  protected hotkeysActive = true;
-
+export class CueSplitWindowMenu extends VttSculptorWindowMenu {
   constructor(protected app: BackgroundProcess) {
-    this.menu = Menu.buildFromTemplate([
+    super();
+  }
+
+  generateMenu() {
+    return Menu.buildFromTemplate([
       // macOS-specific application menu
       ...(IS_DARWIN
         ? [
@@ -49,13 +51,5 @@ export class CueSplitWindowMenu {
           ]
         : []),
     ]);
-  }
-
-  getMenu() {
-    return this.menu;
-  }
-
-  public setShortcutsActive(value: boolean) {
-    this.hotkeysActive = value;
   }
 }

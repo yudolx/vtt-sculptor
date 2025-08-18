@@ -4,6 +4,15 @@ export class VideoStore {
   protected path: string | null = null;
   protected safePath: string | null = null;
   protected duration: number | null = null;
+  protected subtitlesVisible = true;
+
+  getSafePath() {
+    return this.safePath;
+  }
+
+  getPath() {
+    return this.path;
+  }
 
   setPath(value: string | null) {
     this.path = value;
@@ -15,19 +24,19 @@ export class VideoStore {
     }
   }
 
+  getDuration() {
+    return this.duration;
+  }
+
   setDuration(value: number | null) {
     this.duration = value;
   }
 
-  getPath() {
-    return this.path;
+  getSubtitlesVisible() {
+    return this.subtitlesVisible;
   }
 
-  getSafePath() {
-    return this.safePath;
-  }
-
-  getDuration() {
-    return this.duration;
+  setSubtitlesVisible(value: boolean) {
+    this.subtitlesVisible = value;
   }
 }

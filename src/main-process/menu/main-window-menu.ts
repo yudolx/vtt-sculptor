@@ -1,5 +1,5 @@
 import path from "path";
-import { writeFile, stat } from "fs/promises";
+import { writeFile } from "fs/promises";
 import {
   app as electronApp,
   Menu,
@@ -10,14 +10,24 @@ import { BackgroundProcess } from "../background-process";
 import { IS_DARWIN, supportedVideoExtensions } from "../constants";
 import { stringifyVTT } from "shared/libs/vtt/WebVTTDeserializer";
 import { QueryKey } from "shared/constants";
+import { VttSculptorWindowMenu } from "./vttSculptorMenu";
 
-export class MainWindowMenu {
-  protected menu: Menu;
-
-  protected hotkeysActive = true;
-
+export class MainWindowMenu extends VttSculptorWindowMenu {
   constructor(protected app: BackgroundProcess) {
-    this.menu = Menu.buildFromTemplate([
+    super();
+  }
+
+  generateMenu(): Menu {
+    const { historyManager } = this.app.store;
+    const undoAction = historyManager.getLatestUndoableAction();
+    const redoAction = historyManager.getLatestRedoableAction();
+
+    const subtitlesVisibleValue = this.app.store.video.getSubtitlesVisible();
+
+    const file = this.app.store.subtitles.getFile();
+    const hasCues = this.app.store.subtitles.getCues().length > 0;
+
+    return Menu.buildFromTemplate([
       // macOS-specific application menu
       ...(IS_DARWIN
         ? [
@@ -69,12 +79,14 @@ export class MainWindowMenu {
             id: "fileSave",
             accelerator: IS_DARWIN ? "Cmd+S" : "Ctrl+S",
             click: this.handleSave,
+            enabled: !!file,
           },
           {
             label: "Save As",
             id: "fileSaveAs",
             accelerator: IS_DARWIN ? "Cmd+Shift+S" : "Ctrl+Shift+S",
             click: this.handleSaveAs,
+            enabled: !!file || hasCues,
           },
           {
             type: "separator",
@@ -106,12 +118,14 @@ export class MainWindowMenu {
             id: "undo",
             accelerator: IS_DARWIN ? "Cmd+Z" : "Ctrl+Z",
             click: this.undo,
+            enabled: !!undoAction,
           },
           {
             label: "Redo",
             id: "redo",
             accelerator: IS_DARWIN ? "Cmd+Shift+Z" : "Ctrl+Shift+Z",
             click: this.redo,
+            enabled: !!redoAction,
           },
           {
             label: "New cue",
@@ -136,6 +150,17 @@ export class MainWindowMenu {
           { role: "selectAll" } as const,
         ],
       },
+      {
+        label: "Video",
+        submenu: [
+          {
+            id: "videoToggleSubtitlesVisible",
+            accelerator: IS_DARWIN ? "Cmd+H" : "Ctrl+H",
+            label: subtitlesVisibleValue ? "Hide subtitles" : "Show subtitles",
+            click: this.toggleVideoSubtitlesVisible,
+          },
+        ],
+      },
       // The app will lack ability to copy and paste text without this menu on mac... for some reason
       ...(__DEVELOPMENT__
         ? [
@@ -152,40 +177,6 @@ export class MainWindowMenu {
           ]
         : []),
     ]);
-
-    this.update();
-  }
-
-  getMenu() {
-    return this.menu;
-  }
-
-  public update = () => {
-    const saveMenuItem = this.menu.getMenuItemById("fileSave")!;
-    const saveAsMenuItem = this.menu.getMenuItemById("fileSaveAs")!;
-    const undoMenuItem = this.menu.getMenuItemById("undo")!;
-    const redoMenuItem = this.menu.getMenuItemById("redo")!;
-
-    {
-      const file = this.app.store.subtitles.getFile();
-      const hasCues = this.app.store.subtitles.getCues().length > 0;
-
-      saveMenuItem.enabled = !!file;
-      saveAsMenuItem.enabled = !!file || hasCues;
-    }
-
-    {
-      const { historyManager } = this.app.store;
-      const undoAction = historyManager.getLatestUndoableAction();
-      const redoAction = historyManager.getLatestRedoableAction();
-
-      undoMenuItem.enabled = !!undoAction;
-      redoMenuItem.enabled = !!redoAction;
-    }
-  };
-
-  public setShortcutsActive(value: boolean) {
-    this.hotkeysActive = value;
   }
 
   protected handleOpen = async () => {
@@ -277,7 +268,6 @@ export class MainWindowMenu {
     if (!this.hotkeysActive) return;
     this.app.store.undo();
 
-    this.update();
     this.app.invalidateQuery(QueryKey.CuesList);
     this.app.invalidateQuery(QueryKey.ActiveCue);
   };
@@ -286,8 +276,20 @@ export class MainWindowMenu {
     if (!this.hotkeysActive) return;
     this.app.store.redo();
 
-    this.update();
     this.app.invalidateQuery(QueryKey.CuesList);
     this.app.invalidateQuery(QueryKey.ActiveCue);
+  };
+
+  protected toggleVideoSubtitlesVisible = () => {
+    if (!this.hotkeysActive) return;
+
+    if (this.app.store.video.getSubtitlesVisible()) {
+      this.app.store.video.setSubtitlesVisible(false);
+    } else {
+      this.app.store.video.setSubtitlesVisible(true);
+    }
+
+    this.app.invalidateQuery(QueryKey.VideoSubtitlesVisible);
+    this.app.window.updateMenu();
   };
 }

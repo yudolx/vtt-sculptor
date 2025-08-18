@@ -4,6 +4,7 @@ import { VideoElContext } from "../context/video-el";
 import { useVideoKeyboardNavigation } from "./hooks/useVideoKeyboardNavigation";
 import { useVideo2xSpeedShortcuts } from "./hooks/useVideo2xSpeedShortcuts";
 import { useVideoFullscreenShortcut } from "./hooks/useVideoFullscreenShortcut";
+import { useTrackModeObserver } from "./hooks/useTrackModeObserver";
 
 export interface IVideoComponentProps {
   src: string;
@@ -11,6 +12,7 @@ export interface IVideoComponentProps {
 
 export const VideoComponent = (props: IVideoComponentProps) => {
   const { videoEl, setVideoEl } = React.useContext(VideoElContext);
+  const textTrack = videoEl?.textTracks[0] ?? null;
 
   const blurVideoEl = React.useCallback(() => {
     if (document.activeElement === videoEl) {
@@ -18,9 +20,21 @@ export const VideoComponent = (props: IVideoComponentProps) => {
     }
   }, [videoEl]);
 
+  const { mode: textTrackMode } = useTrackModeObserver(textTrack);
   useVideoKeyboardNavigation(videoEl);
   useVideo2xSpeedShortcuts(videoEl);
   useVideoFullscreenShortcut(videoEl, blurVideoEl);
+
+  React.useEffect(() => {
+    console.log(textTrackMode);
+    if (textTrack) {
+      if (textTrackMode) {
+        textTrack.mode = textTrackMode;
+      } else {
+        textTrack.mode = 'showing'
+      }
+    }
+  }, [textTrackMode, textTrack])
 
   return (
     <StyledVideo

@@ -1,12 +1,14 @@
 import path from "path";
-import { BrowserWindow, BrowserWindowConstructorOptions } from "electron";
+import { BrowserWindowConstructorOptions } from "electron";
 import { VTTSculptorBrowserWindow } from "shared/VttSculptorBrowserWindow";
+import { VttSculptorWindowMenu } from "main-process/menu/vttSculptorMenu";
 
 export const createWindowMain = (
+  menu: VttSculptorWindowMenu,
   options: BrowserWindowConstructorOptions = {},
-): BrowserWindow => {
-  let browser_window: VTTSculptorBrowserWindow | null =
-    new VTTSculptorBrowserWindow({
+) => {
+  let browserWindow: VTTSculptorBrowserWindow | null =
+    new VTTSculptorBrowserWindow(menu, {
       title: __APP_NAME__,
       show: false,
       webPreferences: {
@@ -16,11 +18,11 @@ export const createWindowMain = (
       ...options,
     });
 
-  browser_window.on("closed", () => {
-    browser_window = null;
+  browserWindow.on("closed", () => {
+    browserWindow = null;
   });
 
-  browser_window.loadURL(`file://${__dirname}/window_main.html`);
+  browserWindow.loadURL(`file://${__dirname}/window_main.html`);
 
-  return browser_window;
+  return browserWindow;
 };

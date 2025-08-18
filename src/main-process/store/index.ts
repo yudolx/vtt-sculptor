@@ -24,6 +24,12 @@ export class ApplicationStore {
     this.app.invalidateQuery(QueryKey.VideoPath);
   }
 
+  public setVideoSubtitlesVisible(value: boolean) {
+    this.video.setSubtitlesVisible(value);
+    this.app.window.updateMenu();
+    this.app.invalidateQuery(QueryKey.VideoPath);
+  }
+
   public setFileAndCues(payload: {
     cues: IVTTCue[];
     regions: Record<string, IVTTRegion>;
@@ -52,7 +58,7 @@ export class ApplicationStore {
       }),
     );
 
-    this.app.menuManager.update();
+    this.app.window.updateMenu();
     this.app.invalidateQuery(QueryKey.CuesList);
     this.app.invalidateQuery(QueryKey.ActiveCue);
   }
@@ -71,7 +77,7 @@ export class ApplicationStore {
       this.subtitles.patch(cue);
     }
 
-    this.app.menuManager.update();
+    this.app.window.updateMenu();
     this.app.invalidateQuery(QueryKey.CuesList);
     this.app.invalidateQuery(QueryKey.ActiveCue);
   }
@@ -103,7 +109,7 @@ export class ApplicationStore {
       index += 1;
     }
 
-    this.app.menuManager.update();
+    this.app.window.updateMenu();
     this.app.invalidateQuery(QueryKey.CuesList);
     this.app.invalidateQuery(QueryKey.ActiveCue);
   }
@@ -137,7 +143,7 @@ export class ApplicationStore {
       this.subtitles.updateItemsForSelectionModel([]);
     }
 
-    this.app.menuManager.update();
+    this.app.window.updateMenu();
     this.app.invalidateQuery(QueryKey.CuesList);
     this.app.invalidateQuery(QueryKey.ActiveCue);
   }
@@ -168,7 +174,7 @@ export class ApplicationStore {
       }),
     );
 
-    this.app.menuManager.update();
+    this.app.window.updateMenu();
     this.app.invalidateQuery(QueryKey.CuesList);
   }
 

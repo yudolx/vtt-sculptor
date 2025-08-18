@@ -1,18 +1,31 @@
 import { createWindowMain } from "window-main/browser-window";
 import { createCuePreferencesWindow } from "window-cue-preferences/browser-window";
-import { Menu } from "electron";
 import { createSettingsWindow } from "window-settings/browser-window";
 import { BackgroundProcess } from "./background-process";
 import { createCueSplitWindow } from "window-cue-split/browser-window";
 import { VTTSculptorBrowserWindow } from "shared/VttSculptorBrowserWindow";
+import { MainWindowMenu } from "./menu/main-window-menu";
+import { SettingsWindowMenu } from "./menu/settings-window-menu";
+import { CuePreferenceWindowMenu } from "./menu/cue-preference-menu";
+import { CueSplitWindowMenu } from "./menu/cue-split-menu";
 
 export class WindowManager {
+  public mainWindowMenu: MainWindowMenu;
+  public settingsWindowMenu: SettingsWindowMenu;
+  public cuePreferenceWindowMenu: CuePreferenceWindowMenu;
+  public cueSplitWindowMenu: CueSplitWindowMenu;
+
   public main: VTTSculptorBrowserWindow;
   public cuePreferences: VTTSculptorBrowserWindow | null = null;
   public settings: VTTSculptorBrowserWindow | null = null;
   public cueSplit: VTTSculptorBrowserWindow | null = null;
 
   constructor(protected app: BackgroundProcess) {
+    this.mainWindowMenu = new MainWindowMenu(app);
+    this.settingsWindowMenu = new SettingsWindowMenu(app);
+    this.cuePreferenceWindowMenu = new CuePreferenceWindowMenu(app);
+    this.cueSplitWindowMenu = new CueSplitWindowMenu(app);
+
     this.main = this.createMainWindow();
   }
 
@@ -29,7 +42,7 @@ export class WindowManager {
   }
 
   protected createMainWindow() {
-    const win = createWindowMain({
+    const win = createWindowMain(this.mainWindowMenu, {
       x: this.app.settings.windowsState.main.x,
       y: this.app.settings.windowsState.main.y,
       height: this.app.settings.windowsState.main.height,
@@ -38,15 +51,11 @@ export class WindowManager {
 
     this.app.settings.trackWindowState("main", win);
 
-    win.on("focus", () => {
-      Menu.setApplicationMenu(this.app.menuManager.mainWindow.getMenu());
-    });
-
     return win;
   }
 
   openSettingsWindow() {
-    this.settings = createSettingsWindow({
+    this.settings = createSettingsWindow(this.settingsWindowMenu, {
       x: this.app.settings.windowsState.settings.x,
       y: this.app.settings.windowsState.settings.y,
       height: this.app.settings.windowsState.settings.height,
@@ -56,39 +65,32 @@ export class WindowManager {
 
     this.app.settings.trackWindowState("settings", this.settings);
 
-    this.settings
-      .on("focus", () => {
-        Menu.setApplicationMenu(this.app.menuManager.settingsWindow.getMenu());
-      })
-      .on("closed", () => {
-        this.settings = null;
-      });
+    this.settings.on("closed", () => {
+      this.settings = null;
+    });
 
     this.settings.show();
   }
 
   openCuePreferencesWindow() {
-    this.cuePreferences = createCuePreferencesWindow({
-      parent: this.main,
-      frame: true,
-      modal: true,
-    });
+    this.cuePreferences = createCuePreferencesWindow(
+      this.cuePreferenceWindowMenu,
+      {
+        parent: this.main,
+        frame: true,
+        modal: true,
+      },
+    );
 
-    this.cuePreferences
-      .on("closed", () => {
-        this.cuePreferences = null;
-      })
-      .on("focus", () => {
-        Menu.setApplicationMenu(
-          this.app.menuManager.cuePreferenceWindow.getMenu(),
-        );
-      });
+    this.cuePreferences.on("closed", () => {
+      this.cuePreferences = null;
+    });
 
     this.cuePreferences.show();
   }
 
   openCueSplitWindow() {
-    this.cueSplit = createCueSplitWindow({
+    this.cueSplit = createCueSplitWindow(this.cueSplitWindowMenu, {
       x: this.app.settings.windowsState.cueSplit.x,
       y: this.app.settings.windowsState.cueSplit.y,
       height: this.app.settings.windowsState.cueSplit.height,
@@ -100,14 +102,22 @@ export class WindowManager {
 
     this.app.settings.trackWindowState("cueSplit", this.cueSplit);
 
-    this.cueSplit
-      .on("focus", () => {
-        Menu.setApplicationMenu(null);
-      })
-      .on("closed", () => {
-        this.cueSplit = null;
-      });
+    this.cueSplit.on("closed", () => {
+      this.cueSplit = null;
+    });
 
     this.cueSplit.show();
+  }
+
+  setGlobalShortcutsActive(value: boolean) {
+    for (const window of this) {
+      window.setGlobalShortcutsActive(value);
+    }
+  }
+
+  public updateMenu() {
+    for (const window of this) {
+      window.updateMenu();
+    }
   }
 }
