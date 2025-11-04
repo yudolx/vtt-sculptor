@@ -3,7 +3,7 @@
     "strict": true,
     "module": "commonjs",
     "removeComments": true,
-    "target": "ESNext",
+    "target": "esnext",
     "outDir": "./compiled/",
     "baseUrl": "./src",
     "jsx": "react",

@@ -2,22 +2,28 @@ import React from "react";
 import { Box, styled } from "@mui/joy";
 import { Video } from "./video";
 import { SubtitleTable } from "./subtitle-table";
+import { Plugins } from "./plugins";
 
 export const App = () => {
   return (
     <AppWrapper>
-      <VideoWrapper>
-        <Video />
-      </VideoWrapper>
-      <SubtitleTableWrapper
-        onKeyDown={(e) => {
-          if (["ArrowUp", "ArrowDown", "Space"].includes(e.code)) {
-            e.preventDefault();
-          }
-        }}
-      >
-        <SubtitleTable />
-      </SubtitleTableWrapper>
+      <Left>
+        <VideoWrapper>
+          <Video />
+        </VideoWrapper>
+        <SubtitleTableWrapper
+          onKeyDown={(e) => {
+            if (["ArrowUp", "ArrowDown", "Space"].includes(e.code)) {
+              e.preventDefault();
+            }
+          }}
+        >
+          <SubtitleTable />
+        </SubtitleTableWrapper>
+      </Left>
+      <Right>
+        <Plugins />
+      </Right>
     </AppWrapper>
   );
 };
@@ -25,7 +31,6 @@ export const App = () => {
 const AppWrapper = styled(Box, { name: "AppWrapper" })(() => {
   return {
     display: "flex",
-    flexDirection: "column",
     height: "100vh",
   };
 });
@@ -45,3 +50,18 @@ const SubtitleTableWrapper = styled(Box, { name: "SubtitleTableWrapper" })(
     };
   },
 );
+
+const Left = styled(Box, { name: "Left" })(() => {
+  return {
+    display: "flex",
+    flexDirection: "column",
+    maxWidth: 800,
+  };
+});
+
+const Right = styled(Box, { name: "Right" })(() => {
+  return {
+    flexGrow: 1,
+    borderLeft: "1px #e5e5e5 solid",
+  };
+});
