@@ -1,7 +1,7 @@
 import path from "path";
 import { BrowserWindowConstructorOptions } from "electron";
 import { VTTSculptorBrowserWindow } from "shared/VttSculptorBrowserWindow";
-import { VttSculptorWindowMenu } from "main-process/menu/vttSculptorMenu";
+import { VttSculptorWindowMenu } from "main-process/menu/vtt-sculptor-menu";
 
 export const createCuePreferencesWindow = (
   menu: VttSculptorWindowMenu,

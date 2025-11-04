@@ -10,7 +10,7 @@ import { BackgroundProcess } from "../background-process";
 import { IS_DARWIN, supportedVideoExtensions } from "../constants";
 import { stringifyVTT } from "shared/libs/vtt/WebVTTDeserializer";
 import { QueryKey } from "shared/constants";
-import { VttSculptorWindowMenu } from "./vttSculptorMenu";
+import { VttSculptorWindowMenu } from "./vtt-sculptor-menu";
 
 export class MainWindowMenu extends VttSculptorWindowMenu {
   constructor(protected app: BackgroundProcess) {

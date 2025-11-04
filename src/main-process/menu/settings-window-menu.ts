@@ -1,7 +1,7 @@
 import { app as electronApp, Menu, MenuItemConstructorOptions } from "electron";
 import type { BackgroundProcess } from "main-process/background-process";
 import { IS_DARWIN } from "main-process/constants";
-import { VttSculptorWindowMenu } from "./vttSculptorMenu";
+import { VttSculptorWindowMenu } from "./vtt-sculptor-menu";
 
 export class SettingsWindowMenu extends VttSculptorWindowMenu {
   constructor(protected app: BackgroundProcess) {

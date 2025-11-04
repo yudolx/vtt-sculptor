@@ -1,5 +1,5 @@
 import { Menu, BrowserWindow } from "electron";
-import { VttSculptorWindowMenu } from "main-process/menu/vttSculptorMenu";
+import { VttSculptorWindowMenu } from "main-process/menu/vtt-sculptor-menu";
 
 export class VTTSculptorBrowserWindow extends BrowserWindow {
   constructor(
