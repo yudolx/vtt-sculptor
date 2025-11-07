@@ -4,6 +4,7 @@ import renderDomHandler from "dom-serializer";
 import { ElementType, Parser } from "htmlparser2";
 import { IVTTCue } from "shared/libs/vtt/vttcue";
 import { ON_SCREEN_CUE_ID } from "./const";
+import { deepClone } from "shared/deepClone";
 
 export interface IOnScreenCueToken {
   type: "onscreencue";
@@ -16,15 +17,49 @@ export interface IOnScreenCueToken {
 export type AugmentedMdToken = MarkedToken | IOnScreenCueToken;
 
 export const cuesToMdTokens = async (cuesArg: IVTTCue[]) => {
+  let cues = deepClone(cuesArg);
+
+  const isOnScreenCueId = (id: string) => {
+    return id === ON_SCREEN_CUE_ID || id.startsWith(`${ON_SCREEN_CUE_ID}::`);
+  };
+
+  const getConfigFromCueId = (id: string) => {
+    if (isOnScreenCueId(id)) {
+      const [, config = ""] = id.split("::");
+      const parsedConfig = config.split(",");
+      return parsedConfig;
+    } else {
+      return null;
+    }
+  };
+
+  // Clamp on screen cues
+  let prevOnScreenCueIndex: number | null = null;
+  cues = cues.filter((cue, index, array) => {
+    if (isOnScreenCueId(cue.id)) {
+      const cueConfig = getConfigFromCueId(cue.id);
+      if (cueConfig?.includes("CLAMP_TOP") && prevOnScreenCueIndex !== null) {
+        const prevOnScreenCue = array[prevOnScreenCueIndex];
+        prevOnScreenCue.text += cue.text;
+
+        return false;
+      } else {
+        prevOnScreenCueIndex = index;
+      }
+    }
+
+    return true;
+  });
+
   let onScreenCueCounter = 1;
-  const text = cuesArg
+  const text = cues
     .map((cue, index, cues) => {
       const prevCue = cues.at(index - 1);
       const nextCue = cues.at(index + 1);
 
-      const cueText = `${prevCue?.id === ON_SCREEN_CUE_ID ? " " : ""}${cue.text}${nextCue?.id !== ON_SCREEN_CUE_ID ? " " : ""}`;
+      const cueText = `${isOnScreenCueId(prevCue?.id ?? "") ? " " : ""}${cue.text}${isOnScreenCueId(nextCue?.id ?? "") ? " " : ""}`;
 
-      if (cue.id === ON_SCREEN_CUE_ID) {
+      if (isOnScreenCueId(cue.id)) {
         return `<onscreencue attr-index="${onScreenCueCounter++}">${cueText}</onscreencue>`;
       } else {
         return cueText;
@@ -104,6 +139,13 @@ const domToMdTokensInterface = (dom: ChildNode[]): AugmentedMdToken[] => {
         mdtokens.push({
           type: "onscreencue",
           index: parseFloat(domToken.attribs["attr-index"]),
+          raw: renderDomHandler(domToken),
+          text: extractAllTextNodesAsText(domToken.childNodes),
+          tokens: domToMdTokensInterface(domToken.childNodes),
+        });
+      } else if (domToken.tagName === "strong" || domToken.tagName === "b") {
+        mdtokens.push({
+          type: "strong",
           raw: renderDomHandler(domToken),
           text: extractAllTextNodesAsText(domToken.childNodes),
           tokens: domToMdTokensInterface(domToken.childNodes),

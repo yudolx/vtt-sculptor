@@ -13,6 +13,7 @@ import { OnScreenCueToken } from "./onscreencue";
 import { EmToken } from "./em";
 import { BrToken } from "./br";
 import { BlockquoteToken } from "./blockquote";
+import { StrongToken } from "./strong";
 
 export const jsxifyMarkdownToken = (
   tokenArg: Token,
@@ -49,6 +50,9 @@ export const jsxifyMarkdownToken = (
     }
     case "blockquote": {
       return <BlockquoteToken key={Math.random()} {...token} />;
+    }
+    case "strong": {
+      return <StrongToken key={Math.random()} {...token} />;
     }
     case "onscreencue": {
       if (options?.renderOnScreenCuesAsText) {

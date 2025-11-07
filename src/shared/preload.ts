@@ -59,7 +59,6 @@ export const EmitIPCEvent = Object.freeze({
     ipcRenderer.send("ipc/renderer/delete-cues", cues),
 
   patchCues: (cues: IMinimalPartialVTTCue[]) => {
-    console.log(cues);
     ipcRenderer.send("ipc/renderer/patch-cues", cues);
   },
 

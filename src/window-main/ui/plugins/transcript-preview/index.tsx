@@ -6,7 +6,7 @@ import { Box } from "@mui/joy";
 
 export const TranscriptPreview = () => {
   const [mdTokens, setMdTokens] = React.useState<AugmentedMdToken[]>([]);
-  const { data: cues = [], setDataInternally } = useImmediateCuesList();
+  const { data: cues = [] } = useImmediateCuesList();
 
   React.useEffect(() => {
     cuesToMdTokens(cues).then((tokens) => setMdTokens(tokens));
