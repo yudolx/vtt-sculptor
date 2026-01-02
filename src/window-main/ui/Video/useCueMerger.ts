@@ -1,6 +1,6 @@
 import React from "react";
 import { CuesMerger } from "./cues-merger";
-import { IVTTCue } from "shared/libs/vtt/vttcue";
+import { IVTTCue } from "@thulean-archives/shared/vtt/vttcue";
 import { useTrackModeObserver } from "./hooks/useTrackModeObserver";
 
 export const useCueMerger = (

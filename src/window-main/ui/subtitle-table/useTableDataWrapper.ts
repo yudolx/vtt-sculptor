@@ -2,7 +2,7 @@ import React from "react";
 import { useImmediateCuesList } from "./useImmediateCuesList";
 import { useQuery } from "@tanstack/react-query";
 import { QueryKey } from "shared/constants";
-import { IVTTCue } from "shared/libs/vtt/vttcue";
+import { IVTTCue } from "@thulean-archives/shared/vtt/vttcue";
 import { VTTCueUuid } from "../video/vtt-cue-uuid";
 
 export const useTableDataWrapper = (videoEl: HTMLVideoElement | null) => {

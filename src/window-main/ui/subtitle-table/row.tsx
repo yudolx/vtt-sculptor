@@ -1,21 +1,23 @@
 import React from "react";
 import { styled } from "@mui/joy";
-import { IVTTCue } from "shared/libs/vtt/vttcue";
+import { IVTTCue } from "@thulean-archives/shared/vtt/vttcue";
 import { TextAreaEditableCell } from "./text-area-editable-cell";
 import { toFixedNumber } from "shared/to-fixed-number";
-import { stringifyTimestamp } from "shared/libs/vtt/WebVTTDeserializer";
+import { stringifyTimestamp } from "@thulean-archives/shared/vtt/WebVTTDeserializer";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 
 export interface ISubtitleTableRowProps {
-  active: boolean;
+  isActive: boolean;
   isNew?: boolean;
   cue: IVTTCue;
   editField: keyof IVTTCue | null;
   onClick: (cue: IVTTCue, event: React.MouseEvent<HTMLTableRowElement>) => void;
-  onCellFocus: () => void;
-  onCellBlur: () => void;
-  onCellChange: (field: keyof IVTTCue, value: IVTTCue[keyof IVTTCue]) => void;
+  onCellChange: (
+    field: keyof IVTTCue,
+    value: IVTTCue[keyof IVTTCue],
+    blur: boolean,
+  ) => void;
   onDoubleCellClick: (field: keyof IVTTCue) => void;
   onContextMenu: (cue: IVTTCue) => void;
 }
@@ -24,13 +26,11 @@ export interface ISubtitleTableRowState {}
 export const SubtitleTableRow = (props: ISubtitleTableRowProps) => {
   const {
     cue,
-    onCellBlur,
     onCellChange,
-    onCellFocus,
     onClick,
     onContextMenu,
     onDoubleCellClick,
-    active,
+    isActive,
     editField,
     isNew,
   } = props;
@@ -56,42 +56,36 @@ export const SubtitleTableRow = (props: ISubtitleTableRowProps) => {
   );
 
   const handleChange = React.useCallback(
-    (value: IVTTCue[keyof IVTTCue], field: keyof IVTTCue) => {
-      onCellChange(field, value);
+    (value: IVTTCue[keyof IVTTCue], field: keyof IVTTCue, blur: boolean) => {
+      onCellChange(field, value, blur);
     },
     [onCellChange],
   );
 
   const handleCellDoubleClick = React.useCallback(
     (field: keyof IVTTCue) => {
-      if (active && editField !== field) {
+      if (editField !== field) {
         onDoubleCellClick(field);
       }
     },
-    [onDoubleCellClick, active, editField],
+    [onDoubleCellClick, editField],
   );
-
-  const handleCellBlur = React.useCallback(() => {
-    onCellBlur();
-  }, [onCellBlur]);
-
-  const handleCellFocus = React.useCallback(() => {
-    onCellFocus();
-  }, [onCellFocus]);
 
   const handleContextMenu: React.MouseEventHandler<HTMLTableRowElement> =
     React.useCallback(
       (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        onContextMenu(cue);
+        if (editField === null) {
+          e.preventDefault();
+          e.stopPropagation();
+          onContextMenu(cue);
+        }
       },
-      [onContextMenu, cue],
+      [onContextMenu, cue, editField],
     );
 
   return (
     <StyledRow
-      active={props.active}
+      active={props.isActive}
       style={{
         transform: CSS.Transform.toString(transform),
         transition,
@@ -102,7 +96,7 @@ export const SubtitleTableRow = (props: ISubtitleTableRowProps) => {
       }}
       onMouseDown={handleRowMouseDown}
       onContextMenu={handleContextMenu}
-      {...((!active || editField === null) && {
+      {...(editField === null && {
         ...attributes,
         ...listeners,
       })}
@@ -113,11 +107,9 @@ export const SubtitleTableRow = (props: ISubtitleTableRowProps) => {
       <td title={cue.endTime.toString()}>{stringifyTimestamp(cue.endTime)}</td>
       <td>{toFixedNumber(cue.endTime - cue.startTime, 3)}</td>
       <TextAreaEditableCell
-        edit={active && editField === "text"}
+        edit={isActive && editField === "text"}
         cue={cue}
         field="text"
-        onBlur={handleCellBlur}
-        onFocus={handleCellFocus}
         onChange={handleChange}
         onDoubleClick={handleCellDoubleClick}
       />

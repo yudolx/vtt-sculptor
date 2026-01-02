@@ -1,5 +1,5 @@
-import { IVTTCue } from "shared/libs/vtt/vttcue";
-import { IVTTRegion } from "shared/libs/vtt/vttregion";
+import { IVTTCue } from "@thulean-archives/shared/vtt/vttcue";
+import { IVTTRegion } from "@thulean-archives/shared/vtt/vttregion";
 import { mutableMergeVttCues } from "shared/mergeVttObjects";
 import {
   IAlterationModifiersPayload,

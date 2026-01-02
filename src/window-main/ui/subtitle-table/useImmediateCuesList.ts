@@ -1,7 +1,7 @@
 import React from "react";
 import { useQuery } from "@tanstack/react-query";
 import { QueryKey } from "shared/constants";
-import { IVTTCue } from "shared/libs/vtt/vttcue";
+import { IVTTCue } from "@thulean-archives/shared/vtt/vttcue";
 
 /**
  * A wrapper for the cues list useQuery. Keeps a local copy of cues in a state

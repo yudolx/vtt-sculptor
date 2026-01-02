@@ -13,8 +13,8 @@ import {
 } from "@mui/joy";
 import { useQuery } from "@tanstack/react-query";
 import { QueryKey } from "shared/constants";
-import { stringifyTimestamp } from "shared/libs/vtt/WebVTTDeserializer";
-import { mockVttCue } from "shared/libs/vtt/vttcue";
+import { stringifyTimestamp } from "@thulean-archives/shared/vtt/WebVTTDeserializer";
+import { mockVttCue } from "@thulean-archives/shared/vtt/vttcue";
 import { toFixedNumber } from "shared/to-fixed-number";
 
 export const App = () => {

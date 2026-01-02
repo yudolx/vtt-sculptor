@@ -1,7 +1,10 @@
 import React from "react";
 import { useImmediateCuesList } from "window-main/ui/subtitle-table/useImmediateCuesList";
-import { AugmentedMdToken, cuesToMdTokens } from "./cuesToJsx/parseHtml";
-import { Transcription } from "./cuesToJsx/Transcription";
+import {
+  AugmentedMdToken,
+  cuesToMdTokens,
+} from "@thulean-archives/shared/transcription-viewer/parseHtml";
+import { Transcription } from "@thulean-archives/shared/transcription-viewer/Transcription";
 import { Box } from "@mui/joy";
 
 export const TranscriptPreview = () => {

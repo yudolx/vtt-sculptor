@@ -1,4 +1,4 @@
-import { IVTTCue } from "shared/libs/vtt/vttcue";
+import { IVTTCue } from "@thulean-archives/shared/vtt/vttcue";
 
 export class VTTCueUuid extends VTTCue {
   static is(data: unknown): data is VTTCueUuid {

@@ -19,7 +19,9 @@ export const Plugins = () => {
         </AccordionDetails>
       </Accordion>
       <Accordion>
-        <StyledAccordionSummary>Transcript preview</StyledAccordionSummary>
+        <StyledAccordionSummary>
+          Thulean transcription preview
+        </StyledAccordionSummary>
         <AccordionDetails>
           <TranscriptPreview />
         </AccordionDetails>

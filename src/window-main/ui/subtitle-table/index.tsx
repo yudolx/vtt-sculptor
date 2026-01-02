@@ -17,7 +17,7 @@ import {
   restrictToVerticalAxis,
   restrictToWindowEdges,
 } from "@dnd-kit/modifiers";
-import { IVTTCue } from "shared/libs/vtt/vttcue";
+import { IVTTCue } from "@thulean-archives/shared/vtt/vttcue";
 import { ISubtitleTableRowProps, SubtitleTableRow } from "./row";
 import { VideoElContext } from "../context/video-el";
 import { useTableDataWrapper } from "./useTableDataWrapper";
@@ -58,7 +58,7 @@ export const SubtitleTable = () => {
   const handleCellChange = React.useCallback<
     ISubtitleTableRowProps["onCellChange"]
   >(
-    (field, value) => {
+    (field, value, blur) => {
       if (activeCues.length === 1) {
         const activeCue = activeCues.at(0)!;
         const newCue: IVTTCue = {
@@ -67,6 +67,12 @@ export const SubtitleTable = () => {
         };
 
         window.electronAPI.patchCues([newCue]);
+
+        if (blur) {
+          window.electronAPI.enableHotkeys();
+          console.log("setEditField(null);");
+          setEditField(null);
+        }
       }
     },
     [activeCues],
@@ -76,18 +82,6 @@ export const SubtitleTable = () => {
     ISubtitleTableRowProps["onDoubleCellClick"]
   >((field) => {
     setEditField(field);
-  }, []);
-
-  const handleCellBlur = React.useCallback<
-    ISubtitleTableRowProps["onCellBlur"]
-  >(() => {
-    setEditField(null);
-    window.electronAPI.enableHotkeys();
-  }, []);
-
-  const handleCellFocus = React.useCallback<
-    ISubtitleTableRowProps["onCellFocus"]
-  >(() => {
     window.electronAPI.disableHotkeys();
   }, []);
 
@@ -145,13 +139,11 @@ export const SubtitleTable = () => {
                   editField={editField}
                   key={cue.uuid}
                   cue={cue}
-                  active={activeCueUuid.includes(cue.uuid)}
+                  isActive={activeCueUuid.includes(cue.uuid)}
                   onContextMenu={handleContextMenu}
                   onClick={handleSubtitleTableRowClick}
                   onCellChange={handleCellChange}
                   onDoubleCellClick={handleDoubleCellClick}
-                  onCellBlur={handleCellBlur}
-                  onCellFocus={handleCellFocus}
                 />
               );
             })}

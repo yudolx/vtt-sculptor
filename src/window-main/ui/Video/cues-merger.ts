@@ -1,4 +1,4 @@
-import { IVTTCue } from "shared/libs/vtt/vttcue";
+import { IVTTCue } from "@thulean-archives/shared/vtt/vttcue";
 import { VTTCueUuid } from "./vtt-cue-uuid";
 
 export class CuesMerger {

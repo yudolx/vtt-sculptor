@@ -2,7 +2,7 @@ import path from "path";
 import { app as electronApp } from "electron";
 import type { BackgroundProcess } from "./background-process";
 import { supportedVideoExtensions } from "./constants";
-import { parseWebVTT } from "shared/libs/vtt";
+import { parseWebVTT } from "@thulean-archives/shared/vtt";
 import { readFile, stat } from "fs/promises";
 
 export class FileOpener {

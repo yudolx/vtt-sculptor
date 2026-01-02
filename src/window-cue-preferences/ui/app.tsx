@@ -23,7 +23,7 @@ import {
 import { QuestionMarkCircleIcon } from "@heroicons/react/24/outline";
 import { useQuery } from "@tanstack/react-query";
 import { QueryKey } from "shared/constants";
-import { IVTTCue } from "shared/libs/vtt/vttcue";
+import { IVTTCue } from "@thulean-archives/shared/vtt/vttcue";
 import { useAccumulatedCue } from "./useAccumulatedCue";
 
 export const App = () => {

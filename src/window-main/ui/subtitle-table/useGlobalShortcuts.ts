@@ -1,5 +1,5 @@
 import React from "react";
-import { mockVttCue } from "shared/libs/vtt/vttcue";
+import { mockVttCue } from "@thulean-archives/shared/vtt/vttcue";
 import { DEFAULT_CUE_LENGTH_SEC } from "shared/constants";
 
 export const useGlobalShortcuts = (videoEl: HTMLVideoElement | null) => {

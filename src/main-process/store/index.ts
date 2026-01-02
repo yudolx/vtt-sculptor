@@ -1,7 +1,7 @@
 import { VideoStore } from "./video";
 import { IMinimalPartialVTTCue, SubtitlesStore } from "./subtitles";
-import { IVTTCue } from "shared/libs/vtt/vttcue";
-import { IVTTRegion } from "shared/libs/vtt/vttregion";
+import { IVTTCue } from "@thulean-archives/shared/vtt/vttcue";
+import { IVTTRegion } from "@thulean-archives/shared/vtt/vttregion";
 import { QueryKey } from "shared/constants";
 import type { BackgroundProcess } from "main-process/background-process";
 import { HistoryManager } from "main-process/history";

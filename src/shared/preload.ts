@@ -1,7 +1,7 @@
 import { ipcRenderer, IpcRendererEvent } from "electron";
 import { PRELOAD_GLOBAL_KEY, QueryKey } from "./constants";
 import { IS_DARWIN, IS_LINUX, IS_WIN32 } from "../main-process/constants";
-import type { IVTTCue } from "./libs/vtt/vttcue";
+import type { IVTTCue } from "@thulean-archives/shared/vtt/vttcue";
 import { IMinimalPartialVTTCue } from "main-process/store/subtitles";
 import { ISettings } from "main-process/settings/types";
 

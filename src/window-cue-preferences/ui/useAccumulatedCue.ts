@@ -1,5 +1,5 @@
 import React from "react";
-import { IVTTCue, mockVttCue } from "shared/libs/vtt/vttcue";
+import { IVTTCue, mockVttCue } from "@thulean-archives/shared/vtt/vttcue";
 
 export const useAccumulatedCue = (cuesArg: IVTTCue[]): Partial<IVTTCue> => {
   return React.useMemo(() => {

@@ -2,7 +2,7 @@ import { Textarea } from "@mui/joy";
 import { useQuery } from "@tanstack/react-query";
 import React from "react";
 import { QueryKey } from "shared/constants";
-import { stringifyVTT } from "shared/libs/vtt/WebVTTDeserializer";
+import { stringifyVTT } from "@thulean-archives/shared/vtt/WebVTTDeserializer";
 
 export const SourceEdit = () => {
   const cuesQuery = useQuery({

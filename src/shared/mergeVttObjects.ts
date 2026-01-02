@@ -1,4 +1,4 @@
-import { IVTTCue } from "./libs/vtt/vttcue";
+import { IVTTCue } from "@thulean-archives/shared/vtt/vttcue";
 import { safeHasOwnProperty } from "./safe-has-own-property";
 
 export const mutableMergeVttCues = (cueA: IVTTCue, cueB: Partial<IVTTCue>) => {

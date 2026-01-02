@@ -1,7 +1,7 @@
 import React from "react";
 import MouseTrap from "shared/libs/mousetrap/index";
 import { DEFAULT_CUE_ADJUST_TIME } from "shared/constants";
-import { IVTTCue } from "shared/libs/vtt/vttcue";
+import { IVTTCue } from "@thulean-archives/shared/vtt/vttcue";
 
 export const useTableShortcuts = (
   videoEl: HTMLVideoElement | null,

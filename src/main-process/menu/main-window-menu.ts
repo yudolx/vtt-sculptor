@@ -8,7 +8,7 @@ import {
 } from "electron";
 import { BackgroundProcess } from "../background-process";
 import { IS_DARWIN, supportedVideoExtensions } from "../constants";
-import { stringifyVTT } from "shared/libs/vtt/WebVTTDeserializer";
+import { stringifyVTT } from "@thulean-archives/shared/vtt/WebVTTDeserializer";
 import { QueryKey } from "shared/constants";
 import { VttSculptorWindowMenu } from "./vtt-sculptor-menu";
 

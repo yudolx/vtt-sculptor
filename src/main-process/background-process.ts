@@ -1,6 +1,6 @@
 import { BrowserWindow, ipcMain, app as electronApp } from "electron";
 import { ApplicationStore } from "./store";
-import { IVTTCue } from "shared/libs/vtt/vttcue";
+import { IVTTCue } from "@thulean-archives/shared/vtt/vttcue";
 import { QueryKey } from "shared/constants";
 import { WindowManager } from "./window-manager";
 import { IMinimalPartialVTTCue } from "./store/subtitles";
