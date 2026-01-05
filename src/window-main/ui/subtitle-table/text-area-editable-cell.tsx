@@ -25,7 +25,7 @@ export interface ITextAreaEditableCellState {
 
 export class TextAreaEditableCell<
   Field extends keyof IVTTCue,
-> extends React.Component<
+> extends React.PureComponent<
   ITextAreaEditableCellProps<Field>,
   ITextAreaEditableCellState
 > {
@@ -72,14 +72,16 @@ export class TextAreaEditableCell<
     if (this.props.edit && this.props.edit !== prevProps.edit) {
       if (this.editorWrapper) {
         const textArea = this.editorWrapper.querySelector("textarea");
-        // TODO: Without this timeout textarea can't get into focus state because something triggers
-        // the blur event right after this focus
+        textArea?.focus();
+
+        // TODO: Without this timeout textarea can't get into focus state because
+        // something (dnd-kit) triggers the blur event right after this focus
         setTimeout(() => {
           if (textArea) {
-            textArea.focus();
-            textArea.selectionStart = textArea.value.length;
+            textArea?.focus();
+            textArea.selectionEnd = textArea.value.length;
           }
-        });
+        }, 50);
       }
     }
   }
@@ -145,7 +147,13 @@ export class TextAreaEditableCell<
           }}
           size="sm"
         >
-          <ToolboxButton>
+          <ToolboxButton
+            onMouseDown={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              console.log(document.getSelection());
+            }}
+          >
             <strong>B</strong>
           </ToolboxButton>
           <ToolboxButton>

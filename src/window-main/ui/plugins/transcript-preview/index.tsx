@@ -17,7 +17,10 @@ export const TranscriptPreview = () => {
 
   return (
     <Box sx={{ overflow: "auto" }}>
-      <Transcription tokens={mdTokens} />
+      <Box></Box>
+      <Box>
+        <Transcription tokens={mdTokens} />
+      </Box>
     </Box>
   );
 };

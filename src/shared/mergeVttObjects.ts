@@ -1,5 +1,5 @@
 import { IVTTCue } from "@thulean-archives/shared/vtt/vttcue";
-import { safeHasOwnProperty } from "./safe-has-own-property";
+import { safeHasOwnProperty } from "@thulean-archives/shared/utils/safe-has-own-property";
 
 export const mutableMergeVttCues = (cueA: IVTTCue, cueB: Partial<IVTTCue>) => {
   let changed = false;

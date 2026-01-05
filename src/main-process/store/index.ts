@@ -2,13 +2,14 @@ import { VideoStore } from "./video";
 import { IMinimalPartialVTTCue, SubtitlesStore } from "./subtitles";
 import { IVTTCue } from "@thulean-archives/shared/vtt/vttcue";
 import { IVTTRegion } from "@thulean-archives/shared/vtt/vttregion";
+import { areEqual } from "@thulean-archives/shared/utils/array";
 import { QueryKey } from "shared/constants";
 import type { BackgroundProcess } from "main-process/background-process";
 import { HistoryManager } from "main-process/history";
 import { AddCueAction } from "main-process/history/actions/add-cue";
 import { CuePatchAction } from "main-process/history/actions/cue-patch";
 import { assert } from "shared/assert";
-import { deepClone } from "shared/deepClone";
+import { deepClone } from "@thulean-archives/shared/utils/deep-clone";
 import { DeleteCueAction } from "main-process/history/actions/delete-cue";
 import { ReorderCueAction } from "main-process/history/actions/reorder-cue";
 
@@ -161,8 +162,13 @@ export class ApplicationStore {
       key?: "ArrowUp" | "ArrowDown";
     },
   ) {
+    const currentSelection = this.subtitles.getActiveCueArray();
     this.subtitles.alterCueSelection(cue, modifiers);
-    this.app.invalidateQuery(QueryKey.ActiveCue);
+    const nextSelection = this.subtitles.getActiveCueArray();
+
+    if (!areEqual(currentSelection, nextSelection)) {
+      this.app.invalidateQuery(QueryKey.ActiveCue);
+    }
   }
 
   public reoderCue(index: number, overIndex: number) {

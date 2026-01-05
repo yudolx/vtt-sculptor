@@ -14,17 +14,17 @@ export const Plugins = () => {
     <AccordionGroup size="lg" sx={{ overflow: "auto", maxHeight: "100%" }}>
       <Accordion>
         <StyledAccordionSummary>Source edit</StyledAccordionSummary>
-        <AccordionDetails>
+        <StyledAccordionDetails>
           <SourceEdit />
-        </AccordionDetails>
+        </StyledAccordionDetails>
       </Accordion>
       <Accordion>
         <StyledAccordionSummary>
           Thulean transcription preview
         </StyledAccordionSummary>
-        <AccordionDetails>
+        <StyledAccordionDetails>
           <TranscriptPreview />
-        </AccordionDetails>
+        </StyledAccordionDetails>
       </Accordion>
     </AccordionGroup>
   );
@@ -33,5 +33,13 @@ export const Plugins = () => {
 const StyledAccordionSummary = styled(AccordionSummary)(() => {
   return {
     backgroundColor: "#F0F4F8",
+  };
+});
+
+const StyledAccordionDetails = styled(AccordionDetails)(() => {
+  return {
+    "& > .MuiAccordionDetails-content": {
+      padding: 0,
+    },
   };
 });

@@ -5,7 +5,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": "cross-env NODE_ENV=development webpack",
+    "build": "cross-env webpack",
     "start": "cross-env NODE_ENV=development WATCH=true webpack",
     "electron": "electron ./compiled/main-process.js",
     "fixelectron_linux": "chown root ./node_modules/electron/dist/chrome-sandbox && chmod 4755 ./node_modules/electron/dist/chrome-sandbox"

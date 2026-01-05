@@ -70,7 +70,6 @@ export const SubtitleTable = () => {
 
         if (blur) {
           window.electronAPI.enableHotkeys();
-          console.log("setEditField(null);");
           setEditField(null);
         }
       }
