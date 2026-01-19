@@ -1,0 +1,9 @@
+{
+  "name": "@sculptor/shared",
+  "version": "0.0.1",
+  "main": "./compiled/main.js",
+  "types": "./main.d.ts",
+  "author": "",
+  "license": "ISC",
+  "description": ""
+}

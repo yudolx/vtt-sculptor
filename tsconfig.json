@@ -1,27 +1,28 @@
 {
   "compilerOptions": {
     "strict": true,
-    "module": "commonjs",
-    "removeComments": true,
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
     "target": "esnext",
     "outDir": "./compiled/",
-    "baseUrl": "./src",
+    "baseUrl": "./",
     "jsx": "react",
     "esModuleInterop": true,
     "allowJs": true,
     "paths": {
-      "*": [
-        "./node_modules/*",
-        "./*"
-      ]
-    },
+      "@sculptor/main-process/*": ["./packages/main-process/*"],
+      "@sculptor/shared/*": ["./packages/shared/src/*"],
+      "@sculptor/window-cue-preferences/*": ["./packages/window-cue-preferences/*"],
+      "@sculptor/window-cue-split/*": ["./packages/window-cue-split/*"],
+      "@sculptor/window-main/*": ["./packages/window-main/*"],
+      "@sculptor/window-settings/*": ["./packages/window-settings/*"],
+      "@sculptor/helpers/*": ["./packages/helpers/*"]
+    }
   },
-  "include": [
-    "./src/**/*",
-    "global.d.ts"
-  ],
   "exclude": [
     "node_modules",
-    "compiled"
+    "**/node_modules/*",
+    "compiled",
+    "**/compiled/*"
   ]
 }

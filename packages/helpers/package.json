@@ -1,0 +1,8 @@
+{
+  "name": "@sculptor/helpers",
+  "version": "0.0.1",
+  "main": "./index.ts",
+  "author": "",
+  "license": "ISC",
+  "description": ""
+}

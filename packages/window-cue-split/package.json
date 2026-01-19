@@ -1,0 +1,8 @@
+{
+  "name": "@sculptor/window-cue-split",
+  "version": "0.0.1",
+  "main": "./index.tsx",
+  "author": "",
+  "license": "ISC",
+  "description": ""
+}
