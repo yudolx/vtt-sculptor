@@ -1,16 +1,14 @@
 import { BrowserWindow, Rectangle } from "electron";
-import debounce from "lodash.debounce";
 import { ISettings } from "./types";
 
 export class StateManager {
-  private _debounceCache = new Map<
+  private _callbackCache = new Map<
     string,
     { resize: () => void; move: () => void; close: () => void }
   >();
 
   constructor(
     protected options: {
-      debounce: number;
       onChange: (
         name: keyof ISettings["windowsState"],
         bounds: Rectangle,
@@ -38,18 +36,14 @@ export class StateManager {
   }
 
   manage(name: keyof ISettings["windowsState"], win: BrowserWindow) {
-    const change = debounce(
-      () => this.changeHandler(name, win),
-      this.options.debounce,
-    );
-
+    const change = () => this.changeHandler(name, win);
     const close = () => this.closeHandler(name, win);
 
     win.on("resize", change);
     win.on("move", change);
     win.on("close", close);
 
-    this._debounceCache.set(name, {
+    this._callbackCache.set(name, {
       resize: change,
       move: change,
       close,
@@ -57,7 +51,7 @@ export class StateManager {
   }
 
   unmanage(name: string, win: BrowserWindow) {
-    const callbackCache = this._debounceCache.get(name);
+    const callbackCache = this._callbackCache.get(name);
 
     if (callbackCache) {
       win.removeListener("resize", callbackCache.resize);

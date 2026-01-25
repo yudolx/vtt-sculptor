@@ -8,14 +8,14 @@ export interface ISettings extends MigrateState {
     settings: Partial<Rectangle>;
     cueSplit: Partial<Rectangle>;
   };
-  externalCueIds: string[];
-  generalSettings: {
+  general: {
     tryDuete: boolean;
+    pluginsDirectory: string;
   };
-  plugins: {
-    path: string;
-    list: Record<string, any>;
+  styles: {
+    externalCueIds: string[];
   };
+  plugins: Record<string, unknown>;
 }
 
 const rectangleSchema = joi.object({
@@ -32,16 +32,18 @@ export const settingsSchema = joi.object({
     settings: rectangleSchema,
     cueSplit: rectangleSchema,
   }),
-  externalCueIds: joi.array().items(joi.string()).required(),
-  generalSettings: joi
+  general: joi
     .object({
       tryDuete: joi.boolean().required(),
+      pluginsDirectory: joi.string().allow("").required(),
     })
     .required(),
-  plugins: joi.object({
-    path: joi.string(),
-    list: joi.object(),
-  }),
+  styles: joi
+    .object({
+      externalCueIds: joi.array().items(joi.string()).required(),
+    })
+    .required(),
+  plugins: joi.object().required(),
 });
 
 export const validateSettings = (data: unknown): ISettings => {

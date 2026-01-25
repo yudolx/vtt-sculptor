@@ -1,17 +1,21 @@
 import fs from "fs/promises";
 import path from "path";
 import type { SettingsStore } from "./settings";
+import { ISettings } from "./settings/types";
 
 export interface IPlugin {
   main: {
     pluginId: string;
     pluginName: string;
     pluginDescription: string;
-    toolbarButtons: any[];
-    settings: any[];
+    /** This property is not available outside of the main process */
+    getDefaultSettings: () => unknown;
   };
   path: string;
 }
+
+const MIME_TYPE_MAP = new Map<string, string>([[".css", "text/css"]]);
+const getMimeType = (ext: string) => MIME_TYPE_MAP.get(ext) ?? "text/plain";
 
 export class PluginsManager {
   protected plugins: IPlugin[] = [];
@@ -26,7 +30,7 @@ export class PluginsManager {
   }
 
   protected async scan() {
-    const pluginsDir = this.settings.pluginsSettings.path;
+    const pluginsDir = this.settings.pluginsDirectory;
     if (path.isAbsolute(pluginsDir)) {
       try {
         await fs.stat(pluginsDir);
@@ -38,24 +42,37 @@ export class PluginsManager {
       }
 
       const dirlist = await fs.readdir(pluginsDir);
+      const pluginsSettings: ISettings["plugins"] = {};
       for (const dir of dirlist) {
         const absolutePluginDirPath = path.join(pluginsDir, dir);
         const pluginPath = await tryRootOrCompiledFolder(absolutePluginDirPath);
         if (pluginPath) {
-          /* eslint-disable prettier/prettier, @typescript-eslint/no-var-requires */
+          /* eslint-disable-next-line prettier/prettier, @typescript-eslint/no-var-requires */
           const main = require(/* webpackIgnore: true */ path.join(pluginPath, "main.js"));
-          // const renderer = await fs.readFile(path.join(pluginPath, "renderer.js"), "utf-8");
-          // const preload = await fs.readFile(path.join(pluginPath, "preload.js"), "utf-8");
-          /* eslint-enable prettier/prettier, @typescript-eslint/no-var-requires */
-
-          this.plugins.push({ main, path: pluginPath });
+          const plugin: IPlugin = { main, path: pluginPath };
+          this.plugins.push(plugin);
+          pluginsSettings[plugin.main.pluginId] =
+            plugin.main.getDefaultSettings();
         }
       }
+      this.settings.setState({
+        plugins: pluginsSettings,
+      });
     }
   }
 
   public list() {
     return this.plugins;
+  }
+
+  public ipcList() {
+    return this.plugins.map((p) => {
+      const { getDefaultSettings, ...goodMain } = p.main;
+      return {
+        ...p,
+        main: goodMain,
+      };
+    });
   }
 
   public async execute(pluginId: string, methodArg: string) {
@@ -75,8 +92,12 @@ export class PluginsManager {
           path.join(plugin.path, file),
           "utf-8",
         );
+
         return new Response(fileContent, {
           status: 200,
+          headers: {
+            "Content-Type": getMimeType(path.extname(file)),
+          },
         });
       } catch (e) {
         return new Response("error, check console", {

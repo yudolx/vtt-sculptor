@@ -1,4 +1,11 @@
-import { ipcRenderer, IpcRendererEvent } from "electron";
+import {
+  ipcRenderer,
+  IpcRendererEvent,
+  MessageBoxOptions,
+  MessageBoxReturnValue,
+  OpenDialogOptions,
+  OpenDialogReturnValue,
+} from "electron";
 import { QueryKey } from "@sculptor/helpers/constants";
 import { IVTTCue } from "@sculptor/helpers/vtt";
 import {
@@ -9,6 +16,7 @@ import {
 import type { IMinimalPartialVTTCue } from "@sculptor/main-process/store/subtitles";
 import type { ISettings } from "@sculptor/main-process/settings/types";
 import type { IPlugin } from "@sculptor/main-process/plugins-manager";
+import { DeepPartial } from "./typeUtils";
 
 export const EmitIPCEvent = Object.freeze({
   IS_DARWIN,
@@ -33,6 +41,20 @@ export const EmitIPCEvent = Object.freeze({
     return () => {
       ipcRenderer.off("ipc/main/request-insert-new-cue", callback);
     };
+  },
+
+  showOpenDialog: (
+    options: OpenDialogOptions,
+  ): Promise<OpenDialogReturnValue> =>
+    ipcRenderer.invoke("ipc/showOpenDialog", options),
+
+  showMessageBox: (
+    options: MessageBoxOptions,
+  ): Promise<MessageBoxReturnValue> =>
+    ipcRenderer.invoke("ipc/showMessageBox", options),
+
+  showErrorBox: (title: string, content: string) => {
+    ipcRenderer.send("ipc/showErrorBox", title, content);
   },
 
   fetchVideoPath: (): Promise<string> =>
@@ -109,8 +131,8 @@ export const EmitIPCEvent = Object.freeze({
   fetchSettings: (): Promise<ISettings> =>
     ipcRenderer.invoke("ipc/renderer/get-settings"),
 
-  settingsSetExternalCueIds: (ids: ISettings["externalCueIds"]) =>
-    ipcRenderer.send("ipc/settings/renderer/set-external-ids", ids),
+  setSettings: (settings: DeepPartial<ISettings>) =>
+    ipcRenderer.invoke("ipc/renderer/set-settings", settings),
 
   // -----------------------------------------------------------------
 

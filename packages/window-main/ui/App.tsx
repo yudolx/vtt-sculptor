@@ -3,8 +3,11 @@ import { Box, styled } from "@mui/joy";
 import { Video } from "./video";
 import { SubtitleTable } from "./subtitle-table";
 import { Plugins } from "./plugins";
+import { PluginsContext } from "@sculptor/helpers/ui/PluginsLoaderAndContext";
 
 export const App = () => {
+  const { pluginComponentMap } = React.useContext(PluginsContext);
+
   return (
     <AppWrapper>
       <Left>
@@ -21,9 +24,11 @@ export const App = () => {
           <SubtitleTable />
         </SubtitleTableWrapper>
       </Left>
-      <Right>
-        <Plugins />
-      </Right>
+      {pluginComponentMap.size > 0 ? (
+        <Right>
+          <Plugins />
+        </Right>
+      ) : null}
     </AppWrapper>
   );
 };
@@ -55,7 +60,6 @@ const Left = styled(Box, { name: "Left" })(() => {
   return {
     display: "flex",
     flexDirection: "column",
-    maxWidth: 800,
   };
 });
 
@@ -63,5 +67,6 @@ const Right = styled(Box, { name: "Right" })(() => {
   return {
     flexGrow: 1,
     borderLeft: "1px #e5e5e5 solid",
+    minWidth: 400,
   };
 });

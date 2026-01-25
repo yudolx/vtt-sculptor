@@ -2,6 +2,7 @@ import React from "react";
 import {
   Box,
   Button,
+  FormHelperText,
   IconButton,
   Input,
   InputProps,
@@ -10,28 +11,32 @@ import {
   ListItem,
   ListItemContent,
   ListItemDecorator,
+  styled,
 } from "@mui/joy";
 import { TrashIcon } from "@heroicons/react/24/outline";
 import { ISettings } from "@sculptor/main-process/settings/types";
+import { StyledFormControl, StyledFormLabel } from "../components/styled";
+import { DeepPartial } from "@sculptor/helpers/typeUtils";
 
 export interface IStylesSettingsProps {
-  externalCueIds: ISettings["externalCueIds"];
+  settings: ISettings["styles"];
+  onChange: (settings: DeepPartial<ISettings["styles"]>) => void;
 }
 
 export const StylesSettings = (props: IStylesSettingsProps) => {
-  const { externalCueIds } = props;
+  const { onChange } = props;
+  const { externalCueIds } = props.settings;
   const [inputValue, setInputValue] = React.useState("");
 
   const handleAddButtonClick = React.useCallback(() => {
     if (inputValue.length > 0 && !externalCueIds.includes(inputValue)) {
-      window.electronAPI.settingsSetExternalCueIds([
-        ...externalCueIds,
-        inputValue,
-      ]);
+      onChange({
+        externalCueIds: [...externalCueIds, inputValue],
+      });
     }
 
     setInputValue("");
-  }, [externalCueIds, inputValue]);
+  }, [externalCueIds, onChange, inputValue]);
 
   const handleInputChange = React.useCallback<Required<InputProps>["onChange"]>(
     (event) => {
@@ -61,9 +66,9 @@ export const StylesSettings = (props: IStylesSettingsProps) => {
               variant="outlined"
               color="danger"
               onClick={() => {
-                window.electronAPI.settingsSetExternalCueIds(
-                  externalCueIds.filter((id) => id !== cueId),
-                );
+                onChange({
+                  externalCueIds: externalCueIds.filter((id) => id !== cueId),
+                });
               }}
             >
               <TrashIcon width={20} />
@@ -77,34 +82,36 @@ export const StylesSettings = (props: IStylesSettingsProps) => {
   };
 
   return (
-    <Box
-      sx={{
-        display: "flex",
-        flexDirection: "column",
-        overflow: "auto",
-        maxHeight: "500px",
-      }}
-    >
-      <Box sx={{ overflow: "auto" }}>
-        <List>
-          {externalCueIds.length > 0 ? (
-            externalCueIds.map(renderListItem)
-          ) : (
-            <ListItem sx={{ justifyContent: "center" }}>
-              No saved external IDs
-            </ListItem>
-          )}
-        </List>
-      </Box>
-      <Box>
-        <Input
-          value={inputValue}
-          onChange={handleInputChange}
-          onKeyDown={handleInputKeyDown}
-          endDecorator={<Button onClick={handleAddButtonClick}>Add</Button>}
-          sx={{ marginTop: 1 }}
-        ></Input>
-      </Box>
-    </Box>
+    <Wrapper>
+      <StyledFormControl>
+        <StyledFormLabel>List of external cue IDs</StyledFormLabel>
+        <FormHelperText>
+          If you've defined custom cue ids in your own css file, you can list
+          them here and you'll get matching suggestions in the program whenever
+          appropriate.
+        </FormHelperText>
+        <Box sx={{ overflow: "auto" }}>
+          <List>{externalCueIds.map(renderListItem)}</List>
+        </Box>
+        <Box>
+          <Input
+            value={inputValue}
+            onChange={handleInputChange}
+            onKeyDown={handleInputKeyDown}
+            endDecorator={<Button onClick={handleAddButtonClick}>Add</Button>}
+            sx={{ marginTop: 1 }}
+          ></Input>
+        </Box>
+      </StyledFormControl>
+    </Wrapper>
   );
 };
+
+export const Wrapper = styled(Box, { name: "Wrapper" })(() => {
+  return {
+    display: "flex",
+    flexDirection: "column",
+    overflow: "auto",
+    maxHeight: "500px",
+  };
+});

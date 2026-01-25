@@ -3,7 +3,7 @@ import { createRoot } from "react-dom/client";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { App } from "./ui/App";
 import { VideoElContextProvider } from "@sculptor/shared";
-import { PluginsContext } from "@sculptor/helpers/ui/PluginsContext";
+import { PluginsLoaderAndProvider } from "@sculptor/helpers/ui/PluginsLoaderAndContext";
 import { ThemeProvider } from "@sculptor/helpers/ui/ThemeProvider";
 import { InvalidateQueryManager } from "@sculptor/helpers/ui/InvalidateQueryManager";
 
@@ -20,9 +20,9 @@ document.addEventListener("DOMContentLoaded", () => {
       <InvalidateQueryManager />
       <ThemeProvider>
         <VideoElContextProvider>
-          <PluginsContext>
+          <PluginsLoaderAndProvider>
             <App />
-          </PluginsContext>
+          </PluginsLoaderAndProvider>
         </VideoElContextProvider>
       </ThemeProvider>
     </QueryClientProvider>,

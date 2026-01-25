@@ -7,10 +7,9 @@ import {
   Typography,
   Box,
   styled,
-  ButtonGroup,
-  Button,
 } from "@mui/joy";
 import type { IVTTCue } from "@sculptor/helpers/vtt";
+import { EditorToolbox } from "./editor-toolbox";
 
 export interface ITextAreaEditableCellProps<Field extends keyof IVTTCue> {
   cue: IVTTCue;
@@ -21,6 +20,7 @@ export interface ITextAreaEditableCellProps<Field extends keyof IVTTCue> {
 }
 export interface ITextAreaEditableCellState {
   value: string;
+  textAreaEl: HTMLTextAreaElement | null;
 }
 
 export class TextAreaEditableCell<
@@ -30,7 +30,6 @@ export class TextAreaEditableCell<
   ITextAreaEditableCellState
 > {
   editorWrapperEl: HTMLDivElement | null = null;
-  textAreaEl: HTMLTextAreaElement | null = null;
 
   constructor(props: ITextAreaEditableCellProps<Field>) {
     super(props);
@@ -41,6 +40,7 @@ export class TextAreaEditableCell<
   getInitialState(): ITextAreaEditableCellState {
     return {
       value: this.props.cue[this.props.field]?.toString() ?? "",
+      textAreaEl: null,
     };
   }
 
@@ -132,114 +132,20 @@ export class TextAreaEditableCell<
     this.editorWrapperEl = el;
 
     if (this.editorWrapperEl) {
-      this.textAreaEl = this.editorWrapperEl.querySelector("textarea");
+      this.setState({
+        textAreaEl: this.editorWrapperEl.querySelector("textarea"),
+      });
     } else {
-      this.textAreaEl = null;
+      this.setState({
+        textAreaEl: null,
+      });
     }
   };
 
   renderEdit() {
     return (
       <Box sx={{ position: "relative" }} ref={this.setWrapperRef}>
-        <ButtonGroup
-          size="sm"
-          variant="plain"
-          sx={{
-            position: "absolute",
-            left: "2px",
-            bottom: "2px",
-            borderBottom: "1px #eee solid",
-          }}
-        >
-          <ToolboxButton
-            onMouseDown={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              if (this.textAreaEl) {
-                wrapSelectedTextInTag(this.textAreaEl, ["<b>", "</b>"]);
-              }
-            }}
-          >
-            <strong>B</strong>
-          </ToolboxButton>
-          <ToolboxButton
-            onMouseDown={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              if (this.textAreaEl) {
-                wrapSelectedTextInTag(this.textAreaEl, ["<i>", "</i>"]);
-              }
-            }}
-          >
-            <i>I</i>
-          </ToolboxButton>
-          <ToolboxButton
-            onMouseDown={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              if (this.textAreaEl) {
-                wrapSelectedTextInTag(this.textAreaEl, ["<u>", "</u>"]);
-              }
-            }}
-          >
-            <u>U</u>
-          </ToolboxButton>
-          <ToolboxButton
-            onMouseDown={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              if (this.textAreaEl) {
-                wrapSelectedTextInTag(this.textAreaEl, "<br />");
-              }
-            }}
-          >
-            {"<br />"}
-          </ToolboxButton>
-          <ToolboxButton
-            onMouseDown={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              if (this.textAreaEl) {
-                wrapSelectedTextInTag(this.textAreaEl, ["<hft>", "</hft>"]);
-              }
-            }}
-          >
-            {"<hft>"}
-          </ToolboxButton>
-          <ToolboxButton
-            onMouseDown={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              if (this.textAreaEl) {
-                wrapSelectedTextInTag(this.textAreaEl, ["<ol>", "</ol>"]);
-              }
-            }}
-          >
-            {"<ol>"}
-          </ToolboxButton>
-          <ToolboxButton
-            onMouseDown={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              if (this.textAreaEl) {
-                wrapSelectedTextInTag(this.textAreaEl, ["<ul>", "</ul>"]);
-              }
-            }}
-          >
-            {"<ul>"}
-          </ToolboxButton>
-          <ToolboxButton
-            onMouseDown={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              if (this.textAreaEl) {
-                wrapSelectedTextInTag(this.textAreaEl, ["<li>", "</li>"]);
-              }
-            }}
-          >
-            {"<li>"}
-          </ToolboxButton>
-        </ButtonGroup>
+        <EditorToolbox textAreaEl={this.state.textAreaEl} />
         <Textarea
           sx={{ paddingBottom: "36px" }}
           minRows={3}
@@ -283,50 +189,3 @@ const StyledTextTd = styled("td", { name: "TextTd" })(() => {
     whiteSpace: "pre-line",
   };
 });
-
-const ToolboxButton = styled(Button, { name: "ToolboxButton" })(() => {
-  return {
-    fontWeight: "normal",
-  };
-});
-
-const wrapSelectedTextInTag = (
-  el: HTMLTextAreaElement,
-  tag: string | [string, string],
-) => {
-  // setting the value directly (el.value) resets the undo stack for this input
-  const setValue = (value: string) => {
-    el.focus();
-    el.select();
-    document.execCommand("insertText", false, value);
-  };
-
-  const { selectionStart, selectionEnd } = el;
-  const selectedText = el.value.substring(selectionStart, selectionEnd);
-  const start = el.value.slice(0, selectionStart);
-  const end = el.value.slice(selectionEnd);
-
-  if (selectedText.length === 0) {
-    if (typeof tag === "string") {
-      setValue(`${start}${tag}${end}`);
-      el.selectionStart = selectionStart + tag.length;
-    } else {
-      setValue(`${start}${tag[0]}${tag[1]}${end}`);
-      el.selectionStart = selectionStart + tag[0].length + tag[1].length;
-      el.selectionEnd = el.selectionStart;
-    }
-  } else {
-    if (typeof tag === "string") {
-      setValue(`${start}${tag}${end}`);
-      el.selectionStart = selectionStart + tag.length;
-      el.selectionEnd = el.selectionStart;
-    } else {
-      setValue(`${start}${tag[0]}${selectedText}${tag[1]}${end}`);
-      el.selectionStart =
-        selectionStart + tag[0].length + selectedText.length + tag[1].length;
-      el.selectionEnd = el.selectionStart;
-    }
-  }
-
-  return el.value;
-};

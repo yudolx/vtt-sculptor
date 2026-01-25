@@ -32,10 +32,12 @@ export const App = () => {
     queryFn: window.electronAPI.fetchActiveCues,
   });
 
-  const { data: settings, isLoading: isFetchSettingsLoading } = useQuery({
-    queryKey: [QueryKey.Settings],
-    queryFn: window.electronAPI.fetchSettings,
-  });
+  const { data: settings = null, isLoading: isFetchSettingsLoading } = useQuery(
+    {
+      queryKey: [QueryKey.Settings],
+      queryFn: window.electronAPI.fetchSettings,
+    },
+  );
 
   const accumulatedCue = useAccumulatedCue(cues);
   const [stateCue, setStateCueRaw] =
@@ -100,7 +102,7 @@ export const App = () => {
     }
   }, [patchCuesWrapper, stateCue]);
 
-  if (isFetchActiveCuesLoading || isFetchSettingsLoading) {
+  if (isFetchActiveCuesLoading || isFetchSettingsLoading || settings === null) {
     return (
       <AppWrapper
         sx={{ display: "flex", justifyContent: "center", alignItems: "center" }}
@@ -186,7 +188,7 @@ export const App = () => {
             <Autocomplete
               freeSolo={true}
               value={stateCue.id}
-              options={settings?.externalCueIds ?? []}
+              options={settings.styles.externalCueIds ?? []}
               onChange={(e, value) => {
                 setStateCue({
                   ...stateCue,

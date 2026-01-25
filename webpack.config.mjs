@@ -59,6 +59,8 @@ const rendererConfig = merge(commonConfig, {
           eager: true,
           requiredVersion: packagejson.dependencies["react-dom"],
         },
+        "@mui/joy": { singleton: true, eager: true },
+        "@tanstack/react-query": { singleton: true, eager: true },
         "@sculptor/shared": {
           singleton: true,
           eager: true,

@@ -1,4 +1,12 @@
-import { BrowserWindow, ipcMain, app as electronApp, protocol } from "electron";
+import {
+  BrowserWindow,
+  ipcMain,
+  app as electronApp,
+  protocol,
+  dialog,
+  OpenDialogOptions,
+  MessageBoxOptions,
+} from "electron";
 import fs from "fs/promises";
 import path from "path";
 import { ApplicationStore } from "./store";
@@ -10,6 +18,7 @@ import { FileOpener } from "./file-opener";
 import { SettingsStore } from "./settings";
 import { ISettings } from "./settings/types";
 import { PluginsManager } from "./plugins-manager";
+import { DeepPartial } from "@sculptor/helpers/typeUtils";
 
 export class BackgroundProcess {
   public settings = new SettingsStore();
@@ -40,6 +49,25 @@ export class BackgroundProcess {
   };
 
   private bindIpcEvents = () => {
+    ipcMain.handle(
+      "ipc/showOpenDialog",
+      async (event, options: OpenDialogOptions) => {
+        return await dialog.showOpenDialog(
+          BrowserWindow.fromWebContents(event.sender)!,
+          options,
+        );
+      },
+    );
+    ipcMain.handle(
+      "ipc/showMessageBox",
+      async (event, options: MessageBoxOptions) => {
+        return await dialog.showMessageBox(
+          BrowserWindow.fromWebContents(event.sender)!,
+          options,
+        );
+      },
+    );
+
     ipcMain.handle("ipc/renderer/get-video-path", () =>
       this.store.video.getSafePath(),
     );
@@ -59,17 +87,26 @@ export class BackgroundProcess {
       this.store.subtitles.getStyles(),
     );
     ipcMain.handle("ipc/renderer/get-settings", () => this.settings.getState());
+    ipcMain.handle(
+      "ipc/renderer/set-settings",
+      (event, settings: DeepPartial<ISettings>) => {
+        this.settings.setState(settings);
+        console.log(settings);
+        this.invalidateQuery(QueryKey.Settings);
+      },
+    );
+
     ipcMain.handle("ipc/renderer/fetch-split-cue", () =>
       this.store.subtitles.getSplittingCue(),
     );
     ipcMain.handle("ipc/renderer/video-subtitles-visible", () =>
       this.store.video.getSubtitlesVisible(),
     );
-    ipcMain.handle("ipc/plugins/list", () => this.pluginManager.list());
+    ipcMain.handle("ipc/plugins/list", () => this.pluginManager.ipcList());
 
     ipcMain
-      .on("ipc/get-plugins-dir", (e) => {
-        e.returnValue = this.pluginManager.list();
+      .on("ipc/showErrorBox", (e, title: string, content: string) => {
+        dialog.showErrorBox(title, content);
       })
       .on(
         "ipc/renderer/set-video-subtitles-visible",
@@ -130,13 +167,6 @@ export class BackgroundProcess {
       .on("ipc/preference/renderer/close-window", () => {
         this.window.cuePreferences?.close();
       })
-      .on(
-        "ipc/settings/renderer/set-external-ids",
-        (event, ids: ISettings["externalCueIds"]) => {
-          this.settings.externalCueIds = ids;
-          this.invalidateQuery(QueryKey.Settings);
-        },
-      )
       // -----------------------------------------------------------------
       .on(
         "ipc/renderer/cue-split",
@@ -191,13 +221,6 @@ export class BackgroundProcess {
         } else {
           return this.pluginManager.execute(pluginId, method);
         }
-        // if (plugin) {
-        //   if (method === "renderer") {
-        //     return new Response(plugin.renderer, {
-        //       status: 200,
-        //     });
-        //   }
-        // }
       }
 
       return new Response("Not found", {
