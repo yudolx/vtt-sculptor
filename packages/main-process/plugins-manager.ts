@@ -1,15 +1,15 @@
 import fs from "fs/promises";
 import path from "path";
-import type { SettingsStore } from "./settings";
 import { ISettings } from "./settings/types";
+import { IPluginImplementation } from "@sculptor/shared/types";
+import { BackgroundProcess } from "./background-process";
+import { QueryKey } from "@sculptor/helpers/constants";
 
-export interface IPlugin {
+export interface IPluginIPCData {
   main: {
     pluginId: string;
     pluginName: string;
     pluginDescription: string;
-    /** This property is not available outside of the main process */
-    getDefaultSettings: () => unknown;
   };
   path: string;
 }
@@ -18,10 +18,10 @@ const MIME_TYPE_MAP = new Map<string, string>([[".css", "text/css"]]);
 const getMimeType = (ext: string) => MIME_TYPE_MAP.get(ext) ?? "text/plain";
 
 export class PluginsManager {
-  protected plugins: IPlugin[] = [];
+  protected plugins: IPluginImplementation<unknown>[] = [];
   public ready: Promise<void>;
 
-  constructor(public settings: SettingsStore) {
+  constructor(public app: BackgroundProcess) {
     this.ready = new Promise((resolve) => {
       this.scan().then(() => {
         resolve();
@@ -30,7 +30,7 @@ export class PluginsManager {
   }
 
   protected async scan() {
-    const pluginsDir = this.settings.pluginsDirectory;
+    const pluginsDir = this.app.settings.pluginsDirectory;
     if (path.isAbsolute(pluginsDir)) {
       try {
         await fs.stat(pluginsDir);
@@ -42,20 +42,23 @@ export class PluginsManager {
       }
 
       const dirlist = await fs.readdir(pluginsDir);
+      const existingSettings = this.app.settings.getState().plugins;
       const pluginsSettings: ISettings["plugins"] = {};
       for (const dir of dirlist) {
         const absolutePluginDirPath = path.join(pluginsDir, dir);
         const pluginPath = await tryRootOrCompiledFolder(absolutePluginDirPath);
         if (pluginPath) {
           /* eslint-disable-next-line prettier/prettier, @typescript-eslint/no-var-requires */
-          const main = require(/* webpackIgnore: true */ path.join(pluginPath, "main.js"));
-          const plugin: IPlugin = { main, path: pluginPath };
+          const {default: Plugin} = require(/* webpackIgnore: true */ path.join(pluginPath, "main.js"));
+          const plugin: IPluginImplementation<unknown> = new Plugin(this.app);
+          plugin.path = pluginPath;
           this.plugins.push(plugin);
-          pluginsSettings[plugin.main.pluginId] =
-            plugin.main.getDefaultSettings();
+          pluginsSettings[plugin.id] = plugin.getSettings(
+            existingSettings[plugin.id],
+          );
         }
       }
-      this.settings.setState({
+      this.app.settings.setState({
         plugins: pluginsSettings,
       });
     }
@@ -67,17 +70,20 @@ export class PluginsManager {
 
   public ipcList() {
     return this.plugins.map((p) => {
-      const { getDefaultSettings, ...goodMain } = p.main;
       return {
-        ...p,
-        main: goodMain,
-      };
+        main: {
+          pluginDescription: p.description,
+          pluginId: p.id,
+          pluginName: p.name,
+        },
+        path: p.path,
+      } as IPluginIPCData;
     });
   }
 
   public async execute(pluginId: string, methodArg: string) {
     const method = methodArg.split("/");
-    const plugin = this.plugins.find((p) => p.main.pluginId === pluginId);
+    const plugin = this.plugins.find((p) => p.id === pluginId);
 
     if (!plugin) {
       return new Response("Not Found", {
@@ -110,10 +116,6 @@ export class PluginsManager {
       status: 405,
     });
   }
-
-  // public get(pluginId: string) {
-  //   return this.plugins.find((p) => p.main.pluginId === pluginId) ?? null;
-  // }
 }
 
 const tryRootOrCompiledFolder = async (rootpath: string) => {

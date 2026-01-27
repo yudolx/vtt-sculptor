@@ -15,7 +15,7 @@ import {
 } from "@sculptor/main-process/constants";
 import type { IMinimalPartialVTTCue } from "@sculptor/main-process/store/subtitles";
 import type { ISettings } from "@sculptor/main-process/settings/types";
-import type { IPlugin } from "@sculptor/main-process/plugins-manager";
+import type { IPluginIPCData } from "@sculptor/main-process/plugins-manager";
 import { DeepPartial } from "./typeUtils";
 
 export const EmitIPCEvent = Object.freeze({
@@ -151,6 +151,15 @@ export const EmitIPCEvent = Object.freeze({
 
   // -----------------------------------------------------------------
 
-  fetchPluginsList: (): Promise<IPlugin[]> =>
+  fetchPluginsList: (): Promise<IPluginIPCData[]> =>
     ipcRenderer.invoke("ipc/plugins/list"),
+
+  invokePlugin: (
+    pluginId: string,
+    method: string,
+    ...methodParameters: any[]
+  ) => ipcRenderer.invoke(`plugins/${pluginId}/${method}`, ...methodParameters),
+
+  sendPlugin: (pluginId: string, method: string, ...methodParameters: any[]) =>
+    ipcRenderer.send(`plugins/${pluginId}/${method}`, ...methodParameters),
 });

@@ -88,7 +88,8 @@ export class TextAreaEditableCell<
   handleWindowClick = (e: MouseEvent) => {
     if (
       !this.editorWrapperEl?.contains(e.target as Node) &&
-      this.editorWrapperEl !== e.currentTarget
+      this.editorWrapperEl !== e.currentTarget &&
+      !findBlockElement(e.target as Element)
     ) {
       e.preventDefault();
       e.stopPropagation();
@@ -189,3 +190,14 @@ const StyledTextTd = styled("td", { name: "TextTd" })(() => {
     whiteSpace: "pre-line",
   };
 });
+
+const BLOCK_ATTRIBUTE = "vtt-sculptor-block";
+const findBlockElement = (child: Element) => {
+  if (child.hasAttribute(BLOCK_ATTRIBUTE)) {
+    return true;
+  } else if (child.parentElement) {
+    return findBlockElement(child.parentElement);
+  } else {
+    return false;
+  }
+};

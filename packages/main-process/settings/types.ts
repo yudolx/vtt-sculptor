@@ -4,7 +4,7 @@ import { MigrateState } from "@sculptor/helpers/libs/migrate";
 
 export interface ISettings extends MigrateState {
   windowsState: {
-    main: Partial<Rectangle>;
+    main: Partial<Rectangle & { leftWidth: number }>;
     settings: Partial<Rectangle>;
     cueSplit: Partial<Rectangle>;
   };
@@ -28,7 +28,11 @@ const rectangleSchema = joi.object({
 export const settingsSchema = joi.object({
   version: joi.number().required(),
   windowsState: joi.object({
-    main: rectangleSchema,
+    main: rectangleSchema.concat(
+      joi.object({
+        leftWidth: joi.number(),
+      }),
+    ),
     settings: rectangleSchema,
     cueSplit: rectangleSchema,
   }),

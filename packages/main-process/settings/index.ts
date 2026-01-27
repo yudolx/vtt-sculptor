@@ -13,8 +13,6 @@ const settingsDir = electronApp.getPath("userData");
 const settingsFilename = "settings.json";
 const settingsFilePath = path.join(settingsDir, settingsFilename);
 
-console.log(settingsDir);
-
 const SAVE_DEBOUNCE_MS = 500;
 const LATEST_SETTINGS_VERSION = 3;
 
@@ -32,6 +30,7 @@ const getDefaultSettings = (): ISettings => ({
     main: {
       width: 720,
       height: 1280,
+      leftWidth: 720,
     },
     settings: {
       width: 600,
@@ -112,7 +111,10 @@ export class SettingsStore {
     name: keyof ISettings["windowsState"],
     bounds: Rectangle,
   ) => {
-    this.settings.windowsState[name] = bounds;
+    this.settings.windowsState[name] = {
+      ...this.settings.windowsState[name],
+      ...bounds,
+    };
     await this.flushState();
   };
 

@@ -80,6 +80,24 @@ const mainProcessConfig = merge(commonConfig, {
     path: DIST_DIR,
   },
   target: "electron-main",
+  plugins: [
+    new webpack.container.ModuleFederationPlugin({
+      name: "main_shared",
+      filename: "main_exposes.js",
+      shared: {
+        electron: {
+          singleton: true,
+          eager: true,
+          requiredVersion: packagejson.dependencies["electron"],
+        },
+        "@sculptor/shared": {
+          singleton: true,
+          eager: true,
+          requiredVersion: false,
+        },
+      },
+    }),
+  ],
 });
 
 // --------------------------------------------------------------------
@@ -87,16 +105,34 @@ const mainProcessConfig = merge(commonConfig, {
 const preloadConfig = merge(commonConfig, {
   entry: {
     /* eslint-disable prettier/prettier */
-      window_main_preload: path.resolve(SRC_DIR, "./window-main/preload.ts"),
-      window_cue_preferences_preload: path.resolve(SRC_DIR, "./window-cue-preferences/preload.ts"),
-      window_settings_preload: path.resolve(SRC_DIR, "./window-settings/preload.ts"),
-      window_cue_split_preload: path.resolve(SRC_DIR, "./window-cue-split/preload.ts"),
-      /* eslint-enable prettier/prettier */
+    window_main_preload: path.resolve(SRC_DIR, "./window-main/preload.ts"),
+    window_cue_preferences_preload: path.resolve(SRC_DIR, "./window-cue-preferences/preload.ts"),
+    window_settings_preload: path.resolve(SRC_DIR, "./window-settings/preload.ts"),
+    window_cue_split_preload: path.resolve(SRC_DIR, "./window-cue-split/preload.ts"),
+    /* eslint-enable prettier/prettier */
   },
   output: {
     path: DIST_DIR,
   },
   target: "electron-preload",
+  plugins: [
+    new webpack.container.ModuleFederationPlugin({
+      name: "preload_shared",
+      filename: "preload_exposes.js",
+      shared: {
+        electron: {
+          singleton: true,
+          eager: true,
+          requiredVersion: packagejson.dependencies["electron"],
+        },
+        "@sculptor/shared": {
+          singleton: true,
+          eager: true,
+          requiredVersion: false,
+        },
+      },
+    }),
+  ],
 });
 
 const sharedPackageConfig = merge(commonConfig, {

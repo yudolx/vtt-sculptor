@@ -1,9 +1,28 @@
 {
-  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "strict": true,
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "target": "esnext",
+    "outDir": "./compiled/",
+    "baseUrl": "./",
+    "jsx": "react",
+    "esModuleInterop": true,
+    "allowJs": true,
+    "paths": {
+      "@sculptor/main-process/*": ["./packages/main-process/*"],
+      "@sculptor/shared/*": ["./packages/shared/src/*"],
+      "@sculptor/window-cue-preferences/*": ["./packages/window-cue-preferences/*"],
+      "@sculptor/window-cue-split/*": ["./packages/window-cue-split/*"],
+      "@sculptor/window-main/*": ["./packages/window-main/*"],
+      "@sculptor/window-settings/*": ["./packages/window-settings/*"],
+      "@sculptor/helpers/*": ["./packages/helpers/*"]
+    }
+  },
   "exclude": [
     "node_modules",
     "**/node_modules/*",
     "compiled",
-    "./packages/plugin-*/global.d.ts"
+    "**/compiled/*"
   ]
 }

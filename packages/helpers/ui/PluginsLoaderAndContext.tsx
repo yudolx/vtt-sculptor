@@ -1,7 +1,7 @@
 import React from "react";
 import { useQuery } from "@tanstack/react-query";
 import { QueryKey } from "../constants";
-import type { IPlugin } from "@sculptor/main-process/plugins-manager";
+import type { IPluginIPCData } from "@sculptor/main-process/plugins-manager";
 import type {
   IPluginEditorToolboxComponentProps,
   IPluginSettingsComponentProps,
@@ -18,7 +18,7 @@ interface IPluginComponent {
 }
 
 interface IPluginsComponentMap {
-  pluginComponentMap: Map<IPlugin, IPluginComponent>;
+  pluginComponentMap: Map<IPluginIPCData, IPluginComponent>;
 }
 
 export const PluginsContext = React.createContext<IPluginsComponentMap>({
@@ -32,7 +32,7 @@ export const PluginsLoaderAndProvider = (props: React.PropsWithChildren) => {
   });
 
   const pluginComponentMap = React.useMemo(() => {
-    const pluginMap = new Map<IPlugin, IPluginComponent>();
+    const pluginMap = new Map<IPluginIPCData, IPluginComponent>();
 
     pluginsList?.forEach((plugin) => {
       pluginMap.set(plugin, {
@@ -100,7 +100,7 @@ export const PluginsLoader = (props: React.PropsWithChildren) => {
 };
 
 const allScriptsLoaded = (
-  plugins: IPlugin[],
+  plugins: IPluginIPCData[],
   scriptEls: HTMLScriptElement[],
 ) => {
   const promises: Promise<void>[] = [];

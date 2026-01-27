@@ -25,7 +25,7 @@ export class BackgroundProcess {
   public fileOpener = new FileOpener(this);
   public store = new ApplicationStore(this);
   public window = new WindowManager(this);
-  public pluginManager = new PluginsManager(this.settings);
+  public pluginManager = new PluginsManager(this);
 
   constructor() {
     this.bindIpcEvents();
@@ -36,7 +36,10 @@ export class BackgroundProcess {
     this.window.main.show();
   }
 
-  invalidateQuery = (query: QueryKey, windowArg?: BrowserWindow) => {
+  invalidateQuery = (
+    query: QueryKey | (string & {}),
+    windowArg?: BrowserWindow,
+  ) => {
     if (windowArg) {
       windowArg.webContents.send("ipc/main/invalidate-query", query);
     } else {
@@ -91,7 +94,6 @@ export class BackgroundProcess {
       "ipc/renderer/set-settings",
       (event, settings: DeepPartial<ISettings>) => {
         this.settings.setState(settings);
-        console.log(settings);
         this.invalidateQuery(QueryKey.Settings);
       },
     );

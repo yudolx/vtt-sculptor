@@ -1,16 +1,62 @@
 import React from "react";
-import { Box, styled } from "@mui/joy";
+import { Box, BoxProps, styled } from "@mui/joy";
+import _ from "lodash";
 import { Video } from "./video";
 import { SubtitleTable } from "./subtitle-table";
 import { Plugins } from "./plugins";
 import { PluginsContext } from "@sculptor/helpers/ui/PluginsLoaderAndContext";
+import { QueryKey } from "@sculptor/helpers/constants";
+import { useQuery } from "@tanstack/react-query";
+
+const debouncedSetSettings = _.debounce(window.electronAPI.setSettings, 300);
 
 export const App = () => {
   const { pluginComponentMap } = React.useContext(PluginsContext);
+  const [leftEl, setLeftEl] = React.useState<HTMLDivElement | null>(null);
+  const [leftWidth, setLeftWidth] = React.useState<number | null>(null);
+
+  const { data: settings = null } = useQuery({
+    queryKey: [QueryKey.Settings],
+    queryFn: window.electronAPI.fetchSettings,
+  });
+
+  const { current: resizeObserver } = React.useRef(
+    new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        const cr = entry.contentRect;
+        setLeftWidth(cr.width);
+        debouncedSetSettings({
+          windowsState: {
+            main: {
+              leftWidth: cr.width,
+            },
+          },
+        });
+      }
+    }),
+  );
+
+  React.useEffect(() => {
+    if (leftEl) {
+      resizeObserver.observe(leftEl);
+    }
+
+    return () => {
+      if (leftEl) {
+        resizeObserver.unobserve(leftEl);
+      }
+    };
+
+    return;
+  }, [leftEl, resizeObserver]);
+
+  React.useEffect(() => {
+    setLeftWidth(settings?.windowsState.main.leftWidth ?? null);
+  }, [settings]);
 
   return (
-    <AppWrapper>
-      <Left>
+    <AppWrapper leftWidth={leftWidth ?? null}>
+      <Left ref={(el) => setLeftEl(el)}>
         <VideoWrapper>
           <Video />
         </VideoWrapper>
@@ -33,9 +79,13 @@ export const App = () => {
   );
 };
 
-const AppWrapper = styled(Box, { name: "AppWrapper" })(() => {
+const AppWrapper = styled(Box, {
+  name: "AppWrapper",
+  shouldForwardProp: (prop) => prop !== "leftWidth",
+})<BoxProps & { leftWidth: number | null }>((props) => {
   return {
-    display: "flex",
+    display: "grid",
+    gridTemplateColumns: `${props.leftWidth}px auto`,
     height: "100vh",
   };
 });
@@ -56,17 +106,15 @@ const SubtitleTableWrapper = styled(Box, { name: "SubtitleTableWrapper" })(
   },
 );
 
-const Left = styled(Box, { name: "Left" })(() => {
+const Left = styled("div", { name: "Left" })(() => {
   return {
-    display: "flex",
-    flexDirection: "column",
+    resize: "horizontal",
+    overflow: "auto",
   };
 });
 
-const Right = styled(Box, { name: "Right" })(() => {
+const Right = styled("div", { name: "Right" })(() => {
   return {
-    flexGrow: 1,
     borderLeft: "1px #e5e5e5 solid",
-    minWidth: 400,
   };
 });
