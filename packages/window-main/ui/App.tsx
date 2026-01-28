@@ -110,11 +110,14 @@ const Left = styled("div", { name: "Left" })(() => {
   return {
     resize: "horizontal",
     overflow: "auto",
+    display: "flex",
+    flexDirection: "column",
   };
 });
 
 const Right = styled("div", { name: "Right" })(() => {
   return {
     borderLeft: "1px #e5e5e5 solid",
+    overflow: "auto",
   };
 });

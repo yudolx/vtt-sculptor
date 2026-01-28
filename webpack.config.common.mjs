@@ -61,8 +61,9 @@ let config = /** @type {import('webpack').Configuration} */ ({
           },
         },
       },
+
       {
-        test: /\.css$/,
+        test: /\.module\.(css)$/i,
         use: [
           MiniCSSExtractPlugin.loader,
           {
@@ -72,6 +73,21 @@ let config = /** @type {import('webpack').Configuration} */ ({
               modules: {
                 localIdentName: "[local]-[hash:base64:5]",
               },
+            },
+          },
+        ],
+      },
+
+      {
+        test: /\.css$/i,
+        exclude: /\.module\.(css)$/i,
+        use: [
+          MiniCSSExtractPlugin.loader,
+          {
+            loader: `css-loader`,
+            options: {
+              url: false,
+              modules: false,
             },
           },
         ],
