@@ -63,7 +63,7 @@ export class ApplicationStore {
     this.app.invalidateQuery(QueryKey.ActiveCue);
   }
 
-  public patchCues(cues: IMinimalPartialVTTCue[]) {
+  public patchCues(cues: IMinimalPartialVTTCue[], silent = false) {
     for (const cue of cues) {
       const fullCue = this.subtitles.getCues(cue.uuid);
       assert(fullCue, "Full cue not found");
@@ -78,8 +78,10 @@ export class ApplicationStore {
     }
 
     this.app.window.updateMenu();
-    this.app.invalidateQuery(QueryKey.CuesList);
-    this.app.invalidateQuery(QueryKey.ActiveCue);
+    if (!silent) {
+      this.app.invalidateQuery(QueryKey.CuesList);
+      this.app.invalidateQuery(QueryKey.ActiveCue);
+    }
   }
 
   public replaceCue(cueUuid: IVTTCue["uuid"], replaceWithCue: IVTTCue[]) {
@@ -114,7 +116,7 @@ export class ApplicationStore {
     this.app.invalidateQuery(QueryKey.ActiveCue);
   }
 
-  public deleteCues(uuids: IVTTCue["uuid"][]) {
+  public deleteCues(uuids: IVTTCue["uuid"][], silent = false) {
     let latestCueIndex: number = -1;
     const cues = this.subtitles.getCues();
 
@@ -144,8 +146,46 @@ export class ApplicationStore {
     }
 
     this.app.window.updateMenu();
+    if (!silent) {
+      this.app.invalidateQuery(QueryKey.CuesList);
+      this.app.invalidateQuery(QueryKey.ActiveCue);
+    }
+  }
+
+  public mergeDownCue() {
+    const allCues = this.subtitles.getCues();
+    const activeCues = this.subtitles.getActiveCues();
+    if (activeCues.length !== 1) {
+      console.log("Ignoring merge down because more than 1 cue is selected");
+      return;
+    }
+
+    const [activeCue] = activeCues;
+    const activeCueIndex = allCues.findIndex((c) => c.uuid === activeCue.uuid);
+    assert(activeCueIndex !== -1, "activeCueIndex not found");
+
+    const nextToActiveCue = allCues.at(activeCueIndex + 1);
+    if (!nextToActiveCue) {
+      console.log(
+        "Ignoring merge down because there is nothing to merge the selected cue with",
+      );
+      return;
+    }
+
+    this.deleteCues([nextToActiveCue.uuid], true);
+    this.patchCues(
+      [
+        {
+          uuid: activeCue.uuid,
+          text: `${activeCue.text} ${nextToActiveCue.text}`,
+          endTime: nextToActiveCue.endTime,
+        },
+      ],
+      true,
+    );
+
     this.app.invalidateQuery(QueryKey.CuesList);
-    this.app.invalidateQuery(QueryKey.ActiveCue);
+    this.alterCueSelection(activeCue.uuid, { ctrlKey: false, shiftKey: false });
   }
 
   public setSplitCue(uuid: IVTTCue["uuid"] | null) {

@@ -165,6 +165,13 @@ export const useTableShortcuts = (
       }
     };
 
+    const handleCtrlE = () => {
+      if (activeCues.length !== 1) {
+        return;
+      }
+      window.electronAPI.merdeDown();
+    };
+
     MouseTrap.bind("enter", handleEnter);
     MouseTrap.bind("esc", handleEsc);
     MouseTrap.bind("space", handleSpace);
@@ -182,6 +189,7 @@ export const useTableShortcuts = (
     MouseTrap.bind(["command+k", "ctrl+k"], handleCtrlK);
     MouseTrap.bind("o", handleO);
     MouseTrap.bind("s", handleS);
+    MouseTrap.bind(["command+e", "ctrl+e"], handleCtrlE);
 
     return () => {
       MouseTrap.unbind("enter");
@@ -198,6 +206,7 @@ export const useTableShortcuts = (
       MouseTrap.unbind(["command+k", "ctrl+k"]);
       MouseTrap.unbind("o");
       MouseTrap.unbind("s");
+      MouseTrap.bind(["command+e", "ctrl+e"], handleCtrlE);
     };
   }, [activeCues, videoEl, editField, cues, setEditField]);
 };

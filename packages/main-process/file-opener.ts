@@ -58,7 +58,9 @@ export class FileOpener {
       await stat(subtitleFilePath);
       this.openSubtitles(subtitleFilePath);
     } catch (e) {
-      console.error(e);
+      console.log(
+        `[tryLoadSubtitles] No subtitles found at ${subtitleFilePath}`,
+      );
     }
   };
 
@@ -83,7 +85,9 @@ export class FileOpener {
       );
       this.openVideo(videoPath);
     } catch (e) {
-      console.error(e);
+      console.log(
+        `[tryLoadVideo] No video files found at \n  -${videoFilePaths.join("\n  -")}`,
+      );
     }
   };
 }

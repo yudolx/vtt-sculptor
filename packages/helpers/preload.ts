@@ -89,6 +89,10 @@ export const EmitIPCEvent = Object.freeze({
     ipcRenderer.send("ipc/renderer/patch-cues", cues);
   },
 
+  merdeDown: () => {
+    ipcRenderer.send("ipc/renderer/merge-down");
+  },
+
   insertCues: (cues: IVTTCue) => {
     ipcRenderer.send("ipc/renderer/insert-cues", cues);
   },

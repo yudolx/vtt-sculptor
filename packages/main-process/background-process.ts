@@ -145,6 +145,9 @@ export class BackgroundProcess {
       .on("ipc/renderer/patch-cues", (event, cues: IMinimalPartialVTTCue[]) => {
         this.store.patchCues(cues);
       })
+      .on("ipc/renderer/merge-down", () => {
+        this.store.mergeDownCue();
+      })
       .on("ipc/renderer/disable-hotkeys", () => {
         this.window.setGlobalShortcutsActive(false);
       })
