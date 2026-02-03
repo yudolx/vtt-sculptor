@@ -13,7 +13,11 @@ import { ApplicationStore } from "./store";
 import { QueryKey } from "@sculptor/helpers/constants";
 import type { IVTTCue } from "@sculptor/helpers/vtt";
 import { WindowManager } from "./window-manager";
-import { IMinimalPartialVTTCue } from "./store/subtitles";
+import {
+  IMinimalPartialVTTCue,
+  ISplitCueData,
+  ISplitCueIpcData,
+} from "./store/subtitles";
 import { FileOpener } from "./file-opener";
 import { SettingsStore } from "./settings";
 import { ISettings } from "./settings/types";
@@ -99,7 +103,7 @@ export class BackgroundProcess {
     );
 
     ipcMain.handle("ipc/renderer/fetch-split-cue", () =>
-      this.store.subtitles.getSplittingCue(),
+      this.store.subtitles.getSplitCueData(),
     );
     ipcMain.handle("ipc/renderer/video-subtitles-visible", () =>
       this.store.video.getSubtitlesVisible(),
@@ -175,8 +179,8 @@ export class BackgroundProcess {
       // -----------------------------------------------------------------
       .on(
         "ipc/renderer/cue-split",
-        (event, cueId: IVTTCue["uuid"] | null, windowOpen: boolean) => {
-          this.store.setSplitCue(cueId);
+        (event, cueData: ISplitCueData, windowOpen: boolean) => {
+          this.store.setSplitCue(cueData);
 
           if (windowOpen) {
             this.window.openCueSplitWindow();

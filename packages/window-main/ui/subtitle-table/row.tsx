@@ -74,9 +74,7 @@ export const SubtitleTableRow = (props: ISubtitleTableRowProps) => {
     React.useCallback(
       (e) => {
         if (editField === null) {
-          console.log(1);
           if (!(e.target instanceof HTMLTextAreaElement)) {
-            console.log(2);
             e.preventDefault();
             e.stopPropagation();
           }

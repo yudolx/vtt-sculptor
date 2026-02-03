@@ -45,6 +45,8 @@ export const SubtitleTable = () => {
 
   const handleSubtitleTableRowClick = React.useCallback(
     (cue: IVTTCue, event: React.MouseEvent<HTMLTableRowElement>) => {
+      if (editField !== null) return;
+
       const shiftKey = event.shiftKey;
       const ctrlKey = window.electronAPI.IS_DARWIN
         ? event.metaKey
@@ -52,7 +54,7 @@ export const SubtitleTable = () => {
 
       window.electronAPI.alterSelection(cue.uuid, { ctrlKey, shiftKey });
     },
-    [],
+    [editField],
   );
 
   const handleCellChange = React.useCallback<

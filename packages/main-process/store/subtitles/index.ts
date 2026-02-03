@@ -6,13 +6,23 @@ import {
 } from "./multiple-selection-model";
 import { arrayMove } from "@dnd-kit/sortable";
 
+export interface ISplitCueData {
+  uuid: IVTTCue["uuid"];
+  time?: number;
+}
+
+export interface ISplitCueIpcData {
+  cue: IVTTCue;
+  time?: number;
+}
+
 export class SubtitlesStore {
   protected file: string | null = null;
   protected cues: IVTTCue[] = [];
   protected regions: Record<string, IVTTRegion> = {};
   protected styles: string[] = [];
   protected selectionModel = new MultipleSelectionModel<IVTTCue["uuid"]>([]);
-  protected splittingCueId: IVTTCue["uuid"] | null = null;
+  protected splitCueData: ISplitCueData | null = null;
 
   // public sortCues(affectedCues?: IVTTCue["uuid"][]) {
   //   this.cues.sort((cueA, cueB) => {
@@ -88,12 +98,23 @@ export class SubtitlesStore {
     return this.selectionModel.getSelected();
   }
 
-  public getSplittingCue() {
-    return this.cues.find((c) => c.uuid === this.splittingCueId) ?? null;
+  public getSplitCueData(): ISplitCueIpcData | null {
+    if (!this.splitCueData) return null;
+    const cue =
+      this.cues.find((c) => c.uuid === this.splitCueData?.uuid) ?? null;
+
+    if (cue) {
+      return {
+        cue,
+        time: this.splitCueData.time,
+      };
+    }
+
+    return null;
   }
 
-  public setSplittingCue(id: IVTTCue["uuid"] | null) {
-    this.splittingCueId = id;
+  public setSplitCueData(data: ISplitCueData | null) {
+    this.splitCueData = data;
   }
 
   public alterCueSelection(

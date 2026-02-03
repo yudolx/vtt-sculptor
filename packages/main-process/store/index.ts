@@ -1,5 +1,9 @@
 import { VideoStore } from "./video";
-import { IMinimalPartialVTTCue, SubtitlesStore } from "./subtitles";
+import {
+  IMinimalPartialVTTCue,
+  ISplitCueData,
+  SubtitlesStore,
+} from "./subtitles";
 import { IVTTCue, IVTTRegion } from "@sculptor/helpers/vtt";
 import { QueryKey } from "@sculptor/helpers/constants";
 import { assert } from "@sculptor/helpers/assert";
@@ -188,8 +192,8 @@ export class ApplicationStore {
     this.alterCueSelection(activeCue.uuid, { ctrlKey: false, shiftKey: false });
   }
 
-  public setSplitCue(uuid: IVTTCue["uuid"] | null) {
-    this.subtitles.setSplittingCue(uuid);
+  public setSplitCue(uuid: ISplitCueData | null) {
+    this.subtitles.setSplitCueData(uuid);
     this.app.invalidateQuery(QueryKey.SplitCue);
   }
 

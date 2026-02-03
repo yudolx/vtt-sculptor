@@ -13,7 +13,11 @@ import {
   IS_LINUX,
   IS_WIN32,
 } from "@sculptor/main-process/constants";
-import type { IMinimalPartialVTTCue } from "@sculptor/main-process/store/subtitles";
+import type {
+  IMinimalPartialVTTCue,
+  ISplitCueData,
+  ISplitCueIpcData,
+} from "@sculptor/main-process/store/subtitles";
 import type { ISettings } from "@sculptor/main-process/settings/types";
 import type { IPluginIPCData } from "@sculptor/main-process/plugins-manager";
 import { DeepPartial } from "./typeUtils";
@@ -140,10 +144,10 @@ export const EmitIPCEvent = Object.freeze({
 
   // -----------------------------------------------------------------
 
-  splitCue: (cue: IVTTCue["uuid"] | null, windowOpen = true) =>
+  splitCue: (cue: ISplitCueData | null, windowOpen = true) =>
     ipcRenderer.send("ipc/renderer/cue-split", cue, windowOpen),
 
-  fetchSplitCue: (): Promise<IVTTCue | null> =>
+  fetchSplitCue: (): Promise<ISplitCueIpcData | null> =>
     ipcRenderer.invoke("ipc/renderer/fetch-split-cue"),
 
   submitSplitCue: (originalCueId: IVTTCue["uuid"], replaceWith: IVTTCue[]) =>

@@ -20,34 +20,49 @@ export const App = () => {
   const [positionDelimiter, setPositionDelimiter] = React.useState<number>(0);
   const [timeDelimiter, setTimeDelimiter] = React.useState<number>(0);
 
-  const { data: cue } = useQuery({
+  const { data: splitCueData } = useQuery({
     queryKey: [QueryKey.PreferenceWindowCue],
     queryFn: window.electronAPI.fetchSplitCue,
+    refetchOnWindowFocus: false,
   });
 
+  React.useEffect(() => {
+    if (splitCueData?.cue) {
+      setPositionDelimiter(Math.round(splitCueData.cue.text.length / 2));
+    } else {
+      setPositionDelimiter(0);
+    }
+
+    if (typeof splitCueData?.time === "number") {
+      setTimeDelimiter(
+        Math.max(0, Math.min(splitCueData.time, splitCueData.cue.endTime)),
+      );
+    }
+  }, [splitCueData]);
+
   const splittedCue = React.useMemo(() => {
-    if (!cue) {
+    if (!splitCueData) {
       return [];
     }
 
-    const text1 = cue.text.slice(0, positionDelimiter);
-    const text2 = cue.text.slice(positionDelimiter);
+    const text1 = splitCueData.cue.text.slice(0, positionDelimiter).trim();
+    const text2 = splitCueData.cue.text.slice(positionDelimiter).trim();
 
     return [
       mockVttCue({
-        ...cue,
+        ...splitCueData.cue,
         uuid: crypto.randomUUID(),
         text: text1,
         endTime: timeDelimiter,
       }),
       mockVttCue({
-        ...cue,
+        ...splitCueData.cue,
         uuid: crypto.randomUUID(),
         text: text2,
-        startTime: timeDelimiter,
+        startTime: timeDelimiter + 0.001,
       }),
     ];
-  }, [cue, positionDelimiter, timeDelimiter]);
+  }, [splitCueData, positionDelimiter, timeDelimiter]);
 
   React.useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
@@ -55,7 +70,7 @@ export const App = () => {
         window.electronAPI.splitCue(null, false);
       }
 
-      if (!cue) {
+      if (!splitCueData) {
         return;
       }
 
@@ -65,7 +80,7 @@ export const App = () => {
           (window.electronAPI.IS_LINUX && e.ctrlKey) ||
           (window.electronAPI.IS_WIN32 && e.ctrlKey))
       ) {
-        window.electronAPI.submitSplitCue(cue.uuid, splittedCue);
+        window.electronAPI.submitSplitCue(splitCueData.cue.uuid, splittedCue);
       }
     };
 
@@ -74,19 +89,7 @@ export const App = () => {
     return () => {
       window.removeEventListener("keydown", handleKeyPress);
     };
-  }, [cue, splittedCue]);
-
-  React.useEffect(() => {
-    if (cue) {
-      setTimeDelimiter(
-        toFixedNumber(cue.startTime + (cue.endTime - cue.startTime) / 2, 3),
-      );
-      setPositionDelimiter(Math.round(cue.text.length / 2));
-    } else {
-      setTimeDelimiter(0);
-      setPositionDelimiter(0);
-    }
-  }, [cue]);
+  }, [splitCueData, splittedCue]);
 
   const handleCloseClick = React.useCallback(() => {
     window.electronAPI.splitCue(null, false);
@@ -102,11 +105,11 @@ export const App = () => {
   );
 
   const handleSubmitClick = React.useCallback(() => {
-    if (!cue) {
+    if (!splitCueData) {
       return;
     }
-    window.electronAPI.submitSplitCue(cue.uuid, splittedCue);
-  }, [cue, splittedCue]);
+    window.electronAPI.submitSplitCue(splitCueData.cue.uuid, splittedCue);
+  }, [splitCueData, splittedCue]);
 
   const handleSliderChange = React.useCallback<
     Required<SliderProps>["onChange"]
@@ -120,17 +123,19 @@ export const App = () => {
     React.ChangeEventHandler<HTMLInputElement>
   >(
     (event) => {
-      if (!cue) {
+      if (!splitCueData) {
         return;
       }
       const valueAsNumber = event.currentTarget.valueAsNumber;
-      const value = Number.isNaN(valueAsNumber) ? cue.startTime : valueAsNumber;
+      const value = Number.isNaN(valueAsNumber)
+        ? splitCueData.cue.startTime
+        : valueAsNumber;
       setTimeDelimiter(value);
     },
-    [cue],
+    [splitCueData],
   );
 
-  if (!cue) {
+  if (!splitCueData) {
     return null;
   }
 
@@ -149,21 +154,27 @@ export const App = () => {
       </Typography>
       <Textarea
         sx={{ flexGrow: 1, marginTop: "5px" }}
-        value={cue.text}
+        value={splitCueData.cue.text}
         onSelect={handleSelect}
       />
       <Box sx={{ padding: "0 10px" }}>
         <StyledSlider
           track={false}
           step={0.001}
-          min={cue.startTime}
-          max={cue.endTime}
+          min={splitCueData.cue.startTime}
+          max={splitCueData.cue.endTime}
           value={timeDelimiter}
           valueLabelDisplay="auto"
           valueLabelFormat={stringifyTimestamp}
           marks={[
-            { value: cue.startTime, label: stringifyTimestamp(cue.startTime) },
-            { value: cue.endTime, label: stringifyTimestamp(cue.endTime) },
+            {
+              value: splitCueData.cue.startTime,
+              label: stringifyTimestamp(splitCueData.cue.startTime),
+            },
+            {
+              value: splitCueData.cue.endTime,
+              label: stringifyTimestamp(splitCueData.cue.endTime),
+            },
           ]}
           onChange={handleSliderChange}
         />
@@ -176,8 +187,8 @@ export const App = () => {
           onChange={handleInputchange}
           slotProps={{
             input: {
-              min: cue.startTime,
-              max: cue.endTime,
+              min: splitCueData.cue.startTime,
+              max: splitCueData.cue.endTime,
               step: 0.001,
               sx: { textAlign: "center" },
             },

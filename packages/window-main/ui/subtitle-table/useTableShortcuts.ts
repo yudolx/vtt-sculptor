@@ -132,6 +132,16 @@ export const useTableShortcuts = (
       }
     };
 
+    const handleL = () => {
+      if (activeCues && videoEl) {
+        window.electronAPI.patchCues(
+          activeCues.map((cue) => {
+            return { uuid: cue.uuid, startTime: videoEl.currentTime };
+          }),
+        );
+      }
+    };
+
     const handleCtrlK = () => {
       if (activeCues.length === 1 && videoEl) {
         const activeCue = activeCues.at(0)!;
@@ -161,7 +171,10 @@ export const useTableShortcuts = (
     const handleS = () => {
       const activeCue = activeCues.length === 1 ? activeCues.at(0)! : null;
       if (activeCue) {
-        window.electronAPI.splitCue(activeCue.uuid);
+        window.electronAPI.splitCue({
+          uuid: activeCue.uuid,
+          time: videoEl?.currentTime,
+        });
       }
     };
 
@@ -186,6 +199,7 @@ export const useTableShortcuts = (
     MouseTrap.bind("e", handleE);
     MouseTrap.bind("r", handleR);
     MouseTrap.bind("k", handleK);
+    MouseTrap.bind("l", handleL);
     MouseTrap.bind(["command+k", "ctrl+k"], handleCtrlK);
     MouseTrap.bind("o", handleO);
     MouseTrap.bind("s", handleS);
@@ -203,6 +217,7 @@ export const useTableShortcuts = (
       MouseTrap.unbind("e");
       MouseTrap.unbind("r");
       MouseTrap.unbind("k");
+      MouseTrap.unbind("l");
       MouseTrap.unbind(["command+k", "ctrl+k"]);
       MouseTrap.unbind("o");
       MouseTrap.unbind("s");
