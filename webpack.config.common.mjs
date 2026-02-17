@@ -5,7 +5,7 @@ import MiniCSSExtractPlugin from "mini-css-extract-plugin";
 
 import * as defineVars from "./define.mjs";
 
-export const SRC_DIR = path.resolve(import.meta.dirname, "src");
+export const SRC_DIR = path.resolve(import.meta.dirname, "packages");
 export const DIST_DIR = path.resolve(import.meta.dirname, "compiled");
 export const NODE_ENV =
   /** @type {"development"|"production"}  */ (process.env.NODE_ENV) ??
@@ -22,12 +22,32 @@ const plugins = [
 ];
 
 let config = /** @type {import('webpack').Configuration} */ ({
+  mode: NODE_ENV,
+  devtool: false,
+  watch: WATCH,
+
   plugins,
+
   resolve: {
-    modules: [path.resolve(import.meta.dirname, "node_modules"), SRC_DIR],
-    extensions: [".js", ".ts", ".tsx", ".css"],
+    extensions: [".js", ".jsx", ".ts", ".tsx", ".css"],
+    alias: {
+      /* eslint-disable prettier/prettier */
+      "@sculptor/main-process/*": path.resolve(import.meta.dirname, "packages/main-process/*"),
+      "@sculptor/shared": path.resolve(import.meta.dirname, "packages/shared/src/"),
+      "@sculptor/window-cue-preferences/*": path.resolve(import.meta.dirname, "packages/window-cue-preferences/*"),
+      "@sculptor/window-cue-split/*": path.resolve(import.meta.dirname, "packages/window-cue-split/*"),
+      "@sculptor/window-main/*": path.resolve(import.meta.dirname, "packages/window-main/*"),
+      "@sculptor/window-settings/*": path.resolve(import.meta.dirname, "packages/window-settings/*"),
+      "@sculptor/helpers/*": path.resolve(import.meta.dirname, "packages/helpers/*"),
+      /* eslint-enable prettier/prettier */
+    },
   },
   module: {
+    parser: {
+      javascript: {
+        commonjsMagicComments: true,
+      },
+    },
     rules: [
       {
         test: /\.(tsx|ts|js|jsx)$/,
@@ -36,12 +56,14 @@ let config = /** @type {import('webpack').Configuration} */ ({
           loader: "ts-loader",
           options: {
             configFile: "tsconfig.json",
+            logLevel: "info",
             onlyCompileBundledFiles: true,
           },
         },
       },
+
       {
-        test: /\.css$/,
+        test: /\.module\.(css)$/i,
         use: [
           MiniCSSExtractPlugin.loader,
           {
@@ -55,11 +77,23 @@ let config = /** @type {import('webpack').Configuration} */ ({
           },
         ],
       },
+
+      {
+        test: /\.css$/i,
+        exclude: /\.module\.(css)$/i,
+        use: [
+          MiniCSSExtractPlugin.loader,
+          {
+            loader: `css-loader`,
+            options: {
+              url: false,
+              modules: false,
+            },
+          },
+        ],
+      },
     ],
   },
-  mode: NODE_ENV,
-  devtool: false,
-  watch: WATCH,
 });
 
 export { config };

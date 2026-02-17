@@ -1,4 +1,14 @@
+import { PRELOAD_GLOBAL_KEY } from "@sculptor/helpers/constants";
+import { EmitIPCEvent } from "@sculptor/helpers/preload";
+
 declare module "*.css";
 
-declare const __APP_NAME__: string;
-declare const __DEVELOPMENT__: boolean;
+declare global {
+  const __APP_NAME__: string;
+  const __DEVELOPMENT__: boolean;
+
+  // global fix for electronAPI types
+  interface Window {
+    [PRELOAD_GLOBAL_KEY]: typeof EmitIPCEvent;
+  }
+}
