@@ -119,7 +119,7 @@ export class SettingsStore {
   };
 
   protected flushState = debounce(async () => {
-    // debouncing an async function probably needs a custom implementation
+    // debouncing an async function needs a custom implementation
     const state = this.getState();
     await writeFileAsync(settingsFilePath, JSON.stringify(state, null, 2));
   }, SAVE_DEBOUNCE_MS);

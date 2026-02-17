@@ -1,9 +1,8 @@
-import { IUndoableAction, UndoableActionState } from "./action";
-import { assert } from "@sculptor/helpers/assert";
+import { UndoableAction, redo, undo, UndoableActionState } from "./action";
 import type { IVTTCue } from "@sculptor/helpers/vtt";
 import type { IMinimalPartialVTTCue } from "../../store/subtitles";
 
-export class CuePatchAction implements IUndoableAction {
+export class CuePatchAction implements UndoableAction {
   public state = UndoableActionState.Undoable;
 
   constructor(
@@ -12,25 +11,13 @@ export class CuePatchAction implements IUndoableAction {
     protected options: { patch: (cue: IMinimalPartialVTTCue) => void },
   ) {}
 
+  @undo
   undo() {
-    assert(
-      this.state === UndoableActionState.Undoable,
-      "[undo] The aciton can not be undone",
-    );
-
     this.options.patch(this.originalCue);
-
-    this.state = UndoableActionState.Redoable;
   }
 
+  @redo
   redo() {
-    assert(
-      this.state === UndoableActionState.Redoable,
-      "[redo] The aciton can not be redone",
-    );
-
     this.options.patch(this.patch);
-
-    this.state = UndoableActionState.Undoable;
   }
 }

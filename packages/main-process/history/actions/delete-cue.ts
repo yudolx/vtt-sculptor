@@ -1,9 +1,8 @@
-import { IUndoableAction, UndoableActionState } from "./action";
+import { UndoableAction, redo, undo, UndoableActionState } from "./action";
 import { assert } from "@sculptor/helpers/assert";
 import { IVTTCue } from "@sculptor/helpers/vtt";
 
-export class DeleteCueAction implements IUndoableAction {
-  public name: string = "delete cue";
+export class DeleteCueAction implements UndoableAction {
   public state = UndoableActionState.Undoable;
 
   constructor(
@@ -17,23 +16,13 @@ export class DeleteCueAction implements IUndoableAction {
     assert(this.savedCueIndex !== -1, "Cue index can not be -1");
   }
 
+  @undo
   undo(): void {
-    assert(
-      this.state === UndoableActionState.Undoable,
-      `[redo ${this.name}] The aciton can not be undone`,
-    );
-
     this.options.insertCue(this.cue, this.savedCueIndex);
-    this.state = UndoableActionState.Redoable;
   }
 
+  @redo
   redo(): void {
-    assert(
-      this.state === UndoableActionState.Redoable,
-      `[redo ${this.name}] The aciton can not be redone`,
-    );
-
     this.options.deleteCue(this.cue.uuid);
-    this.state = UndoableActionState.Undoable;
   }
 }

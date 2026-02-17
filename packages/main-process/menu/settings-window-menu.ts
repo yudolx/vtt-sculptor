@@ -8,7 +8,7 @@ export class SettingsWindowMenu extends VttSculptorWindowMenu {
     super();
   }
 
-  generateMenu() {
+  override generateMenu() {
     return Menu.buildFromTemplate([
       // macOS-specific application menu
       ...(IS_DARWIN

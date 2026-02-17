@@ -20,9 +20,8 @@ export class ParsingError extends ExtendableError {
     },
   } as const;
 
-  public name = "ParsingError";
+  public override name = "ParsingError";
   public code: number;
-  public message: string;
 
   constructor(
     errorData: { code: number; message: string },

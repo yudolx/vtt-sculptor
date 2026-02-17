@@ -3,7 +3,6 @@ import path from "path";
 import { ISettings } from "./settings/types";
 import { IPluginImplementation } from "@sculptor/shared/types";
 import { BackgroundProcess } from "./background-process";
-import { QueryKey } from "@sculptor/helpers/constants";
 
 export interface IPluginIPCData {
   main: {

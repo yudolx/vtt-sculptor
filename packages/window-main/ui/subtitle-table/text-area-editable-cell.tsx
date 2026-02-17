@@ -48,7 +48,7 @@ export class TextAreaEditableCell<
     return this.props.cue[this.props.field] as string;
   }
 
-  componentDidUpdate(
+  override componentDidUpdate(
     prevProps: Readonly<ITextAreaEditableCellProps<Field>>,
     prevState: Readonly<ITextAreaEditableCellState>,
     snapshot?: any,
@@ -163,7 +163,7 @@ export class TextAreaEditableCell<
     return <div>{this.props.cue[this.props.field]}</div>;
   }
 
-  render() {
+  override render() {
     const { cue } = this.props;
     return (
       <StyledTextTd onDoubleClick={this.handleCueTextDoubleClick}>

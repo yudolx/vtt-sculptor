@@ -17,7 +17,7 @@ export class MainWindowMenu extends VttSculptorWindowMenu {
     super();
   }
 
-  generateMenu(): Menu {
+  override generateMenu(): Menu {
     const { historyManager } = this.app.store;
     const undoAction = historyManager.getLatestUndoableAction();
     const redoAction = historyManager.getLatestRedoableAction();

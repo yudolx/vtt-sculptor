@@ -15,6 +15,14 @@ import { AddCueAction } from "../history/actions/add-cue";
 import { CuePatchAction } from "../history/actions/cue-patch";
 import { DeleteCueAction } from "../history/actions/delete-cue";
 import { ReorderCueAction } from "../history/actions/reorder-cue";
+import { MergeDownCueAction } from "../history/actions/merge-down";
+
+interface IActionOptions {
+  /** send update query requests to the client or not */
+  query?: boolean;
+  /** push history object to the stack or not */
+  history?: boolean;
+}
 
 export class ApplicationStore {
   public video = new VideoStore();
@@ -22,6 +30,14 @@ export class ApplicationStore {
   public historyManager = new HistoryManager();
 
   constructor(protected app: BackgroundProcess) {}
+
+  public undo() {
+    this.historyManager.undo();
+  }
+
+  public redo() {
+    this.historyManager.redo();
+  }
 
   public setVideoPath(value: string | null) {
     this.video.setPath(value);
@@ -106,7 +122,7 @@ export class ApplicationStore {
       index = this.subtitles.insert(replaceCue, index);
 
       this.historyManager.push(
-        new AddCueAction(replaceCue, index, {
+        new AddCueAction(deepClone(replaceCue), index, {
           deleteCue: (...args) => this.subtitles.delete(...args),
           insertCue: (...args) => this.subtitles.insert(...args),
         }),
@@ -131,7 +147,7 @@ export class ApplicationStore {
       assert(cue, "[deleteCues] No cue found");
 
       this.historyManager.push(
-        new DeleteCueAction(cue, index, {
+        new DeleteCueAction(deepClone(cue), index, {
           deleteCue: (...args) => this.subtitles.delete(...args),
           insertCue: (...args) => this.subtitles.insert(...args),
         }),
@@ -164,11 +180,11 @@ export class ApplicationStore {
       return;
     }
 
-    const [activeCue] = activeCues;
+    const activeCue = deepClone(activeCues.at(0)!);
     const activeCueIndex = allCues.findIndex((c) => c.uuid === activeCue.uuid);
     assert(activeCueIndex !== -1, "activeCueIndex not found");
 
-    const nextToActiveCue = allCues.at(activeCueIndex + 1);
+    const nextToActiveCue = deepClone(allCues.at(activeCueIndex + 1));
     if (!nextToActiveCue) {
       console.log(
         "Ignoring merge down because there is nothing to merge the selected cue with",
@@ -176,16 +192,15 @@ export class ApplicationStore {
       return;
     }
 
-    this.deleteCues([nextToActiveCue.uuid], true);
-    this.patchCues(
-      [
-        {
-          uuid: activeCue.uuid,
-          text: `${activeCue.text} ${nextToActiveCue.text}`,
-          endTime: nextToActiveCue.endTime,
-        },
-      ],
-      true,
+    this.subtitles.patch({
+      uuid: activeCue.uuid,
+      text: `${activeCue.text} ${nextToActiveCue.text}`,
+      endTime: nextToActiveCue.endTime,
+    });
+    this.subtitles.delete(nextToActiveCue.uuid);
+
+    this.historyManager.push(
+      new MergeDownCueAction(activeCue, nextToActiveCue, this.subtitles),
     );
 
     this.app.invalidateQuery(QueryKey.CuesList);
@@ -225,13 +240,5 @@ export class ApplicationStore {
 
     this.app.window.updateMenu();
     this.app.invalidateQuery(QueryKey.CuesList);
-  }
-
-  public undo() {
-    this.historyManager.undo();
-  }
-
-  public redo() {
-    this.historyManager.redo();
   }
 }

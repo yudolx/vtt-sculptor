@@ -13,11 +13,7 @@ import { ApplicationStore } from "./store";
 import { QueryKey } from "@sculptor/helpers/constants";
 import type { IVTTCue } from "@sculptor/helpers/vtt";
 import { WindowManager } from "./window-manager";
-import {
-  IMinimalPartialVTTCue,
-  ISplitCueData,
-  ISplitCueIpcData,
-} from "./store/subtitles";
+import { IMinimalPartialVTTCue, ISplitCueData } from "./store/subtitles";
 import { FileOpener } from "./file-opener";
 import { SettingsStore } from "./settings";
 import { ISettings } from "./settings/types";
@@ -40,7 +36,7 @@ export class BackgroundProcess {
     this.window.main.show();
   }
 
-  invalidateQuery = (
+  public invalidateQuery = (
     query: QueryKey | (string & {}),
     windowArg?: BrowserWindow,
   ) => {
@@ -55,7 +51,13 @@ export class BackgroundProcess {
     }
   };
 
-  private bindIpcEvents = () => {
+  /** @deprecated it doesn't belong here probably */
+  public requestInsertNewCue = () => {
+    const time = Date.now();
+    this.window.main.webContents.send("ipc/main/request-insert-new-cue", time);
+  };
+
+  protected bindIpcEvents = () => {
     ipcMain.handle(
       "ipc/showOpenDialog",
       async (event, options: OpenDialogOptions) => {
@@ -199,12 +201,11 @@ export class BackgroundProcess {
       );
   };
 
-  requestInsertNewCue = () => {
-    const time = Date.now();
-    this.window.main.webContents.send("ipc/main/request-insert-new-cue", time);
-  };
+  protected setupCustomProtocols = () => {
+    const BAD_REQUEST = new Response("Bad request", {
+      status: 400,
+    });
 
-  setupCustomProtocols = () => {
     protocol.handle("plugins", async (request) => {
       console.log(request.url);
       await this.pluginManager.ready;
@@ -216,25 +217,32 @@ export class BackgroundProcess {
 
       if (typeof pluginId === "string" && typeof method === "string") {
         if (pluginId === "host") {
-          const methodParts = method.split("/");
-          if (
-            methodParts.at(0) === "file" &&
-            (methodParts.at(1)?.length ?? 0) > 0
-          ) {
-            const content = await fs.readFile(
-              path.join(__dirname, methodParts.at(1)!),
-              "utf-8",
-            );
-            return new Response(content, { status: 200 });
+          const [methodName = "", ...methodParams] = method.split("/");
+
+          if (methodName === "file") {
+            const hostFilePath = methodParams.at(0);
+
+            if (hostFilePath && hostFilePath.length > 0) {
+              const resovledPath = path.resolve(__dirname, hostFilePath);
+              if (resovledPath.startsWith(__dirname)) {
+                try {
+                  const content = await fs.readFile(
+                    path.join(__dirname, hostFilePath),
+                    "utf-8",
+                  );
+                  return new Response(content, { status: 200 });
+                } catch {
+                  return BAD_REQUEST;
+                }
+              }
+            }
           }
         } else {
           return this.pluginManager.execute(pluginId, method);
         }
       }
 
-      return new Response("Not found", {
-        status: 400,
-      });
+      return BAD_REQUEST;
     });
   };
 }

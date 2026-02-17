@@ -8,7 +8,7 @@ export class CuePreferenceWindowMenu extends VttSculptorWindowMenu {
     super();
   }
 
-  generateMenu(): Menu {
+  override generateMenu(): Menu {
     return Menu.buildFromTemplate([
       // macOS-specific application menu
       ...(IS_DARWIN

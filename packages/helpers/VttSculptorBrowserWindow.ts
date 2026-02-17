@@ -24,7 +24,7 @@ export class VTTSculptorBrowserWindow extends BrowserWindow {
     this.updateMenu();
   }
 
-  show() {
+  override show() {
     this.once("ready-to-show", () => {
       super.show();
     });

@@ -1,7 +1,6 @@
-import { IUndoableAction, UndoableActionState } from "./action";
-import { assert } from "@sculptor/helpers/assert";
+import { UndoableAction, redo, undo, UndoableActionState } from "./action";
 
-export class ReorderCueAction implements IUndoableAction {
+export class ReorderCueAction implements UndoableAction {
   public state = UndoableActionState.Undoable;
 
   constructor(
@@ -12,22 +11,13 @@ export class ReorderCueAction implements IUndoableAction {
     },
   ) {}
 
+  @undo
   undo(): void {
-    assert(
-      this.state === UndoableActionState.Undoable,
-      `[undo}] The aciton can not be undone`,
-    );
     this.options.reorder(this.overIndex, this.index);
-    this.state = UndoableActionState.Redoable;
   }
 
+  @redo
   redo(): void {
-    assert(
-      this.state === UndoableActionState.Redoable,
-      `[redo}] The aciton can not be redone`,
-    );
-
     this.options.reorder(this.index, this.overIndex);
-    this.state = UndoableActionState.Undoable;
   }
 }

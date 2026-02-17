@@ -3,6 +3,8 @@
     "strict": true,
     "module": "nodenext",
     "moduleResolution": "nodenext",
+    "noImplicitOverride": true,
+    "experimentalDecorators": true,
     "target": "esnext",
     "outDir": "./compiled/",
     "baseUrl": "./",

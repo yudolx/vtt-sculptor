@@ -1,7 +1,7 @@
-import { IUndoableAction, UndoableActionState } from "./actions/action";
+import { UndoableAction, UndoableActionState } from "./actions/action";
 
 export class HistoryManager {
-  protected list: IUndoableAction[] = [];
+  protected list: UndoableAction[] = [];
 
   public undo() {
     const item = this.list.findLast(
@@ -29,7 +29,7 @@ export class HistoryManager {
     item.redo();
   }
 
-  public push(action: IUndoableAction) {
+  public push(action: UndoableAction) {
     this.list = this.list.filter(
       (item) => item.state === UndoableActionState.Undoable,
     );
