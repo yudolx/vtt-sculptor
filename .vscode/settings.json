@@ -1,6 +1,6 @@
 {
     "typescript.tsdk": "node_modules/typescript/lib",
     "editor.tabSize": 2,
-    "eslint.experimental.useFlatConfig": false,
+    "eslint.nodePath": "./node_modules",
     "workbench.editor.tabSizingFixedMinWidth": 50
 }

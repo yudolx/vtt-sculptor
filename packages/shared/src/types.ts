@@ -1,4 +1,3 @@
-import { QueryKey } from "@sculptor/helpers/constants";
 import type { DeepPartial } from "@sculptor/helpers/typeUtils";
 
 export interface IPluginEditorToolboxComponentProps {
@@ -14,6 +13,7 @@ export interface IPluginImplementation<Settings> {
   id: string;
   name: string;
   description: string;
+  /** @deprecated */
   path: string;
-  getSettings(existingSettings: Settings | null): Settings;
+  getSettings(existingSettings: Settings | null): Settings | null;
 }

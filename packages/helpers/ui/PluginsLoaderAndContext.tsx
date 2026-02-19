@@ -142,6 +142,10 @@ const lazyPluginLoad = async (
     container.__initialized = true;
   }
 
-  const factory = await container.get(modulePath);
-  return factory();
+  try {
+    const factory = await container.get(modulePath);
+    return factory();
+  } catch {
+    return { default: () => null };
+  }
 };
