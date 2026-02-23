@@ -18,6 +18,7 @@ export const wrapSelectedTextInTag = (
     if (typeof tag === "string") {
       setValue(`${start}${tag}${end}`);
       el.selectionStart = selectionStart + tag.length;
+      el.selectionEnd = el.selectionStart;
     } else {
       setValue(`${start}${tag[0]}${tag[1]}${end}`);
       el.selectionStart = selectionStart + tag[0].length + tag[1].length;
