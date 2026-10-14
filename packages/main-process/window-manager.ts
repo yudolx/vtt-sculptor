@@ -98,6 +98,7 @@ export class WindowManager {
       parent: this.main,
       closable: true,
       modal: true,
+      useContentSize: true,
     });
 
     this.app.settings.trackWindowState("cueSplit", this.cueSplit);
