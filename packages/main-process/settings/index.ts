@@ -13,8 +13,10 @@ const settingsDir = electronApp.getPath("userData");
 const settingsFilename = "settings.json";
 const settingsFilePath = path.join(settingsDir, settingsFilename);
 
+console.log("Settings path:", settingsFilePath);
+
 const SAVE_DEBOUNCE_MS = 500;
-const LATEST_SETTINGS_VERSION = 3;
+const LATEST_SETTINGS_VERSION = 4;
 
 const getDefaultSettings = (): ISettings => ({
   version: LATEST_SETTINGS_VERSION,
@@ -22,6 +24,9 @@ const getDefaultSettings = (): ISettings => ({
   general: {
     tryDuete: true,
     pluginsDirectory: "",
+    development: {
+      displayCueId: false,
+    },
   },
   styles: {
     externalCueIds: [],
@@ -121,7 +126,9 @@ export class SettingsStore {
   protected flushState = debounce(async () => {
     // debouncing an async function needs a custom implementation
     const state = this.getState();
+    console.time("Settings saved");
     await writeFileAsync(settingsFilePath, JSON.stringify(state, null, 2));
+    console.timeEnd("Settings saved");
   }, SAVE_DEBOUNCE_MS);
 }
 

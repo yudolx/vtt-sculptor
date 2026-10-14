@@ -48,7 +48,7 @@ export const App = () => {
     };
 
     return;
-  }, [leftEl, resizeObserver]);
+  }, [leftEl]);
 
   React.useEffect(() => {
     setLeftWidth(settings?.windowsState.main.leftWidth ?? null);
@@ -85,7 +85,7 @@ const AppWrapper = styled(Box, {
 })<BoxProps & { leftWidth: number | null }>((props) => {
   return {
     display: "grid",
-    gridTemplateColumns: `${props.leftWidth}px auto`,
+    gridTemplateColumns: `${props.leftWidth === null ? "auto" : `${props.leftWidth}px`} auto`,
     height: "100vh",
   };
 });

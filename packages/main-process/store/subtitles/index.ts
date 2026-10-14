@@ -164,6 +164,9 @@ export class SubtitlesStore {
       this.cues.splice(index, 1);
     }
 
+    console.log("DELETING CUES", uuid);
+    this.updateItemsForSelectionModel([]);
+
     return index;
   }
 

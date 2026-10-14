@@ -15,6 +15,7 @@ export interface ITextAreaEditableCellProps<Field extends keyof IVTTCue> {
   cue: IVTTCue;
   edit: boolean;
   field: Field;
+  displayId: boolean;
   onChange: (value: string, field: Field, blur: boolean) => void;
   onDoubleClick: (field: Field) => void;
 }
@@ -164,19 +165,26 @@ export class TextAreaEditableCell<
   }
 
   override render() {
-    const { cue } = this.props;
+    const { cue, displayId } = this.props;
+
+    const displayFooter = displayId || cue.id;
+
     return (
       <StyledTextTd onDoubleClick={this.handleCueTextDoubleClick}>
         {this.props.edit ? this.renderEdit() : this.renderCueText()}
 
-        {cue.id ? (
+        {displayFooter ? (
           <React.Fragment>
             <Divider sx={{ margin: "5px 0" }} />
             <Stack direction="row" alignItems="center" spacing={1}>
-              <Chip color="danger" size="sm" title={cue.id}>
-                ID
-              </Chip>
-              <Typography level="body-xs">{cue.uuid}</Typography>
+              {cue.id ? (
+                <Chip color="danger" size="sm" title={cue.id}>
+                  ID
+                </Chip>
+              ) : null}
+              {displayId ? (
+                <Typography level="body-xs">{cue.uuid}</Typography>
+              ) : null}
             </Stack>
           </React.Fragment>
         ) : null}

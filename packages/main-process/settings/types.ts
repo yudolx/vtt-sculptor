@@ -11,6 +11,9 @@ export interface ISettings extends MigrateState {
   general: {
     tryDuete: boolean;
     pluginsDirectory: string;
+    development: {
+      displayCueId: boolean;
+    };
   };
   styles: {
     externalCueIds: string[];
@@ -40,6 +43,9 @@ export const settingsSchema = joi.object({
     .object({
       tryDuete: joi.boolean().required(),
       pluginsDirectory: joi.string().allow("").required(),
+      development: joi.object({
+        displayCueId: joi.boolean().required(),
+      }),
     })
     .required(),
   styles: joi

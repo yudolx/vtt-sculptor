@@ -1,6 +1,6 @@
 import React from "react";
 import { ISettings } from "@sculptor/main-process/settings/types";
-import { Checkbox, FormHelperText, Input, Button } from "@mui/joy";
+import { Checkbox, FormHelperText, Input, Button, Divider } from "@mui/joy";
 import { StyledFormControl, StyledFormLabel } from "../components/styled";
 import { DeepPartial } from "@sculptor/helpers/typeUtils";
 
@@ -66,6 +66,22 @@ export const GeneralSettings = (props: IGeneralSettingsProps) => {
         <FormHelperText>
           For this setting to take effect you need to restart the program
         </FormHelperText>
+      </StyledFormControl>
+
+      <Divider />
+
+      <StyledFormControl>
+        <Checkbox
+          label="[dev] Display cue ids"
+          checked={settings.development.displayCueId}
+          onChange={(e) => {
+            onChange({
+              development: {
+                displayCueId: e.target.checked,
+              },
+            });
+          }}
+        />
       </StyledFormControl>
     </React.Fragment>
   );

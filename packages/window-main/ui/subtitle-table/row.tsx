@@ -5,6 +5,8 @@ import { IVTTCue, stringifyTimestamp } from "@sculptor/helpers/vtt";
 import { toFixedNumber } from "@sculptor/helpers/to-fixed-number";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { useQuery } from "@tanstack/react-query";
+import { QueryKey } from "@sculptor/helpers/constants";
 
 export interface ISubtitleTableRowProps {
   isActive: boolean;
@@ -33,6 +35,11 @@ export const SubtitleTableRow = (props: ISubtitleTableRowProps) => {
     editField,
     isNew,
   } = props;
+
+  const { data: settings = null } = useQuery({
+    queryKey: [QueryKey.Settings],
+    queryFn: window.electronAPI.fetchSettings,
+  });
 
   const { attributes, listeners, setNodeRef, transform, transition } =
     useSortable({ id: cue.uuid });
@@ -111,6 +118,7 @@ export const SubtitleTableRow = (props: ISubtitleTableRowProps) => {
         edit={isActive && editField === "text"}
         cue={cue}
         field="text"
+        displayId={settings?.general.development.displayCueId ?? false}
         onChange={handleChange}
         onDoubleClick={handleCellDoubleClick}
       />

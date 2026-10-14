@@ -18,6 +18,7 @@ export class MultipleSelectionModel<Q> {
     if (selected) {
       this.selected = new Set(selected);
     }
+    this.lastClickedItem = null;
   }
 
   public getSelected() {
@@ -177,7 +178,7 @@ export class MultipleSelectionModel<Q> {
 
         assert(fromItem, 'No "from" item found');
         const fromItemIndex = this.items.indexOf(fromItem);
-        assert(fromItemIndex !== -1, 'No "from" item found');
+        assert(fromItemIndex !== -1, 'No "from" index found');
 
         let nextItemIndex: number;
 
