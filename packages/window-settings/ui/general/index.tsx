@@ -1,7 +1,7 @@
 import React from "react";
 import { ISettings } from "@sculptor/main-process/settings/types";
-import { Checkbox, FormHelperText, Input, Button, Divider } from "@mui/joy";
-import { StyledFormControl, StyledFormLabel } from "../components/styled";
+import { Checkbox, FormHelperText, Divider } from "@mui/joy";
+import { StyledFormControl } from "../components/styled";
 import { DeepPartial } from "@sculptor/helpers/typeUtils";
 
 interface IGeneralSettingsProps {
@@ -11,30 +11,6 @@ interface IGeneralSettingsProps {
 
 export const GeneralSettings = (props: IGeneralSettingsProps) => {
   const { settings, onChange } = props;
-
-  const handleChoosePluginsDirClick = React.useCallback(() => {
-    window.electronAPI
-      .showOpenDialog({
-        properties: ["openDirectory"],
-      })
-      .then((response) => {
-        if (!response.canceled) {
-          const [firstFilePath] = response.filePaths;
-          onChange({
-            pluginsDirectory: firstFilePath,
-          });
-        }
-      });
-  }, [onChange]);
-
-  const handleChoosePluginsDirChange = React.useCallback(
-    (event: React.ChangeEvent<HTMLInputElement>) => {
-      onChange({
-        pluginsDirectory: event.target.value,
-      });
-    },
-    [onChange],
-  );
 
   return (
     <React.Fragment>
@@ -51,20 +27,6 @@ export const GeneralSettings = (props: IGeneralSettingsProps) => {
         <FormHelperText>
           When opening a video, the program will try to find the matching
           subtitles in the same folder (and vice versa).
-        </FormHelperText>
-      </StyledFormControl>
-      <StyledFormControl>
-        <StyledFormLabel>Plugins folder</StyledFormLabel>
-        <Input
-          placeholder="or type the path manually here"
-          value={settings.pluginsDirectory}
-          onChange={handleChoosePluginsDirChange}
-          startDecorator={
-            <Button onClick={handleChoosePluginsDirClick}>Choose</Button>
-          }
-        />
-        <FormHelperText>
-          For this setting to take effect you need to restart the program
         </FormHelperText>
       </StyledFormControl>
 

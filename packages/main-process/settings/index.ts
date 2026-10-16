@@ -16,14 +16,17 @@ const settingsFilePath = path.join(settingsDir, settingsFilename);
 console.log("Settings path:", settingsFilePath);
 
 const SAVE_DEBOUNCE_MS = 500;
-const LATEST_SETTINGS_VERSION = 4;
+const LATEST_SETTINGS_VERSION = 5;
 
 const getDefaultSettings = (): ISettings => ({
   version: LATEST_SETTINGS_VERSION,
-  plugins: {},
+  plugins: {
+    enabled: true,
+    directory: "",
+    list: {},
+  },
   general: {
     tryDuete: true,
-    pluginsDirectory: "",
     development: {
       displayCueId: false,
     },
@@ -64,8 +67,13 @@ export class SettingsStore {
     return this.settings.windowsState;
   }
 
+  get plugins() {
+    return this.settings.plugins;
+  }
+
+  /** @deprecated */
   get pluginsDirectory() {
-    return this.settings.general.pluginsDirectory;
+    return this.settings.plugins.directory;
   }
 
   get externalCueIds() {

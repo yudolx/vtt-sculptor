@@ -20,6 +20,9 @@ export const App = () => {
     queryFn: window.electronAPI.fetchSettings,
   });
 
+  const hasPluginsAndEnabled =
+    pluginComponentMap.size > 0 && settings?.plugins.enabled;
+
   const { current: resizeObserver } = React.useRef(
     new ResizeObserver((entries) => {
       for (const entry of entries) {
@@ -55,7 +58,7 @@ export const App = () => {
   }, [settings]);
 
   return (
-    <AppWrapper leftWidth={leftWidth ?? null}>
+    <AppWrapper leftWidth={hasPluginsAndEnabled ? (leftWidth ?? null) : null}>
       <Left ref={(el) => setLeftEl(el)}>
         <VideoWrapper>
           <Video />
@@ -70,7 +73,7 @@ export const App = () => {
           <SubtitleTable />
         </SubtitleTableWrapper>
       </Left>
-      {pluginComponentMap.size > 0 ? (
+      {hasPluginsAndEnabled ? (
         <Right>
           <Plugins />
         </Right>

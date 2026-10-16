@@ -29,8 +29,8 @@ export class PluginsManager {
   }
 
   protected async scan() {
-    const pluginsDir = this.app.settings.pluginsDirectory;
-    if (path.isAbsolute(pluginsDir)) {
+    const pluginsDir = this.app.settings.plugins.directory;
+    if (path.isAbsolute(pluginsDir) && this.app.settings.plugins.enabled) {
       try {
         await fs.stat(pluginsDir);
       } catch {
@@ -42,23 +42,26 @@ export class PluginsManager {
 
       const dirlist = await fs.readdir(pluginsDir);
       const existingSettings = this.app.settings.getState().plugins;
-      const pluginsSettings: ISettings["plugins"] = {};
+      const pluginsSettings: ISettings["plugins"]["list"] = {};
       for (const dir of dirlist) {
         const absolutePluginDirPath = path.join(pluginsDir, dir);
         const pluginPath = await tryRootOrCompiledFolder(absolutePluginDirPath);
         if (pluginPath) {
-          /* eslint-disable-next-line prettier/prettier, @typescript-eslint/no-var-requires */
+          /* eslint-disable-next-line prettier/prettier, @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports */
           const {default: Plugin} = require(/* webpackIgnore: true */ path.join(pluginPath, "main.js"));
           const plugin: IPluginImplementation<unknown> = new Plugin(this.app);
           plugin.path = pluginPath;
           this.plugins.push(plugin);
           pluginsSettings[plugin.id] = plugin.getSettings(
-            existingSettings[plugin.id],
+            existingSettings["list"][plugin.id],
           );
         }
       }
       this.app.settings.setState({
-        plugins: pluginsSettings,
+        plugins: {
+          ...existingSettings,
+          list: pluginsSettings,
+        },
       });
     }
   }

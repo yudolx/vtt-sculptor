@@ -10,7 +10,6 @@ import {
 import { StylesSettings } from "./styles";
 import { useQuery } from "@tanstack/react-query";
 import { QueryKey } from "@sculptor/helpers/constants";
-import { PluginsContext } from "@sculptor/helpers/ui/PluginsLoaderAndContext";
 import { PluginsSettings } from "./plugins";
 import { GeneralSettings } from "./general";
 
@@ -21,7 +20,6 @@ enum SettingsTab {
 }
 
 export const App = () => {
-  const { pluginComponentMap } = React.useContext(PluginsContext);
   const [tab, setTab] = React.useState(SettingsTab.General);
 
   const { data: settings = null, isLoading } = useQuery({
@@ -54,9 +52,7 @@ export const App = () => {
       <TabList sx={{ width: 200 }}>
         <Tab value={SettingsTab.General}>General</Tab>
         <Tab value={SettingsTab.Style}>Styles</Tab>
-        {pluginComponentMap.size > 0 && (
-          <Tab value={SettingsTab.Plugins}>Plugins</Tab>
-        )}
+        <Tab value={SettingsTab.Plugins}>Plugins</Tab>
       </TabList>
       <StyledTabPanel value={SettingsTab.General}>
         <GeneralSettings
@@ -78,14 +74,17 @@ export const App = () => {
           }}
         />
       </StyledTabPanel>
-      {pluginComponentMap.size > 0 && (
-        <StyledTabPanel value={SettingsTab.Plugins}>
-          <PluginsSettings
-            settings={settings.plugins ?? null}
-            onChange={handlePluginsSettingsChange}
-          />
-        </StyledTabPanel>
-      )}
+      <StyledTabPanel value={SettingsTab.Plugins}>
+        <PluginsSettings
+          settings={settings.plugins ?? null}
+          onChange={(settings) => {
+            window.electronAPI.setSettings({
+              plugins: settings,
+            });
+          }}
+          onPluginsChange={handlePluginsSettingsChange}
+        />
+      </StyledTabPanel>
     </Tabs>
   );
 };

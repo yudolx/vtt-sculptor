@@ -2,7 +2,7 @@ import { Rectangle } from "electron";
 import joi from "joi";
 import { MigrateState } from "@sculptor/helpers/libs/migrate";
 
-export interface ISettings extends MigrateState {
+export interface ISettingsV5 extends MigrateState {
   windowsState: {
     main: Partial<Rectangle & { leftWidth: number }>;
     settings: Partial<Rectangle>;
@@ -10,7 +10,6 @@ export interface ISettings extends MigrateState {
   };
   general: {
     tryDuete: boolean;
-    pluginsDirectory: string;
     development: {
       displayCueId: boolean;
     };
@@ -18,8 +17,14 @@ export interface ISettings extends MigrateState {
   styles: {
     externalCueIds: string[];
   };
-  plugins: Record<string, unknown>;
+  plugins: {
+    enabled: boolean;
+    directory: string;
+    list: Record<string, unknown>;
+  };
 }
+
+export type ISettings = ISettingsV5;
 
 const rectangleSchema = joi.object({
   height: joi.number().required(),
@@ -42,7 +47,6 @@ export const settingsSchema = joi.object({
   general: joi
     .object({
       tryDuete: joi.boolean().required(),
-      pluginsDirectory: joi.string().allow("").required(),
       development: joi.object({
         displayCueId: joi.boolean().required(),
       }),
@@ -53,7 +57,13 @@ export const settingsSchema = joi.object({
       externalCueIds: joi.array().items(joi.string()).required(),
     })
     .required(),
-  plugins: joi.object().required(),
+  plugins: joi
+    .object({
+      enabled: joi.boolean().required(),
+      directory: joi.string().allow("").required(),
+      list: joi.object().required(),
+    })
+    .required(),
 });
 
 export const validateSettings = (data: unknown): ISettings => {
